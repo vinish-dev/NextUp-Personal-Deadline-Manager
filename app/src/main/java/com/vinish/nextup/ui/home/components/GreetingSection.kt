@@ -41,7 +41,7 @@ fun getGreetingMessage(): String {
 @Composable
 fun GreetingSection(
     name: String,
-    modifier: Modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp, vertical = 16.dp),
+    modifier: Modifier = Modifier.fillMaxWidth(),
     greeting: String = getGreetingMessage(),
     subtitle: String = "Stay on top of what matters",
     userInitial: String = name.firstOrNull()?.uppercase() ?: "V",
