@@ -44,6 +44,17 @@ object SampleDeadlines {
         ),
         Deadline(
             id = 4L,
+            title = "Algorithm Problem Set",
+            description = "Dynamic programming and graph problems",
+            dueDate = LocalDate.now().plusDays(1),
+            dueTime = LocalTime.of(20, 0),
+            category = Category.EDUCATION,
+            priority = Priority.MEDIUM,
+            reminder = Reminder.ONE_HOUR_BEFORE,
+            isCompleted = false
+        ),
+        Deadline(
+            id = 5L,
             title = "Electricity Bill",
             description = "Pay monthly utility bill via electricity portal",
             dueDate = LocalDate.now().plusDays(3),
@@ -54,7 +65,7 @@ object SampleDeadlines {
             isCompleted = false
         ),
         Deadline(
-            id = 5L,
+            id = 6L,
             title = "Gym Membership Renewal",
             description = "Annual membership renewal fee",
             dueDate = LocalDate.now().plusDays(5),
@@ -63,6 +74,29 @@ object SampleDeadlines {
             priority = Priority.LOW,
             reminder = Reminder.NONE,
             isCompleted = false
+        ),
+        Deadline(
+            id = 7L,
+            title = "UI/UX Portfolio Review",
+            description = "Present redesigned case study to mentor",
+            dueDate = LocalDate.now().plusDays(6),
+            dueTime = LocalTime.of(15, 30),
+            category = Category.WORK,
+            priority = Priority.MEDIUM,
+            reminder = Reminder.ONE_DAY_BEFORE,
+            isCompleted = false
         )
     )
+
+    val todayDeadlines: List<Deadline>
+        get() = sampleDeadlines.filter { it.dueDate.isEqual(LocalDate.now()) }
+
+    val tomorrowDeadlines: List<Deadline>
+        get() = sampleDeadlines.filter { it.dueDate.isEqual(LocalDate.now().plusDays(1)) }
+
+    val thisWeekDeadlines: List<Deadline>
+        get() = sampleDeadlines.filter {
+            val today = LocalDate.now()
+            it.dueDate.isAfter(today.plusDays(1)) && it.dueDate.isBefore(today.plusDays(8))
+        }
 }

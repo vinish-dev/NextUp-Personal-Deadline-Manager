@@ -11,22 +11,30 @@ import com.vinish.nextup.data.sample.SampleDeadlines
 import com.vinish.nextup.model.Deadline
 import com.vinish.nextup.ui.components.SectionHeader
 
+/**
+ * Reusable section component that displays a header and up to [maxItems] deadline cards.
+ */
 @Composable
-fun TodaySection(
+fun DeadlineSection(
+    title: String,
+    deadlines: List<Deadline>,
     modifier: Modifier = Modifier,
-    deadlines: List<Deadline> = SampleDeadlines.sampleDeadlines,
+    maxItems: Int = 2,
+    showSeeAll: Boolean = true,
     onSeeAllClick: () -> Unit = {},
     onDeadlineClick: ((Deadline) -> Unit)? = null
 ) {
-    val displayDeadlines = deadlines.take(2)
+    if (deadlines.isEmpty()) return
+
+    val displayDeadlines = deadlines.take(maxItems)
 
     Column(
         modifier = modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
         SectionHeader(
-            title = "Today",
-            showViewAll = true,
+            title = title,
+            showViewAll = showSeeAll,
             onViewAllClick = onSeeAllClick
         )
 
@@ -41,8 +49,9 @@ fun TodaySection(
 
 @Preview(showBackground = true)
 @Composable
-private fun TodaySectionPreview() {
-    TodaySection(
-        deadlines = SampleDeadlines.sampleDeadlines
+private fun DeadlineSectionPreview() {
+    DeadlineSection(
+        title = "Today",
+        deadlines = SampleDeadlines.todayDeadlines
     )
 }

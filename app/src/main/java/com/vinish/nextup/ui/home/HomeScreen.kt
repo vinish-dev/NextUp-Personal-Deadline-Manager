@@ -11,9 +11,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.vinish.nextup.data.sample.SampleDeadlines
+import com.vinish.nextup.ui.home.components.DeadlineSection
 import com.vinish.nextup.ui.home.components.GreetingSection
 import com.vinish.nextup.ui.home.components.OverviewSection
-import com.vinish.nextup.ui.home.components.TodaySection
 import com.vinish.nextup.ui.home.model.OverviewItem
 import com.vinish.nextup.ui.home.model.OverviewType
 
@@ -24,7 +24,7 @@ fun HomeScreen(modifier: Modifier = Modifier) {
         verticalArrangement = Arrangement.spacedBy(16.dp),
         contentPadding = PaddingValues(horizontal = 16.dp, vertical = 20.dp)
     ) {
-        item{
+        item {
             GreetingSection(
                 name = "Vinish"
             )
@@ -41,12 +41,28 @@ fun HomeScreen(modifier: Modifier = Modifier) {
                 )
             )
         }
+
         item {
-            TodaySection(
-                deadlines = SampleDeadlines.sampleDeadlines
+            DeadlineSection(
+                title = "Today",
+                deadlines = SampleDeadlines.todayDeadlines
             )
         }
 
+        item {
+            DeadlineSection(
+                title = "Tomorrow",
+                deadlines = SampleDeadlines.tomorrowDeadlines,
+                showSeeAll = false
+            )
+        }
+
+        item {
+            DeadlineSection(
+                title = "This Week",
+                deadlines = SampleDeadlines.thisWeekDeadlines
+            )
+        }
     }
 }
 
