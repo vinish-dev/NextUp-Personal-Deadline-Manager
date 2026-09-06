@@ -60,7 +60,7 @@ fun GreetingSection(
             )
             Text(
                 text = subtitle,
-                fontSize = 15.sp,
+                style = MaterialTheme.typography.bodyMedium,
                 color = TextSecondary,
                 modifier = Modifier.padding(top = 4.dp)
             )
