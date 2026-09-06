@@ -1,10 +1,10 @@
-package com.vinish.nextup.ui.upcoming
+package com.vinish.nextup.ui.profile
 
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 
 @Composable
-fun UpcomingScreen(modifier: Modifier = Modifier) {
-    Text("UpcomingScreen")
+fun ProfileScreen(modifier: Modifier = Modifier) {
+    Text("ProfileScreen")
 }
