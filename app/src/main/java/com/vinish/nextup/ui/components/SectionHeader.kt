@@ -19,6 +19,7 @@ fun SectionHeader(
     title: String,
     modifier: Modifier = Modifier,
     showViewAll: Boolean = true, //optional
+    actionText: String = "See all",
     onViewAllClick: () -> Unit = {}, //optional
 ) {
     Row(
@@ -37,8 +38,8 @@ fun SectionHeader(
         if (showViewAll) {
             TextButton(onClick = onViewAllClick) {
                 Text(
-                    text = "View All",
-                    fontWeight = FontWeight.Bold,
+                    text = actionText,
+                    fontWeight = FontWeight.Medium,
                     color = PrimaryBlue
                 )
             }

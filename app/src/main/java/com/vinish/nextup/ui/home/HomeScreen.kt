@@ -10,6 +10,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.vinish.nextup.data.sample.SampleDeadlines
 import com.vinish.nextup.ui.home.components.GreetingSection
 import com.vinish.nextup.ui.home.components.OverviewSection
 import com.vinish.nextup.ui.home.components.TodaySection
@@ -41,7 +42,9 @@ fun HomeScreen(modifier: Modifier = Modifier) {
             )
         }
         item {
-            TodaySection()
+            TodaySection(
+                deadlines = SampleDeadlines.sampleDeadlines
+            )
         }
 
     }
