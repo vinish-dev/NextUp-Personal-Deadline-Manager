@@ -14,6 +14,7 @@ import com.vinish.nextup.ui.home.components.GreetingSection
 import com.vinish.nextup.ui.home.components.OverviewSection
 import com.vinish.nextup.ui.home.components.TodaySection
 import com.vinish.nextup.ui.home.model.OverviewItem
+import com.vinish.nextup.ui.home.model.OverviewType
 
 @Composable
 fun HomeScreen(modifier: Modifier = Modifier) {

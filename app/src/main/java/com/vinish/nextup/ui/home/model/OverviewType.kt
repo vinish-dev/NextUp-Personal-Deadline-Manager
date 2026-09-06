@@ -1,3 +1,5 @@
+package com.vinish.nextup.ui.home.model
+
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.DateRange
 import androidx.compose.material.icons.outlined.Event

@@ -1,6 +1,5 @@
 package com.vinish.nextup.ui.home.components
-
-import OverviewType
+import com.vinish.nextup.ui.home.model.OverviewType
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
