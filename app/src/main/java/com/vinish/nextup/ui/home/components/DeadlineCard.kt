@@ -1,5 +1,6 @@
 package com.vinish.nextup.ui.home.components
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -36,6 +37,7 @@ import androidx.compose.ui.unit.sp
 import com.vinish.nextup.model.Category
 import com.vinish.nextup.model.Deadline
 import com.vinish.nextup.model.Priority
+import com.vinish.nextup.ui.theme.BorderStoke
 import com.vinish.nextup.ui.theme.CategoryDocuments
 import com.vinish.nextup.ui.theme.CategoryEducation
 import com.vinish.nextup.ui.theme.CategoryFinance
@@ -106,7 +108,8 @@ fun DeadlineCard(
             ),
         shape = RoundedCornerShape(20.dp),
         colors = CardDefaults.cardColors(containerColor = SurfaceWhite),
-        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+        border = BorderStroke(width = 1.dp, color = BorderStoke)
     ) {
         Row(
             modifier = Modifier

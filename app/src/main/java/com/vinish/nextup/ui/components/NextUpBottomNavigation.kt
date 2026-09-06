@@ -6,10 +6,12 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.CalendarToday
 import androidx.compose.material.icons.filled.Category
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.outlined.CalendarMonth
 import androidx.compose.material.icons.outlined.CalendarToday
 import androidx.compose.material.icons.outlined.Category
 import androidx.compose.material.icons.outlined.Home
@@ -73,7 +75,7 @@ fun NextUpBottomNavigation(
             onClick = { onItemClick("calendar") },
             icon = {
                 Icon(
-                    imageVector = if (currentRoute == "calendar") Icons.Filled.CalendarToday else Icons.Outlined.CalendarToday,
+                    imageVector = if (currentRoute == "calendar") Icons.Filled.CalendarMonth else Icons.Outlined.CalendarMonth,
                     contentDescription = "Calendar"
                 )
             },

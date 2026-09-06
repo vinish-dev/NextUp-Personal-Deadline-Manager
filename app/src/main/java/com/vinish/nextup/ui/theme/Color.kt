@@ -56,3 +56,6 @@ val CheckboxChecked = Color(0xFF1E6BFF)
 val CheckboxBorder = Color(0xFFCBD5E1)
 val ProgressBarTrack = Color(0xFFE2E8F0)
 val ProgressBarIndicator = Color(0xFF1E6BFF)
+
+// border color
+val BorderStoke = Color(0xFFF5F3F3)
