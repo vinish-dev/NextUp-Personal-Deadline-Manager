@@ -1,20 +1,14 @@
 package com.vinish.nextup
 
-import android.R.attr.onClick
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Icon
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.vinish.nextup.navigation.AppNavigation
-import com.vinish.nextup.navigation.bottomNavItems
+import com.vinish.nextup.ui.components.NextUpBottomNavigation
 
 @Composable
 fun App(modifier: Modifier = Modifier) {
@@ -24,49 +18,22 @@ fun App(modifier: Modifier = Modifier) {
     val currentRoute = navBackStackEntry?.destination?.route
 
     Scaffold(
+        modifier = modifier,
         bottomBar = {
-            BottomBar(
-                navController = navController,
-                currentRoute = currentRoute
-            )
-        }
-    ) { innerPadding ->
-        AppNavigation(navController = navController, modifier = Modifier.padding(innerPadding))
-    }
-
-}
-
-@Composable
-private fun BottomBar(
-    navController: NavController,
-    currentRoute: String?,
-    modifier: Modifier = Modifier
-) {
-    NavigationBar(modifier = modifier) {
-        bottomNavItems.forEach { screen ->
-            NavigationBarItem(
-                selected = currentRoute == screen.route,
-
-                onClick = {
-                    navController.navigate(screen.route) {
+            NextUpBottomNavigation(
+                currentRoute = currentRoute,
+                onItemClick = { route ->
+                    navController.navigate(route) {
                         popUpTo(navController.graph.startDestinationId) {
                             saveState = true
                         }
                         launchSingleTop = true
                         restoreState = true
                     }
-                },
-
-                icon = {
-                    Icon(
-                        imageVector = screen.icon,
-                        contentDescription = screen.label
-                    )
-                },
-
-                label = { Text(screen.label) }
-
+                }
             )
         }
+    ) { innerPadding ->
+        AppNavigation(navController = navController, modifier = Modifier.padding(innerPadding))
     }
 }

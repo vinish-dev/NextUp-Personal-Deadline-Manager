@@ -24,19 +24,19 @@ fun AppNavigation(
             HomeScreen(modifier = modifier)
         }
 
-        composable(Screen.Calendar.route){
+        composable(Screen.Calendar.route) {
             CalendarScreen(modifier = modifier)
         }
 
-        composable(Screen.Add.route){
+        composable(Screen.Add.route) {
             AddDeadlineScreen(modifier = modifier)
         }
 
-        composable(Screen.Categories.route){
+        composable(Screen.Categories.route) {
             CategoriesScreen(modifier = modifier)
         }
 
-        composable(Screen.Profile.route){
+        composable(Screen.Profile.route) {
             ProfileScreen(modifier = modifier)
         }
     }
