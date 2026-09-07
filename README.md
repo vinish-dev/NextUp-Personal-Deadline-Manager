@@ -112,5 +112,3 @@ St Joseph Engineering College (SJEC).
   <img src="screenshots/add2.png" />
   <img src="screenshots/details.png" />
 </p>
-
-And I'd not add a giant "Future Scope" section or fake badges. The project will look much more genuine if the README simply shows what NextUp is, what it currently does, and how it's built.
