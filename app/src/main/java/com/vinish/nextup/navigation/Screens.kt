@@ -54,6 +54,14 @@ sealed class Screen(
     ) {
         fun createRoute(deadlineId: Long): String = "details/$deadlineId"
     }
+
+    data object Edit : Screen(
+        "edit/{deadlineId}",
+        "Edit",
+        Icons.Outlined.AddCircleOutline
+    ) {
+        fun createRoute(deadlineId: Long): String = "edit/$deadlineId"
+    }
 }
 
 val bottomNavItems = listOf(

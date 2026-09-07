@@ -22,6 +22,7 @@ import com.vinish.nextup.ui.theme.TextPrimary
 @Composable
 fun AddTopBar(
     modifier: Modifier = Modifier,
+    title: String = "Add Deadline",
     onBackClick: () -> Unit = {}
 ) {
     Row(
@@ -39,7 +40,7 @@ fun AddTopBar(
             )
         }
         Text(
-            text = "Add Deadline",
+            text = title,
             style = MaterialTheme.typography.titleLarge,
             textAlign = TextAlign.Center,
             fontWeight = FontWeight.Bold,

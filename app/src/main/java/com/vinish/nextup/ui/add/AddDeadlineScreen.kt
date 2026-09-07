@@ -49,20 +49,29 @@ import java.time.LocalTime
 fun AddDeadlineScreen(
     modifier: Modifier = Modifier,
     initialDate: LocalDate? = null,
+    existingDeadline: Deadline? = null,
     onBackClick: () -> Unit = {},
     onSaveDeadline: ((Deadline) -> Unit)? = null
 ) {
-    var title by remember { mutableStateOf("") }
-    var description by remember { mutableStateOf("") }
-    var category by remember { mutableStateOf(Category.EDUCATION) }
-    var dueDate by remember(initialDate) { mutableStateOf(initialDate ?: LocalDate.now()) }
-    var dueTime by remember { mutableStateOf<LocalTime?>(null) }
-    var reminder by remember { mutableStateOf(Reminder.NONE) }
-    var priority by remember { mutableStateOf(Priority.MEDIUM) }
-    var recurrence by remember { mutableStateOf(Recurrence.NONE) }
+    val isEditMode = existingDeadline != null
 
-    var isSubtasksEnabled by remember { mutableStateOf(false) }
-    var subtasks by remember { mutableStateOf(listOf<Subtask>()) }
+    var title by remember(existingDeadline) { mutableStateOf(existingDeadline?.title ?: "") }
+    var description by remember(existingDeadline) { mutableStateOf(existingDeadline?.description ?: "") }
+    var category by remember(existingDeadline) { mutableStateOf(existingDeadline?.category ?: Category.EDUCATION) }
+    var dueDate by remember(existingDeadline, initialDate) {
+        mutableStateOf(existingDeadline?.dueDate ?: (initialDate ?: LocalDate.now()))
+    }
+    var dueTime by remember(existingDeadline) { mutableStateOf<LocalTime?>(existingDeadline?.dueTime) }
+    var reminder by remember(existingDeadline) { mutableStateOf(existingDeadline?.reminder ?: Reminder.NONE) }
+    var priority by remember(existingDeadline) { mutableStateOf(existingDeadline?.priority ?: Priority.MEDIUM) }
+    var recurrence by remember(existingDeadline) { mutableStateOf(existingDeadline?.recurrence ?: Recurrence.NONE) }
+
+    var isSubtasksEnabled by remember(existingDeadline) {
+        mutableStateOf(existingDeadline?.subtasks?.isNotEmpty() == true)
+    }
+    var subtasks by remember(existingDeadline) {
+        mutableStateOf(existingDeadline?.subtasks ?: listOf<Subtask>())
+    }
 
     var titleError by remember { mutableStateOf(false) }
 
@@ -71,6 +80,7 @@ fun AddDeadlineScreen(
         containerColor = BackgroundLight,
         topBar = {
             AddTopBar(
+                title = if (isEditMode) "Edit Deadline" else "Add Deadline",
                 modifier = Modifier.padding(top = 8.dp, bottom = 4.dp),
                 onBackClick = onBackClick
             )
@@ -156,26 +166,40 @@ fun AddDeadlineScreen(
 
             Spacer(modifier = Modifier.height(8.dp))
 
-            // Primary Save Deadline Action
+            // Primary Save / Update Deadline Action
             Button(
                 onClick = {
                     if (title.isBlank()) {
                         titleError = true
                     } else {
-                        val newDeadline = Deadline(
-                            title = title.trim(),
-                            description = description.trim().ifEmpty { null },
-                            dueDate = dueDate,
-                            dueTime = dueTime,
-                            category = category,
-                            priority = priority,
-                            reminder = reminder,
-                            recurrence = recurrence,
-                            subtasks = if (isSubtasksEnabled) subtasks else emptyList(),
-                            isCompleted = false
-                        )
-                        Log.d("AddDeadlineScreen", "Saved deadline: $newDeadline")
-                        onSaveDeadline?.invoke(newDeadline)
+                        val deadlineToSave = if (isEditMode && existingDeadline != null) {
+                            existingDeadline.copy(
+                                title = title.trim(),
+                                description = description.trim().ifEmpty { null },
+                                dueDate = dueDate,
+                                dueTime = dueTime,
+                                category = category,
+                                priority = priority,
+                                reminder = reminder,
+                                recurrence = recurrence,
+                                subtasks = if (isSubtasksEnabled) subtasks else emptyList()
+                            )
+                        } else {
+                            Deadline(
+                                title = title.trim(),
+                                description = description.trim().ifEmpty { null },
+                                dueDate = dueDate,
+                                dueTime = dueTime,
+                                category = category,
+                                priority = priority,
+                                reminder = reminder,
+                                recurrence = recurrence,
+                                subtasks = if (isSubtasksEnabled) subtasks else emptyList(),
+                                isCompleted = false
+                            )
+                        }
+                        Log.d("AddDeadlineScreen", "Saved deadline: $deadlineToSave")
+                        onSaveDeadline?.invoke(deadlineToSave)
                         onBackClick()
                     }
                 },
@@ -189,7 +213,7 @@ fun AddDeadlineScreen(
                 )
             ) {
                 Text(
-                    text = "Save Deadline",
+                    text = if (isEditMode) "Update Deadline" else "Save Deadline",
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Bold
                 )

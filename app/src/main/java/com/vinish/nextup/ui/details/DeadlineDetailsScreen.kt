@@ -33,18 +33,14 @@ fun DeadlineDetailsScreen(
     onBackClick: () -> Unit = {},
     onEditClick: ((Deadline) -> Unit)? = null,
     onDeleteClick: ((Deadline) -> Unit)? = null,
+    onToggleCompleted: ((Deadline) -> Unit)? = null,
+    onToggleSubtask: ((Deadline, Subtask) -> Unit)? = null,
+    onAddSubtask: ((Deadline, String) -> Unit)? = null,
     onShareClick: ((Deadline) -> Unit)? = null
 ) {
-    val deadline = initialDeadline ?: SampleDeadlines.sampleDeadlines.find { it.id == deadlineId }
+    val activeDeadline = initialDeadline
+        ?: SampleDeadlines.sampleDeadlines.find { it.id == deadlineId }
         ?: SampleDeadlines.sampleDeadlines.first()
-
-    var isCompleted by remember(deadline.id) { mutableStateOf(deadline.isCompleted) }
-    var subtasks by remember(deadline.id) { mutableStateOf(deadline.subtasks) }
-
-    val activeDeadline = deadline.copy(
-        isCompleted = isCompleted,
-        subtasks = subtasks
-    )
 
     Scaffold(
         modifier = modifier.fillMaxSize(),
@@ -59,8 +55,8 @@ fun DeadlineDetailsScreen(
         },
         bottomBar = {
             DeadlineBottomBar(
-                isCompleted = isCompleted,
-                onToggleCompleted = { isCompleted = !isCompleted },
+                isCompleted = activeDeadline.isCompleted,
+                onToggleCompleted = { onToggleCompleted?.invoke(activeDeadline) },
                 onEditClick = { onEditClick?.invoke(activeDeadline) }
             )
         }
@@ -85,18 +81,12 @@ fun DeadlineDetailsScreen(
             // Subtasks card: Progress bar, interactive list, and inline add
             item {
                 DeadlineSubtasksCard(
-                    subtasks = subtasks,
+                    subtasks = activeDeadline.subtasks,
                     onToggleSubtask = { toggledSubtask ->
-                        subtasks = subtasks.map { subtask ->
-                            if (subtask.id == toggledSubtask.id) {
-                                subtask.copy(isCompleted = !subtask.isCompleted)
-                            } else {
-                                subtask
-                            }
-                        }
+                        onToggleSubtask?.invoke(activeDeadline, toggledSubtask)
                     },
                     onAddSubtask = { newTitle ->
-                        subtasks = subtasks + Subtask(title = newTitle)
+                        onAddSubtask?.invoke(activeDeadline, newTitle)
                     }
                 )
             }
