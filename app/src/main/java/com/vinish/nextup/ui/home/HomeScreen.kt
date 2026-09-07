@@ -17,6 +17,7 @@ import com.vinish.nextup.ui.home.components.DeadlineSection
 import com.vinish.nextup.ui.home.components.GreetingSection
 import com.vinish.nextup.ui.home.components.OverviewSection
 import com.vinish.nextup.ui.home.model.OverviewItem
+import com.vinish.nextup.ui.home.components.HomeEmptyState
 import com.vinish.nextup.ui.home.model.OverviewType
 
 import java.time.LocalDate
@@ -25,7 +26,8 @@ import java.time.LocalDate
 fun HomeScreen(
     modifier: Modifier = Modifier,
     deadlines: List<Deadline> = SampleDeadlines.sampleDeadlines,
-    onDeadlineClick: ((Deadline) -> Unit)? = null
+    onDeadlineClick: ((Deadline) -> Unit)? = null,
+    onAddDeadlineClick: (() -> Unit)? = null
 ) {
     val today = remember { LocalDate.now() }
     val overdueDeadlines = remember(deadlines) {
@@ -52,6 +54,10 @@ fun HomeScreen(
     }
     val thisWeekCount = remember(deadlines) {
         deadlines.count { !it.isCompleted && it.dueDate.isAfter(today.plusDays(1)) && it.dueDate.isBefore(today.plusDays(8)) }
+    }
+
+    val hasUpcomingTasks = remember(todayDeadlines, tomorrowDeadlines, thisWeekDeadlines) {
+        todayDeadlines.isNotEmpty() || tomorrowDeadlines.isNotEmpty() || thisWeekDeadlines.isNotEmpty()
     }
 
     LazyColumn(
@@ -114,6 +120,14 @@ fun HomeScreen(
                     title = "This Week",
                     deadlines = thisWeekDeadlines,
                     onDeadlineClick = onDeadlineClick
+                )
+            }
+        }
+
+        if (!hasUpcomingTasks) {
+            item {
+                HomeEmptyState(
+                    onAddDeadlineClick = onAddDeadlineClick
                 )
             }
         }

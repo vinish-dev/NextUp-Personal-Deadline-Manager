@@ -40,6 +40,9 @@ fun AppNavigation(
                 deadlines = deadlines,
                 onDeadlineClick = { deadline ->
                     navController.navigate(Screen.Details.createRoute(deadline.id))
+                },
+                onAddDeadlineClick = {
+                    navController.navigate(Screen.Add.createRoute())
                 }
             )
         }
