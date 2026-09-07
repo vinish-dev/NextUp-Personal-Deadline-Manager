@@ -1,7 +1,6 @@
 package com.vinish.nextup.ui.add
 
 import android.util.Log
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -32,6 +31,7 @@ import com.vinish.nextup.model.Deadline
 import com.vinish.nextup.model.Priority
 import com.vinish.nextup.model.Recurrence
 import com.vinish.nextup.model.Reminder
+import com.vinish.nextup.model.Subtask
 import com.vinish.nextup.ui.add.components.AddTopBar
 import com.vinish.nextup.ui.add.components.CategorySelector
 import com.vinish.nextup.ui.add.components.DateTimeSelector
@@ -39,6 +39,7 @@ import com.vinish.nextup.ui.add.components.DeadlineTextField
 import com.vinish.nextup.ui.add.components.PrioritySelector
 import com.vinish.nextup.ui.add.components.RecurrenceSelector
 import com.vinish.nextup.ui.add.components.ReminderSelector
+import com.vinish.nextup.ui.add.components.SubtaskSection
 import com.vinish.nextup.ui.theme.BackgroundLight
 import com.vinish.nextup.ui.theme.PrimaryBlue
 import java.time.LocalDate
@@ -55,9 +56,12 @@ fun AddDeadlineScreen(
     var category by remember { mutableStateOf(Category.EDUCATION) }
     var dueDate by remember { mutableStateOf(LocalDate.now()) }
     var dueTime by remember { mutableStateOf<LocalTime?>(null) }
-    var priority by remember { mutableStateOf(Priority.MEDIUM) }
-    var reminder by remember { mutableStateOf(Reminder.NONE) }
+    var reminder by remember { mutableStateOf(Reminder.SEVEN_DAYS_BEFORE) }
+    var priority by remember { mutableStateOf(Priority.HIGH) }
     var recurrence by remember { mutableStateOf(Recurrence.NONE) }
+
+    var isSubtasksEnabled by remember { mutableStateOf(false) }
+    var subtasks by remember { mutableStateOf(listOf<Subtask>()) }
 
     var titleError by remember { mutableStateOf(false) }
 
@@ -79,7 +83,7 @@ fun AddDeadlineScreen(
                 .padding(horizontal = 20.dp, vertical = 12.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // Title (Required)
+            // 1. Title (Required)
             DeadlineTextField(
                 label = "Title",
                 value = title,
@@ -93,7 +97,7 @@ fun AddDeadlineScreen(
                 errorMessage = "Title is required"
             )
 
-            // Description (Optional)
+            // 2. Description (Optional)
             DeadlineTextField(
                 label = "Description (optional)",
                 value = description,
@@ -104,13 +108,13 @@ fun AddDeadlineScreen(
                 maxLines = 5
             )
 
-            // Category Selector
+            // 3. Category
             CategorySelector(
                 selectedCategory = category,
                 onCategorySelected = { category = it }
             )
 
-            // Due Date and Optional Due Time
+            // 4. Due Date (and optional due time)
             DateTimeSelector(
                 selectedDate = dueDate,
                 onDateSelected = { dueDate = it },
@@ -118,27 +122,40 @@ fun AddDeadlineScreen(
                 onTimeSelected = { dueTime = it }
             )
 
-            // Priority Selector (Directly selectable Low/Medium/High)
-            PrioritySelector(
-                selectedPriority = priority,
-                onPrioritySelected = { priority = it }
-            )
-
-            // Reminder Selector
+            // 5. Reminder
             ReminderSelector(
                 selectedReminder = reminder,
                 onReminderSelected = { reminder = it }
             )
 
-            // Recurrence / Repeat Selector
+            // 6. Priority
+            PrioritySelector(
+                selectedPriority = priority,
+                onPrioritySelected = { priority = it }
+            )
+
+            // 7. Repeat
             RecurrenceSelector(
                 selectedRecurrence = recurrence,
                 onRecurrenceSelected = { recurrence = it }
             )
 
+            // 8. Add Subtasks (optional)
+            SubtaskSection(
+                isSubtasksEnabled = isSubtasksEnabled,
+                onSubtasksEnabledChange = { isSubtasksEnabled = it },
+                subtasks = subtasks,
+                onAddSubtask = { subtaskTitle ->
+                    subtasks = subtasks + Subtask(title = subtaskTitle)
+                },
+                onRemoveSubtask = { subtaskToRemove ->
+                    subtasks = subtasks.filter { it.id != subtaskToRemove.id }
+                }
+            )
+
             Spacer(modifier = Modifier.height(8.dp))
 
-            // Primary Add/Save Deadline Button
+            // Primary Save Deadline Action
             Button(
                 onClick = {
                     if (title.isBlank()) {
@@ -153,9 +170,10 @@ fun AddDeadlineScreen(
                             priority = priority,
                             reminder = reminder,
                             recurrence = recurrence,
+                            subtasks = if (isSubtasksEnabled) subtasks else emptyList(),
                             isCompleted = false
                         )
-                        Log.d("AddDeadlineScreen", "Created deadline: $newDeadline")
+                        Log.d("AddDeadlineScreen", "Saved deadline: $newDeadline")
                         onSaveDeadline?.invoke(newDeadline)
                         onBackClick()
                     }
@@ -170,7 +188,7 @@ fun AddDeadlineScreen(
                 )
             ) {
                 Text(
-                    text = "Add Deadline",
+                    text = "Save Deadline",
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Bold
                 )

@@ -43,6 +43,14 @@ sealed class Screen(
         "Profile",
         Icons.Outlined.Person
     )
+
+    data object Details : Screen(
+        "details/{deadlineId}",
+        "Details",
+        Icons.Outlined.Home
+    ) {
+        fun createRoute(deadlineId: Long): String = "details/$deadlineId"
+    }
 }
 
 val bottomNavItems = listOf(
