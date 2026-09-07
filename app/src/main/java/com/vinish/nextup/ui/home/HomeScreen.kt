@@ -28,6 +28,9 @@ fun HomeScreen(
     onDeadlineClick: ((Deadline) -> Unit)? = null
 ) {
     val today = remember { LocalDate.now() }
+    val overdueDeadlines = remember(deadlines) {
+        deadlines.filter { !it.isCompleted && it.dueDate.isBefore(today) }
+    }
     val todayDeadlines = remember(deadlines) {
         deadlines.filter { it.dueDate.isEqual(today) }
     }
@@ -40,9 +43,7 @@ fun HomeScreen(
         }
     }
 
-    val overdueCount = remember(deadlines) {
-        deadlines.count { !it.isCompleted && it.dueDate.isBefore(today) }
-    }
+    val overdueCount = overdueDeadlines.size
     val todayCount = remember(deadlines) {
         deadlines.count { !it.isCompleted && it.dueDate.isEqual(today) }
     }
@@ -74,6 +75,16 @@ fun HomeScreen(
                     OverviewItem(OverviewType.THIS_WEEK, thisWeekCount)
                 )
             )
+        }
+
+        if (overdueDeadlines.isNotEmpty()) {
+            item {
+                DeadlineSection(
+                    title = "Overdue",
+                    deadlines = overdueDeadlines,
+                    onDeadlineClick = onDeadlineClick
+                )
+            }
         }
 
         if (todayDeadlines.isNotEmpty()) {
