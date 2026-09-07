@@ -27,10 +27,13 @@ sealed class Screen(
     )
 
     data object Add : Screen(
-        "add",
+        "add?date={date}",
         "Add",
         Icons.Outlined.AddCircleOutline
-    )
+    ) {
+        fun createRoute(date: java.time.LocalDate? = null): String =
+            if (date != null) "add?date=$date" else "add"
+    }
 
     data object Categories : Screen(
         "categories",

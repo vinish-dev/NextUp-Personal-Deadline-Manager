@@ -40,7 +40,7 @@ fun CalendarScreen(
     modifier: Modifier = Modifier,
     deadlines: List<Deadline> = SampleDeadlines.sampleDeadlines,
     onDeadlineClick: ((Deadline) -> Unit)? = null,
-    onAddDeadlineClick: () -> Unit = {}
+    onAddDeadlineClick: (LocalDate) -> Unit = {}
 ) {
     var selectedDate by remember { mutableStateOf(LocalDate.now()) }
     var currentMonth by remember { mutableStateOf(YearMonth.from(selectedDate)) }
@@ -109,7 +109,7 @@ fun CalendarScreen(
 
         // Blue round plus button on the bottom right above the nav bar
         FloatingActionButton(
-            onClick = onAddDeadlineClick,
+            onClick = { onAddDeadlineClick(selectedDate) },
             shape = CircleShape,
             containerColor = PrimaryBlue,
             contentColor = Color.White,

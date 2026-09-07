@@ -48,16 +48,17 @@ import java.time.LocalTime
 @Composable
 fun AddDeadlineScreen(
     modifier: Modifier = Modifier,
+    initialDate: LocalDate? = null,
     onBackClick: () -> Unit = {},
     onSaveDeadline: ((Deadline) -> Unit)? = null
 ) {
     var title by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
     var category by remember { mutableStateOf(Category.EDUCATION) }
-    var dueDate by remember { mutableStateOf(LocalDate.now()) }
+    var dueDate by remember(initialDate) { mutableStateOf(initialDate ?: LocalDate.now()) }
     var dueTime by remember { mutableStateOf<LocalTime?>(null) }
-    var reminder by remember { mutableStateOf(Reminder.SEVEN_DAYS_BEFORE) }
-    var priority by remember { mutableStateOf(Priority.HIGH) }
+    var reminder by remember { mutableStateOf(Reminder.NONE) }
+    var priority by remember { mutableStateOf(Priority.MEDIUM) }
     var recurrence by remember { mutableStateOf(Recurrence.NONE) }
 
     var isSubtasksEnabled by remember { mutableStateOf(false) }

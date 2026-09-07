@@ -9,6 +9,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.vinish.nextup.model.Deadline
 import com.vinish.nextup.ui.add.AddDeadlineScreen
+import java.time.LocalDate
 import com.vinish.nextup.ui.calendar.CalendarScreen
 import com.vinish.nextup.ui.categories.CategoriesScreen
 import com.vinish.nextup.ui.details.DeadlineDetailsScreen
@@ -36,8 +37,8 @@ fun AppNavigation(
         composable(Screen.Calendar.route) {
             CalendarScreen(
                 modifier = modifier,
-                onAddDeadlineClick = {
-                    navController.navigate(Screen.Add.route)
+                onAddDeadlineClick = { selectedDate ->
+                    navController.navigate(Screen.Add.createRoute(selectedDate))
                 },
                 onDeadlineClick = { deadline ->
                     navController.navigate(Screen.Details.createRoute(deadline.id))
@@ -45,9 +46,27 @@ fun AppNavigation(
             )
         }
 
-        composable(Screen.Add.route) {
+        composable(
+            route = Screen.Add.route,
+            arguments = listOf(
+                navArgument("date") {
+                    type = NavType.StringType
+                    nullable = true
+                    defaultValue = null
+                }
+            )
+        ) { backStackEntry ->
+            val dateStr = backStackEntry.arguments?.getString("date")
+            val initialDate = dateStr?.let {
+                try {
+                    LocalDate.parse(it)
+                } catch (e: Exception) {
+                    null
+                }
+            }
             AddDeadlineScreen(
                 modifier = modifier,
+                initialDate = initialDate,
                 onBackClick = {
                     if (!navController.popBackStack()) {
                         navController.navigate(Screen.Home.route) {
