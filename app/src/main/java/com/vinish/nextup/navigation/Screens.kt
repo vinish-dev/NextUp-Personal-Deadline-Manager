@@ -38,6 +38,14 @@ sealed class Screen(
         Icons.Outlined.Category
     )
 
+    data object CategoryDetail : Screen(
+        "category/{categoryName}",
+        "Category",
+        Icons.Outlined.Category
+    ) {
+        fun createRoute(categoryName: String): String = "category/$categoryName"
+    }
+
     data object Profile : Screen(
         "profile",
         "Profile",
