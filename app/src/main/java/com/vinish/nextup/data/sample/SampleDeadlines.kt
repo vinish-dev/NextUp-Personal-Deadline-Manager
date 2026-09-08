@@ -4,6 +4,7 @@ import com.vinish.nextup.model.Category
 import com.vinish.nextup.model.Deadline
 import com.vinish.nextup.model.Priority
 import com.vinish.nextup.model.Reminder
+import com.vinish.nextup.model.Subtask
 import java.time.LocalDate
 import java.time.LocalTime
 
@@ -12,12 +13,17 @@ object SampleDeadlines {
         Deadline(
             id = 1L,
             title = "DBMS Assignment",
-            description = "Complete chapters 4 & 5 normalization and SQL queries",
+            description = "Write and submit the final report.",
             dueDate = LocalDate.now(),
             dueTime = LocalTime.of(23, 59),
             category = Category.EDUCATION,
             priority = Priority.HIGH,
-            reminder = Reminder.ONE_HOUR_BEFORE,
+            reminder = Reminder.SEVEN_DAYS_BEFORE,
+            subtasks = listOf(
+                Subtask(id = "1", title = "Complete normalization exercises", isCompleted = true),
+                Subtask(id = "2", title = "Write SQL queries for chapter 5", isCompleted = true),
+                Subtask(id = "3", title = "Draft and submit the final report", isCompleted = false)
+            ),
             isCompleted = false
         ),
         Deadline(
