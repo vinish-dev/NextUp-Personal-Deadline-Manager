@@ -40,6 +40,8 @@ import com.vinish.nextup.ui.theme.TextSecondary
 /**
  * Returns a human-friendly display name for Category.
  */
+
+// TODO: replace with Enum having displayName
 fun Category.displayName(): String = when (this) {
     Category.EDUCATION -> "Education"
     Category.WORK -> "Work"
@@ -105,6 +107,7 @@ fun CategorySelector(
                     modifier = Modifier.weight(1f)
                 )
 
+                // todo: change icon based on expanded state
                 Icon(
                     imageVector = Icons.Filled.KeyboardArrowDown,
                     contentDescription = "Select category",
