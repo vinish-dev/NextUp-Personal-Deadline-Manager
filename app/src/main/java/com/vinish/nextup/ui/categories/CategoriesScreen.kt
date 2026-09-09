@@ -1,12 +1,11 @@
 package com.vinish.nextup.ui.categories
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
@@ -27,6 +26,7 @@ fun CategoriesScreen(
     modifier: Modifier = Modifier,
     deadlines: List<Deadline> = emptyList(),
     onBackClick: () -> Unit = {},
+    onMoreClick: () -> Unit = {},
     onCategoryClick: ((Category) -> Unit)? = null,
     onAddCategoryClick: (() -> Unit)? = null
 ) {
@@ -46,56 +46,53 @@ fun CategoriesScreen(
         )
     }
 
-    Scaffold(
-        modifier = modifier.fillMaxSize(),
-        containerColor = BackgroundLight,
-        topBar = {
+    LazyColumn(
+        modifier = modifier
+            .fillMaxSize()
+            .background(BackgroundLight),
+        contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 20.dp, bottom = 24.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        // Top Header
+        item {
             CategoryTopBar(
-                modifier = Modifier.padding(top = 8.dp, bottom = 4.dp),
+                onMoreClick = onMoreClick,
                 onBackClick = onBackClick
             )
         }
-    ) { paddingValues ->
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues),
-            contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 8.dp, bottom = 24.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp)
-        ) {
-            // Summary Stats Card at top
-            item {
-                CategoryStatsCard(
-                    totalDeadlines = totalDeadlines,
-                    completedDeadlines = completedDeadlines,
-                    pendingDeadlines = pendingDeadlines
-                )
+
+        // Summary Stats Card at top
+        // item {
+        //     CategoryStatsCard(
+        //         totalDeadlines = totalDeadlines,
+        //         completedDeadlines = completedDeadlines,
+        //         pendingDeadlines = pendingDeadlines
+        //     )
+        // }
+
+        // Category Cards
+        items(displayCategories, key = { it.name }) { category ->
+            val categoryDeadlines = remember(deadlines, category) {
+                deadlines.filter { it.category == category }
+            }
+            val total = categoryDeadlines.size
+            val completed = remember(categoryDeadlines) {
+                categoryDeadlines.count { it.isCompleted }
             }
 
-            // Category Cards
-            items(displayCategories, key = { it.name }) { category ->
-                val categoryDeadlines = remember(deadlines, category) {
-                    deadlines.filter { it.category == category }
-                }
-                val total = categoryDeadlines.size
-                val completed = remember(categoryDeadlines) {
-                    categoryDeadlines.count { it.isCompleted }
-                }
+            CategoryItemCard(
+                category = category,
+                totalCount = total,
+                completedCount = completed,
+                onClick = onCategoryClick?.let { { it(category) } }
+            )
+        }
 
-                CategoryItemCard(
-                    category = category,
-                    totalCount = total,
-                    completedCount = completed,
-                    onClick = onCategoryClick?.let { { it(category) } }
-                )
-            }
-
-            // Add Custom Category Card
-            item {
-                AddCategoryCard(
-                    onClick = onAddCategoryClick
-                )
-            }
+        // Add Custom Category Card
+        item {
+            AddCategoryCard(
+                onClick = onAddCategoryClick
+            )
         }
     }
 }
@@ -116,7 +113,6 @@ private fun CategoriesScreenPreview() {
         // Work (2 total, 0 completed)
         Deadline(id = 8, title = "W1", dueDate = LocalDate.now(), category = Category.WORK, priority = Priority.HIGH, isCompleted = false),
         Deadline(id = 9, title = "W2", dueDate = LocalDate.now(), category = Category.WORK, priority = Priority.MEDIUM, isCompleted = false),
-        // Health (1 total, 1 completed)
         // Finance (1 total, 0 completed)
         Deadline(id = 11, title = "F1", dueDate = LocalDate.now(), category = Category.FINANCE, priority = Priority.MEDIUM, isCompleted = false),
         // Other (1 total, 0 completed)
