@@ -1,8 +1,9 @@
 package com.vinish.nextup.ui.add.components
 
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Icon
@@ -21,6 +22,7 @@ import com.vinish.nextup.ui.theme.TextPrimary
 @Composable
 fun AddTopBar(
     modifier: Modifier = Modifier,
+    title: String = "Add Deadline",
     onBackClick: () -> Unit = {}
 ) {
     Row(
@@ -28,7 +30,8 @@ fun AddTopBar(
         verticalAlignment = Alignment.CenterVertically
     ) {
         IconButton(
-            onClick = onBackClick
+            onClick = onBackClick,
+            modifier = Modifier.size(48.dp)
         ) {
             Icon(
                 imageVector = Icons.AutoMirrored.Filled.ArrowBack,
@@ -37,13 +40,14 @@ fun AddTopBar(
             )
         }
         Text(
-            modifier = Modifier.fillMaxWidth().offset(x = (-25).dp),
-            text = "Add Deadline",
+            text = title,
             style = MaterialTheme.typography.titleLarge,
             textAlign = TextAlign.Center,
             fontWeight = FontWeight.Bold,
-            color = TextPrimary
+            color = TextPrimary,
+            modifier = Modifier.weight(1f)
         )
+        Spacer(modifier = Modifier.size(48.dp))
     }
 }
 

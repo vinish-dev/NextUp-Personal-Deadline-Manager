@@ -7,18 +7,59 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.vinish.nextup.data.sample.SampleDeadlines
+import com.vinish.nextup.model.Deadline
 import com.vinish.nextup.ui.home.components.DeadlineSection
 import com.vinish.nextup.ui.home.components.GreetingSection
 import com.vinish.nextup.ui.home.components.OverviewSection
 import com.vinish.nextup.ui.home.model.OverviewItem
+import com.vinish.nextup.ui.home.components.HomeEmptyState
 import com.vinish.nextup.ui.home.model.OverviewType
 
+import java.time.LocalDate
+
 @Composable
-fun HomeScreen(modifier: Modifier = Modifier) {
+fun HomeScreen(
+    modifier: Modifier = Modifier,
+    deadlines: List<Deadline> = SampleDeadlines.sampleDeadlines,
+    onDeadlineClick: ((Deadline) -> Unit)? = null,
+    onAddDeadlineClick: (() -> Unit)? = null
+) {
+    val today = remember { LocalDate.now() }
+    val overdueDeadlines = remember(deadlines) {
+        deadlines.filter { !it.isCompleted && it.dueDate.isBefore(today) }
+    }
+    val todayDeadlines = remember(deadlines) {
+        deadlines.filter { it.dueDate.isEqual(today) }
+    }
+    val tomorrowDeadlines = remember(deadlines) {
+        deadlines.filter { it.dueDate.isEqual(today.plusDays(1)) }
+    }
+    val thisWeekDeadlines = remember(deadlines) {
+        deadlines.filter {
+            it.dueDate.isAfter(today.plusDays(1)) && it.dueDate.isBefore(today.plusDays(8))
+        }
+    }
+
+    val overdueCount = overdueDeadlines.size
+    val todayCount = remember(deadlines) {
+        deadlines.count { !it.isCompleted && it.dueDate.isEqual(today) }
+    }
+    val tomorrowCount = remember(deadlines) {
+        deadlines.count { !it.isCompleted && it.dueDate.isEqual(today.plusDays(1)) }
+    }
+    val thisWeekCount = remember(deadlines) {
+        deadlines.count { !it.isCompleted && it.dueDate.isAfter(today.plusDays(1)) && it.dueDate.isBefore(today.plusDays(8)) }
+    }
+
+    val hasUpcomingTasks = remember(todayDeadlines, tomorrowDeadlines, thisWeekDeadlines) {
+        todayDeadlines.isNotEmpty() || tomorrowDeadlines.isNotEmpty() || thisWeekDeadlines.isNotEmpty()
+    }
+
     LazyColumn(
         modifier = modifier.fillMaxSize(),
         verticalArrangement = Arrangement.spacedBy(16.dp),
@@ -34,34 +75,61 @@ fun HomeScreen(modifier: Modifier = Modifier) {
             OverviewSection(
                 modifier = Modifier.padding(vertical = 8.dp),
                 overviewItems = listOf(
-                    OverviewItem(OverviewType.OVERDUE, 2),
-                    OverviewItem(OverviewType.TODAY, 3),
-                    OverviewItem(OverviewType.TOMORROW, 1),
-                    OverviewItem(OverviewType.THIS_WEEK, 7)
+                    OverviewItem(OverviewType.OVERDUE, overdueCount),
+                    OverviewItem(OverviewType.TODAY, todayCount),
+                    OverviewItem(OverviewType.TOMORROW, tomorrowCount),
+                    OverviewItem(OverviewType.THIS_WEEK, thisWeekCount)
                 )
             )
         }
 
-        item {
-            DeadlineSection(
-                title = "Today",
-                deadlines = SampleDeadlines.todayDeadlines
-            )
+        if (overdueDeadlines.isNotEmpty()) {
+            item {
+                DeadlineSection(
+                    title = "Overdue",
+                    deadlines = overdueDeadlines,
+                    onDeadlineClick = onDeadlineClick
+                )
+            }
         }
 
-        item {
-            DeadlineSection(
-                title = "Tomorrow",
-                deadlines = SampleDeadlines.tomorrowDeadlines,
-                showSeeAll = false
-            )
+        if (todayDeadlines.isNotEmpty()) {
+            item {
+                DeadlineSection(
+                    title = "Today",
+                    deadlines = todayDeadlines,
+                    onDeadlineClick = onDeadlineClick
+                )
+            }
         }
 
-        item {
-            DeadlineSection(
-                title = "This Week",
-                deadlines = SampleDeadlines.thisWeekDeadlines
-            )
+        if (tomorrowDeadlines.isNotEmpty()) {
+            item {
+                DeadlineSection(
+                    title = "Tomorrow",
+                    deadlines = tomorrowDeadlines,
+                    showSeeAll = false,
+                    onDeadlineClick = onDeadlineClick
+                )
+            }
+        }
+
+        if (thisWeekDeadlines.isNotEmpty()) {
+            item {
+                DeadlineSection(
+                    title = "This Week",
+                    deadlines = thisWeekDeadlines,
+                    onDeadlineClick = onDeadlineClick
+                )
+            }
+        }
+
+        if (!hasUpcomingTasks) {
+            item {
+                HomeEmptyState(
+                    onAddDeadlineClick = onAddDeadlineClick
+                )
+            }
         }
     }
 }

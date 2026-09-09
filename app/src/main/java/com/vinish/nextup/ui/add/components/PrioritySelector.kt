@@ -22,6 +22,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -43,6 +44,12 @@ fun Priority.displayName(): String = when (this) {
     Priority.LOW -> "Low"
     Priority.MEDIUM -> "Medium"
     Priority.HIGH -> "High"
+}
+
+fun Priority.color(): Color = when (this) {
+    Priority.LOW -> PriorityLowText
+    Priority.MEDIUM -> PriorityMediumText
+    Priority.HIGH -> PriorityHighText
 }
 
 @Composable
@@ -118,7 +125,7 @@ fun PrioritySelector(
 @Composable
 private fun PrioritySelectorPreview() {
     PrioritySelector(
-        selectedPriority = Priority.MEDIUM,
+        selectedPriority = Priority.HIGH,
         onPrioritySelected = {}
     )
 }

@@ -13,5 +13,6 @@ data class Deadline(
     val priority: Priority,
     val reminder: Reminder? = null,
     val recurrence: Recurrence? = null,
+    val subtasks: List<Subtask> = emptyList(),
     val isCompleted: Boolean = false
 )
