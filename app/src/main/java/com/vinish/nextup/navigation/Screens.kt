@@ -27,10 +27,13 @@ sealed class Screen(
     )
 
     data object Add : Screen(
-        "add",
+        "add?date={date}",
         "Add",
         Icons.Outlined.AddCircleOutline
-    )
+    ) {
+        fun createRoute(date: java.time.LocalDate? = null): String =
+            if (date != null) "add?date=$date" else "add"
+    }
 
     data object Categories : Screen(
         "categories",
@@ -51,6 +54,22 @@ sealed class Screen(
         "Profile",
         Icons.Outlined.Person
     )
+
+    data object Details : Screen(
+        "details/{deadlineId}",
+        "Details",
+        Icons.Outlined.Home
+    ) {
+        fun createRoute(deadlineId: Long): String = "details/$deadlineId"
+    }
+
+    data object Edit : Screen(
+        "edit/{deadlineId}",
+        "Edit",
+        Icons.Outlined.AddCircleOutline
+    ) {
+        fun createRoute(deadlineId: Long): String = "edit/$deadlineId"
+    }
 }
 
 val bottomNavItems = listOf(

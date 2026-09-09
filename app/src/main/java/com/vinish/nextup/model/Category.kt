@@ -5,6 +5,7 @@ import androidx.compose.material.icons.filled.Code
 import androidx.compose.material.icons.filled.CreditCard
 import androidx.compose.material.icons.filled.Description
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.School
 import androidx.compose.material.icons.filled.Task
 import androidx.compose.material.icons.filled.Work
 import androidx.compose.ui.graphics.Color
@@ -21,7 +22,7 @@ enum class Category(
     val iconTint: Color
 ) {
     EDUCATION(
-        icon = Icons.Filled.Work,
+        icon = Icons.Filled.School,
         iconBackground = Color(0xFFEFF6FF),
         iconTint = CategoryEducation
     ),

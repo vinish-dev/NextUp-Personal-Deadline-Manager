@@ -90,7 +90,7 @@ fun NextUpBottomNavigation(
         )
 
         NavigationBarItem(
-            selected = currentRoute == "add",
+            selected = currentRoute == "add" || currentRoute?.startsWith("add?") == true,
             onClick = { onItemClick("add") },
             icon = {
                 Box(

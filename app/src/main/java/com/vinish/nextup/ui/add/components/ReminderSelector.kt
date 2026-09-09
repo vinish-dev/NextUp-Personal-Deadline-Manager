@@ -44,6 +44,8 @@ fun Reminder.displayName(): String = when (this) {
     Reminder.TEN_MINUTES_BEFORE -> "10 minutes before"
     Reminder.ONE_HOUR_BEFORE -> "1 hour before"
     Reminder.ONE_DAY_BEFORE -> "1 day before"
+    Reminder.THREE_DAYS_BEFORE -> "3 days before"
+    Reminder.SEVEN_DAYS_BEFORE -> "7 days before"
 }
 
 @Composable
