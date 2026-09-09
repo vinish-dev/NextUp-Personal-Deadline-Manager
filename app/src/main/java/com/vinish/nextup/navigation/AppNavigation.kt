@@ -11,7 +11,6 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
-import com.vinish.nextup.data.sample.SampleDeadlines
 import com.vinish.nextup.model.Deadline
 import com.vinish.nextup.ui.DeadlineViewModel
 import com.vinish.nextup.ui.add.AddDeadlineScreen
@@ -116,8 +115,6 @@ fun AppNavigation(
             val currentDeadline by deadlineFlow.collectAsStateWithLifecycle(initialValue = null)
             val activeDeadline = currentDeadline
                 ?: deadlines.find { it.id == deadlineId }
-                ?: SampleDeadlines.sampleDeadlines.find { it.id == deadlineId }
-                ?: SampleDeadlines.sampleDeadlines.first()
 
             DeadlineDetailsScreen(
                 modifier = modifier,
@@ -159,7 +156,6 @@ fun AppNavigation(
             val currentDeadline by deadlineFlow.collectAsStateWithLifecycle(initialValue = null)
             val deadlineToEdit = currentDeadline
                 ?: deadlines.find { it.id == deadlineId }
-                ?: SampleDeadlines.sampleDeadlines.find { it.id == deadlineId }
 
             if (deadlineToEdit != null) {
                 AddDeadlineScreen(

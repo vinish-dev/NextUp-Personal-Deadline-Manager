@@ -25,7 +25,7 @@ import java.time.LocalDate
 @Composable
 fun HomeScreen(
     modifier: Modifier = Modifier,
-    deadlines: List<Deadline> = SampleDeadlines.sampleDeadlines,
+    deadlines: List<Deadline> = emptyList(),
     onDeadlineClick: ((Deadline) -> Unit)? = null,
     onAddDeadlineClick: (() -> Unit)? = null
 ) {

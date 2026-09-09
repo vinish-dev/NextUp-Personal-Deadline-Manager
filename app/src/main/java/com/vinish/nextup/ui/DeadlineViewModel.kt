@@ -6,7 +6,6 @@ import androidx.lifecycle.viewModelScope
 import com.vinish.nextup.NextUpApplication
 import com.vinish.nextup.data.DeadlineRepository
 import com.vinish.nextup.data.local.AppDatabase
-import com.vinish.nextup.data.sample.SampleDeadlines
 import com.vinish.nextup.model.Deadline
 import com.vinish.nextup.model.Subtask
 import kotlinx.coroutines.flow.Flow
@@ -24,14 +23,8 @@ class DeadlineViewModel(application: Application) : AndroidViewModel(application
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),
-            initialValue = SampleDeadlines.sampleDeadlines
+            initialValue = emptyList()
         )
-
-    init {
-        viewModelScope.launch {
-            repository.seedIfEmpty()
-        }
-    }
 
     fun getDeadline(id: Long): Flow<Deadline?> {
         return repository.getDeadlineById(id)

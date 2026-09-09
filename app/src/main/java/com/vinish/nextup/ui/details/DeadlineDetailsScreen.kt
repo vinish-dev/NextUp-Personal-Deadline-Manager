@@ -38,9 +38,7 @@ fun DeadlineDetailsScreen(
     onAddSubtask: ((Deadline, String) -> Unit)? = null,
     onShareClick: ((Deadline) -> Unit)? = null
 ) {
-    val activeDeadline = initialDeadline
-        ?: SampleDeadlines.sampleDeadlines.find { it.id == deadlineId }
-        ?: SampleDeadlines.sampleDeadlines.first()
+    val activeDeadline = initialDeadline ?: return
 
     Scaffold(
         modifier = modifier.fillMaxSize(),

@@ -38,7 +38,7 @@ import java.time.YearMonth
 @Composable
 fun CalendarScreen(
     modifier: Modifier = Modifier,
-    deadlines: List<Deadline> = SampleDeadlines.sampleDeadlines,
+    deadlines: List<Deadline> = emptyList(),
     onDeadlineClick: ((Deadline) -> Unit)? = null,
     onAddDeadlineClick: (LocalDate) -> Unit = {}
 ) {
