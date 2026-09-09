@@ -37,18 +37,6 @@ import com.vinish.nextup.ui.theme.SurfaceWhite
 import com.vinish.nextup.ui.theme.TextPrimary
 import com.vinish.nextup.ui.theme.TextSecondary
 
-/**
- * Returns a human-friendly display name for Category.
- */
-fun Category.displayName(): String = when (this) {
-    Category.EDUCATION -> "Education"
-    Category.WORK -> "Work"
-    Category.FINANCE -> "Finance"
-    Category.PERSONAL -> "Personal"
-    Category.DOCUMENTS -> "Documents"
-    Category.OTHER -> "Other"
-}
-
 @Composable
 fun CategorySelector(
     selectedCategory: Category,

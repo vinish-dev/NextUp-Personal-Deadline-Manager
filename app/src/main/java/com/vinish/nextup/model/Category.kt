@@ -54,4 +54,16 @@ enum class Category(
 
     val backgroundColor: Color get() = iconBackground
     val iconBg: Color get() = iconBackground
+
+    val displayName: String
+        get() = when (this) {
+            EDUCATION -> "Education"
+            WORK -> "Work"
+            FINANCE -> "Finance"
+            PERSONAL -> "Personal"
+            DOCUMENTS -> "Documents"
+            OTHER -> "Other"
+        }
+
+    fun displayName(): String = displayName
 }

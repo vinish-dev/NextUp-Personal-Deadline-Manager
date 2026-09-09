@@ -21,7 +21,9 @@ fun CalendarScheduleSection(
     deadlines: List<Deadline>,
     modifier: Modifier = Modifier,
     onDeadlineClick: ((Deadline) -> Unit)? = null,
-    onSeeAllClick: (() -> Unit)? = null
+    onToggleCompleted: ((Deadline) -> Unit)? = null,
+    onDeleteDeadline: ((Deadline) -> Unit)? = null,
+    onAddDeadlineClick: (() -> Unit)? = null
 ) {
     val today = LocalDate.now()
     val tomorrow = today.plusDays(1)
@@ -32,33 +34,31 @@ fun CalendarScheduleSection(
         else -> selectedDate.format(DateTimeFormatter.ofPattern("EEEE, d MMM", Locale.ENGLISH))
     }
 
-    val countText = when (deadlines.size) {
-        0 -> ""
-        1 -> "1 deadline"
-        else -> "${deadlines.size} deadlines"
-    }
-
     Column(
         modifier = modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
+        verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
         SectionHeader(
             title = sectionTitle,
-            showViewAll = deadlines.isNotEmpty(),
-            actionText = countText,
-            onViewAllClick = { onSeeAllClick?.invoke() }
+            showViewAll = onAddDeadlineClick != null,
+            actionText = "+ Add",
+            onViewAllClick = { onAddDeadlineClick?.invoke() }
         )
 
         if (deadlines.isEmpty()) {
             CalendarEmptyState(
-                title = "No Deadlines",
-                subtitle = "Nothing scheduled for this date. Relax or plan ahead!"
+                title = "No Deadlines Scheduled",
+                subtitle = "Nothing scheduled for this date. Relax or plan ahead!",
+                actionText = "+ Add for this day",
+                onActionClick = onAddDeadlineClick
             )
         } else {
             deadlines.forEach { deadline ->
                 DeadlineCard(
                     deadline = deadline,
-                    onClick = onDeadlineClick?.let { { it(deadline) } }
+                    onClick = onDeadlineClick?.let { { it(deadline) } },
+                    onToggleCompleted = onToggleCompleted?.let { { it(deadline) } },
+                    onDelete = onDeleteDeadline?.let { { it(deadline) } }
                 )
             }
         }

@@ -15,28 +15,36 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CalendarMonth
+import androidx.compose.material.icons.filled.Flag
 import androidx.compose.material.icons.filled.Repeat
 import androidx.compose.material.icons.outlined.Notifications
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.vinish.nextup.model.Deadline
+import com.vinish.nextup.model.Priority
 import com.vinish.nextup.ui.add.components.displayName
 import com.vinish.nextup.ui.theme.BorderLight
-import com.vinish.nextup.ui.theme.BorderStoke
 import com.vinish.nextup.ui.theme.PrimaryBlue
 import com.vinish.nextup.ui.theme.PrimaryBlueLight
+import com.vinish.nextup.ui.theme.PriorityHighBg
+import com.vinish.nextup.ui.theme.PriorityHighText
+import com.vinish.nextup.ui.theme.PriorityLowBg
+import com.vinish.nextup.ui.theme.PriorityLowText
+import com.vinish.nextup.ui.theme.PriorityMediumBg
+import com.vinish.nextup.ui.theme.PriorityMediumText
 import com.vinish.nextup.ui.theme.SurfaceWhite
 import com.vinish.nextup.ui.theme.TextPrimary
 import com.vinish.nextup.ui.theme.TextSecondary
@@ -53,90 +61,127 @@ fun DeadlineInfoCard(
 
     val dateString = deadline.dueDate.format(dateFormatter)
     val timeString = deadline.dueTime?.format(timeFormatter)
-    val dueDateTimeString = if (timeString != null) "$dateString at $timeString" else dateString
+    val dueDateTimeString = if (timeString != null) "$dateString\n$timeString" else dateString
 
     val reminderString = deadline.reminder?.displayName() ?: "None"
-    val repeatString = deadline.recurrence?.displayName() ?: "Does not repeat"
+    val repeatString = deadline.recurrence?.displayName() ?: "None"
 
-    Card(
+    val (priorityBg, priorityTint) = when (deadline.priority) {
+        Priority.HIGH -> PriorityHighBg to PriorityHighText
+        Priority.MEDIUM -> PriorityMediumBg to PriorityMediumText
+        Priority.LOW -> PriorityLowBg to PriorityLowText
+    }
+
+    Column(
         modifier = modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(20.dp),
-        colors = CardDefaults.cardColors(containerColor = SurfaceWhite),
-        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
-        border = BorderStroke(width = 1.dp, color = BorderStoke)
+        verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(20.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(10.dp)
         ) {
-            InfoRow(
+            // Due Date Cell
+            MetadataCell(
                 icon = Icons.Filled.CalendarMonth,
-                title = "Due Date",
-                value = dueDateTimeString
+                iconTint = PrimaryBlue,
+                iconBg = PrimaryBlueLight,
+                label = "Due Date",
+                value = dueDateTimeString,
+                modifier = Modifier.weight(1f)
             )
 
-            HorizontalDivider(color = BorderLight.copy(alpha = 0.6f), thickness = 1.dp)
+            // Priority Cell
+            MetadataCell(
+                icon = Icons.Filled.Flag,
+                iconTint = priorityTint,
+                iconBg = priorityBg,
+                label = "Priority",
+                value = deadline.priority.displayName(),
+                modifier = Modifier.weight(1f)
+            )
+        }
 
-            InfoRow(
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            // Reminder Cell
+            MetadataCell(
                 icon = Icons.Outlined.Notifications,
-                title = "Reminder",
-                value = reminderString
+                iconTint = Color(0xFFEAB308),
+                iconBg = Color(0xFFFEF9C3),
+                label = "Reminder",
+                value = reminderString,
+                modifier = Modifier.weight(1f)
             )
 
-            HorizontalDivider(color = BorderLight.copy(alpha = 0.6f), thickness = 1.dp)
-
-            InfoRow(
+            // Repeat Cell
+            MetadataCell(
                 icon = Icons.Filled.Repeat,
-                title = "Repeat",
-                value = repeatString
+                iconTint = Color(0xFF8B5CF6),
+                iconBg = Color(0xFFEDE9FE),
+                label = "Recurrence",
+                value = repeatString,
+                modifier = Modifier.weight(1f)
             )
         }
     }
 }
 
 @Composable
-private fun InfoRow(
+private fun MetadataCell(
     icon: ImageVector,
-    title: String,
-    value: String
+    iconTint: Color,
+    iconBg: Color,
+    label: String,
+    value: String,
+    modifier: Modifier = Modifier
 ) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically
+    Surface(
+        modifier = modifier,
+        shape = RoundedCornerShape(18.dp),
+        color = SurfaceWhite,
+        border = BorderStroke(1.dp, BorderLight)
     ) {
-        Box(
+        Row(
             modifier = Modifier
-                .size(40.dp)
-                .clip(RoundedCornerShape(12.dp))
-                .background(PrimaryBlueLight),
-            contentAlignment = Alignment.Center
+                .fillMaxWidth()
+                .padding(14.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Icon(
-                imageVector = icon,
-                contentDescription = title,
-                tint = PrimaryBlue,
-                modifier = Modifier.size(20.dp)
-            )
-        }
+            Box(
+                modifier = Modifier
+                    .size(38.dp)
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(iconBg),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = icon,
+                    contentDescription = label,
+                    tint = iconTint,
+                    modifier = Modifier.size(20.dp)
+                )
+            }
 
-        Spacer(modifier = Modifier.width(14.dp))
+            Spacer(modifier = Modifier.width(12.dp))
 
-        Column(modifier = Modifier.weight(1f)) {
-            Text(
-                text = title,
-                fontSize = 12.sp,
-                fontWeight = FontWeight.Medium,
-                color = TextSecondary
-            )
-            Text(
-                text = value,
-                fontSize = 15.sp,
-                fontWeight = FontWeight.SemiBold,
-                color = TextPrimary,
-                modifier = Modifier.padding(top = 2.dp)
-            )
+            Column {
+                Text(
+                    text = label,
+                    fontSize = 11.sp,
+                    fontWeight = FontWeight.Medium,
+                    color = TextSecondary
+                )
+                Spacer(modifier = Modifier.height(2.dp))
+                Text(
+                    text = value,
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = TextPrimary,
+                    lineHeight = 16.sp
+                )
+            }
         }
     }
 }

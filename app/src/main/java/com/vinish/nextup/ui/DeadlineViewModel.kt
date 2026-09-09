@@ -6,9 +6,9 @@ import androidx.lifecycle.viewModelScope
 import com.vinish.nextup.NextUpApplication
 import com.vinish.nextup.data.DeadlineRepository
 import com.vinish.nextup.data.local.AppDatabase
-import com.vinish.nextup.data.sample.SampleDeadlines
 import com.vinish.nextup.model.Deadline
 import com.vinish.nextup.model.Subtask
+import com.vinish.nextup.notifications.DeadlineNotificationScheduler
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -24,12 +24,12 @@ class DeadlineViewModel(application: Application) : AndroidViewModel(application
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),
-            initialValue = SampleDeadlines.sampleDeadlines
+            initialValue = emptyList()
         )
 
     init {
         viewModelScope.launch {
-            repository.seedIfEmpty()
+            repository.seedIfFirstLaunch(application)
         }
     }
 
@@ -39,17 +39,23 @@ class DeadlineViewModel(application: Application) : AndroidViewModel(application
 
     fun saveDeadline(deadline: Deadline, onSaved: (() -> Unit)? = null) {
         viewModelScope.launch {
-            if (deadline.id == 0L) {
+            val deadlineId = if (deadline.id == 0L) {
                 repository.insertDeadline(deadline)
             } else {
                 repository.updateDeadline(deadline)
+                deadline.id
             }
+
+            val savedDeadline = deadline.copy(id = deadlineId)
+            DeadlineNotificationScheduler.scheduleReminder(getApplication(), savedDeadline)
+
             onSaved?.invoke()
         }
     }
 
     fun deleteDeadline(id: Long, onDeleted: (() -> Unit)? = null) {
         viewModelScope.launch {
+            DeadlineNotificationScheduler.cancelReminder(getApplication(), id)
             repository.deleteDeadlineById(id)
             onDeleted?.invoke()
         }
@@ -57,7 +63,21 @@ class DeadlineViewModel(application: Application) : AndroidViewModel(application
 
     fun toggleCompleted(deadline: Deadline) {
         viewModelScope.launch {
-            repository.updateCompletionStatus(deadline.id, !deadline.isCompleted)
+            val newStatus = !deadline.isCompleted
+            repository.updateCompletionStatus(deadline.id, newStatus)
+            val updatedDeadline = deadline.copy(isCompleted = newStatus)
+            if (newStatus) {
+                DeadlineNotificationScheduler.cancelReminder(getApplication(), deadline.id)
+            } else {
+                DeadlineNotificationScheduler.scheduleReminder(getApplication(), updatedDeadline)
+            }
+        }
+    }
+
+    fun clearCompletedDeadlines(onCleared: ((Int) -> Unit)? = null) {
+        viewModelScope.launch {
+            val count = repository.deleteCompletedDeadlines()
+            onCleared?.invoke(count)
         }
     }
 

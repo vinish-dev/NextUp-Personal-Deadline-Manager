@@ -1,9 +1,11 @@
 package com.vinish.nextup.ui.calendar.components
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -13,10 +15,12 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.EventAvailable
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -33,13 +37,14 @@ import com.vinish.nextup.ui.theme.PrimaryBlueLight
 import com.vinish.nextup.ui.theme.SurfaceWhite
 import com.vinish.nextup.ui.theme.TextPrimary
 import com.vinish.nextup.ui.theme.TextSecondary
-import androidx.compose.foundation.BorderStroke
 
 @Composable
 fun CalendarEmptyState(
     modifier: Modifier = Modifier,
     title: String = "No Deadlines Scheduled",
-    subtitle: String = "You're all caught up for this date. Relax or plan ahead!"
+    subtitle: String = "You're all caught up for this date. Relax or plan ahead!",
+    actionText: String? = null,
+    onActionClick: (() -> Unit)? = null
 ) {
     Card(
         modifier = modifier.fillMaxWidth(),
@@ -89,6 +94,26 @@ fun CalendarEmptyState(
                 textAlign = TextAlign.Center,
                 lineHeight = 20.sp
             )
+
+            if (actionText != null && onActionClick != null) {
+                Spacer(modifier = Modifier.height(18.dp))
+                OutlinedButton(
+                    onClick = onActionClick,
+                    shape = RoundedCornerShape(12.dp),
+                    border = BorderStroke(1.dp, PrimaryBlue.copy(alpha = 0.3f)),
+                    colors = ButtonDefaults.outlinedButtonColors(
+                        containerColor = PrimaryBlueLight.copy(alpha = 0.5f)
+                    ),
+                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
+                ) {
+                    Text(
+                        text = actionText,
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = PrimaryBlue
+                    )
+                }
+            }
         }
     }
 }

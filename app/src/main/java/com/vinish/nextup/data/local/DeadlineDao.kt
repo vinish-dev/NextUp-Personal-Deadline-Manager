@@ -37,6 +37,9 @@ interface DeadlineDao {
     @Query("UPDATE deadlines SET isCompleted = :isCompleted WHERE id = :id")
     suspend fun updateCompletionStatus(id: Long, isCompleted: Boolean)
 
+    @Query("DELETE FROM deadlines WHERE isCompleted = 1")
+    suspend fun deleteCompletedDeadlines(): Int
+
     @Query("SELECT COUNT(*) FROM deadlines")
     suspend fun getDeadlineCount(): Int
 }

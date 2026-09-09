@@ -19,10 +19,12 @@ fun DeadlineSection(
     title: String,
     deadlines: List<Deadline>,
     modifier: Modifier = Modifier,
-    maxItems: Int = 2,
-    showSeeAll: Boolean = true,
+    maxItems: Int = 10,
+    showSeeAll: Boolean = false,
     onSeeAllClick: () -> Unit = {},
-    onDeadlineClick: ((Deadline) -> Unit)? = null
+    onDeadlineClick: ((Deadline) -> Unit)? = null,
+    onToggleCompleted: ((Deadline) -> Unit)? = null,
+    onDeleteDeadline: ((Deadline) -> Unit)? = null
 ) {
     if (deadlines.isEmpty()) return
 
@@ -30,7 +32,7 @@ fun DeadlineSection(
 
     Column(
         modifier = modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(10.dp)
+        verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         SectionHeader(
             title = title,
@@ -41,7 +43,9 @@ fun DeadlineSection(
         displayDeadlines.forEach { deadline ->
             DeadlineCard(
                 deadline = deadline,
-                onClick = onDeadlineClick?.let { { it(deadline) } }
+                onClick = onDeadlineClick?.let { { it(deadline) } },
+                onToggleCompleted = onToggleCompleted?.let { { it(deadline) } },
+                onDelete = onDeleteDeadline?.let { { it(deadline) } }
             )
         }
     }

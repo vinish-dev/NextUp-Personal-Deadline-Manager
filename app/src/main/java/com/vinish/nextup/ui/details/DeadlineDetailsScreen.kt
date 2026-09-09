@@ -40,7 +40,13 @@ fun DeadlineDetailsScreen(
 ) {
     val activeDeadline = initialDeadline
         ?: SampleDeadlines.sampleDeadlines.find { it.id == deadlineId }
-        ?: SampleDeadlines.sampleDeadlines.first()
+
+    if (activeDeadline == null) {
+        androidx.compose.runtime.LaunchedEffect(Unit) {
+            onBackClick()
+        }
+        return
+    }
 
     Scaffold(
         modifier = modifier.fillMaxSize(),
@@ -48,6 +54,7 @@ fun DeadlineDetailsScreen(
         topBar = {
             DetailsTopBar(
                 onBackClick = onBackClick,
+                category = activeDeadline.category,
                 onEditClick = { onEditClick?.invoke(activeDeadline) },
                 onDeleteClick = { onDeleteClick?.invoke(activeDeadline) },
                 onShareClick = { onShareClick?.invoke(activeDeadline) }
@@ -70,7 +77,10 @@ fun DeadlineDetailsScreen(
         ) {
             // Hero card: Category icon -> Title -> Description -> Status / Priority
             item {
-                DeadlineHeroCard(deadline = activeDeadline)
+                DeadlineHeroCard(
+                    deadline = activeDeadline,
+                    onToggleCompleted = { onToggleCompleted?.invoke(activeDeadline) }
+                )
             }
 
             // Info Card: Due Date, Reminder, Repeat

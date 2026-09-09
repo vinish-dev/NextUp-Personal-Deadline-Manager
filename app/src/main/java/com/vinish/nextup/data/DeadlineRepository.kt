@@ -41,6 +41,24 @@ class DeadlineRepository(private val deadlineDao: DeadlineDao) {
         deadlineDao.updateCompletionStatus(id, isCompleted)
     }
 
+    suspend fun deleteCompletedDeadlines(): Int {
+        return deadlineDao.deleteCompletedDeadlines()
+    }
+
+    suspend fun seedIfFirstLaunch(context: android.content.Context) {
+        val prefs = context.getSharedPreferences("nextup_prefs", android.content.Context.MODE_PRIVATE)
+        val hasSeeded = prefs.getBoolean("has_seeded_initial_data", false)
+        if (!hasSeeded) {
+            if (deadlineDao.getDeadlineCount() == 0) {
+                val entities = SampleDeadlines.sampleDeadlines.map {
+                    DeadlineEntity.fromDomain(it)
+                }
+                deadlineDao.insertDeadlines(entities)
+            }
+            prefs.edit().putBoolean("has_seeded_initial_data", true).apply()
+        }
+    }
+
     suspend fun seedIfEmpty() {
         if (deadlineDao.getDeadlineCount() == 0) {
             val entities = SampleDeadlines.sampleDeadlines.map {

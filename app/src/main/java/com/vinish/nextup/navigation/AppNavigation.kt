@@ -41,8 +41,17 @@ fun AppNavigation(
                 onDeadlineClick = { deadline ->
                     navController.navigate(Screen.Details.createRoute(deadline.id))
                 },
+                onToggleCompleted = { deadline ->
+                    viewModel.toggleCompleted(deadline)
+                },
+                onDeleteDeadline = { deadline ->
+                    viewModel.deleteDeadline(deadline.id)
+                },
                 onAddDeadlineClick = {
                     navController.navigate(Screen.Add.createRoute())
+                },
+                onAvatarClick = {
+                    navController.navigate(Screen.Profile.route)
                 }
             )
         }
@@ -53,6 +62,12 @@ fun AppNavigation(
                 deadlines = deadlines,
                 onAddDeadlineClick = { selectedDate ->
                     navController.navigate(Screen.Add.createRoute(selectedDate))
+                },
+                onToggleCompleted = { deadline ->
+                    viewModel.toggleCompleted(deadline)
+                },
+                onDeleteDeadline = { deadline ->
+                    viewModel.deleteDeadline(deadline.id)
                 },
                 onDeadlineClick = { deadline ->
                     navController.navigate(Screen.Details.createRoute(deadline.id))
@@ -95,11 +110,29 @@ fun AppNavigation(
         }
 
         composable(Screen.Categories.route) {
-            CategoriesScreen(modifier = modifier)
+            CategoriesScreen(
+                modifier = modifier,
+                deadlines = deadlines,
+                onDeadlineClick = { deadline ->
+                    navController.navigate(Screen.Details.createRoute(deadline.id))
+                },
+                onToggleCompleted = { deadline ->
+                    viewModel.toggleCompleted(deadline)
+                },
+                onDeleteDeadline = { deadline ->
+                    viewModel.deleteDeadline(deadline.id)
+                }
+            )
         }
 
         composable(Screen.Profile.route) {
-            ProfileScreen(modifier = modifier)
+            ProfileScreen(
+                modifier = modifier,
+                deadlines = deadlines,
+                onClearCompleted = {
+                    viewModel.clearCompletedDeadlines()
+                }
+            )
         }
 
         composable(
@@ -117,33 +150,38 @@ fun AppNavigation(
             val activeDeadline = currentDeadline
                 ?: deadlines.find { it.id == deadlineId }
                 ?: SampleDeadlines.sampleDeadlines.find { it.id == deadlineId }
-                ?: SampleDeadlines.sampleDeadlines.first()
 
-            DeadlineDetailsScreen(
-                modifier = modifier,
-                deadlineId = deadlineId,
-                initialDeadline = activeDeadline,
-                onBackClick = {
-                    navController.popBackStack()
-                },
-                onEditClick = { deadline ->
-                    navController.navigate(Screen.Edit.createRoute(deadline.id))
-                },
-                onDeleteClick = { deadline ->
-                    viewModel.deleteDeadline(deadline.id) {
+            if (activeDeadline != null) {
+                DeadlineDetailsScreen(
+                    modifier = modifier,
+                    deadlineId = deadlineId,
+                    initialDeadline = activeDeadline,
+                    onBackClick = {
                         navController.popBackStack()
+                    },
+                    onEditClick = { deadline ->
+                        navController.navigate(Screen.Edit.createRoute(deadline.id))
+                    },
+                    onDeleteClick = { deadline ->
+                        viewModel.deleteDeadline(deadline.id) {
+                            navController.popBackStack()
+                        }
+                    },
+                    onToggleCompleted = { deadline ->
+                        viewModel.toggleCompleted(deadline)
+                    },
+                    onToggleSubtask = { deadline, subtask ->
+                        viewModel.toggleSubtask(deadline, subtask)
+                    },
+                    onAddSubtask = { deadline, title ->
+                        viewModel.addSubtask(deadline, title)
                     }
-                },
-                onToggleCompleted = { deadline ->
-                    viewModel.toggleCompleted(deadline)
-                },
-                onToggleSubtask = { deadline, subtask ->
-                    viewModel.toggleSubtask(deadline, subtask)
-                },
-                onAddSubtask = { deadline, title ->
-                    viewModel.addSubtask(deadline, title)
+                )
+            } else {
+                androidx.compose.runtime.LaunchedEffect(Unit) {
+                    navController.popBackStack()
                 }
-            )
+            }
         }
 
         composable(
