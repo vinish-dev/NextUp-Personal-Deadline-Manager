@@ -27,19 +27,9 @@ fun CategoryTopBar(
         modifier = modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        IconButton(
-            onClick = onBackClick
-        ) {
-            Icon(
-                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                tint = TextPrimary,
-                contentDescription = "Go back"
-            )
-        }
         Text(
             modifier = Modifier
-                .fillMaxWidth()
-                .offset(x = (-25).dp),
+                .fillMaxWidth(),
             text = "Categories",
             style = MaterialTheme.typography.titleLarge,
             textAlign = TextAlign.Center,

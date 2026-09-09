@@ -108,7 +108,10 @@ fun AppNavigation(
         }
 
         composable(Screen.Profile.route) {
-            ProfileScreen(modifier = modifier)
+            ProfileScreen(
+                modifier = modifier,
+                deadlines = deadlines
+            )
         }
 
         composable(
