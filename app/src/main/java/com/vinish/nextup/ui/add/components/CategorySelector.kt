@@ -43,10 +43,11 @@ import com.vinish.nextup.ui.theme.TextSecondary
 
 // TODO: replace with Enum having displayName
 fun Category.displayName(): String = when (this) {
-    Category.EDUCATION -> "Education"
-    Category.WORK -> "Work"
-    Category.FINANCE -> "Finance"
+    Category.EDUCATION -> "Academic"
     Category.PERSONAL -> "Personal"
+    Category.WORK -> "Work"
+//    Category.HEALTH -> "Health"
+    Category.FINANCE -> "Finance"
     Category.DOCUMENTS -> "Documents"
     Category.OTHER -> "Other"
 }

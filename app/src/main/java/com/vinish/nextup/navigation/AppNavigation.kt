@@ -94,7 +94,17 @@ fun AppNavigation(
         }
 
         composable(Screen.Categories.route) {
-            CategoriesScreen(modifier = modifier)
+            CategoriesScreen(
+                modifier = modifier,
+                deadlines = deadlines,
+                onBackClick = {
+                    if (!navController.popBackStack()) {
+                        navController.navigate(Screen.Home.route) {
+                            popUpTo(Screen.Home.route) { inclusive = true }
+                        }
+                    }
+                }
+            )
         }
 
         composable(Screen.Profile.route) {
