@@ -50,6 +50,7 @@ fun AddDeadlineScreen(
     modifier: Modifier = Modifier,
     initialDate: LocalDate? = null,
     existingDeadline: Deadline? = null,
+    categories: List<Category> = Category.builtInCategories,
     onBackClick: () -> Unit = {},
     onSaveDeadline: ((Deadline) -> Unit)? = null
 ) {
@@ -57,7 +58,7 @@ fun AddDeadlineScreen(
 
     var title by remember(existingDeadline) { mutableStateOf(existingDeadline?.title ?: "") }
     var description by remember(existingDeadline) { mutableStateOf(existingDeadline?.description ?: "") }
-    var category by remember(existingDeadline) { mutableStateOf(existingDeadline?.category ?: Category.EDUCATION) }
+    var category by remember(existingDeadline) { mutableStateOf(existingDeadline?.category ?: categories.firstOrNull() ?: Category.EDUCATION) }
     var dueDate by remember(existingDeadline, initialDate) {
         mutableStateOf(existingDeadline?.dueDate ?: (initialDate ?: LocalDate.now()))
     }
@@ -122,6 +123,7 @@ fun AddDeadlineScreen(
             // 3. Category
             CategorySelector(
                 selectedCategory = category,
+                categories = categories,
                 onCategorySelected = { category = it }
             )
 

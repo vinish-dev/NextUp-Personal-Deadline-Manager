@@ -1,6 +1,5 @@
 package com.vinish.nextup.navigation
 
-
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.AddCircleOutline
 import androidx.compose.material.icons.outlined.CalendarMonth
@@ -8,6 +7,8 @@ import androidx.compose.material.icons.outlined.Category
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.Person
 import androidx.compose.ui.graphics.vector.ImageVector
+import java.net.URLEncoder
+import java.nio.charset.StandardCharsets
 
 sealed class Screen(
     val route: String,
@@ -46,7 +47,7 @@ sealed class Screen(
         "Category",
         Icons.Outlined.Category
     ) {
-        fun createRoute(categoryName: String): String = "category/$categoryName"
+        fun createRoute(categoryName: String): String = "category/${URLEncoder.encode(categoryName, StandardCharsets.UTF_8.toString())}"
     }
 
     data object Profile : Screen(

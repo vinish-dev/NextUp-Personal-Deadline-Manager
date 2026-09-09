@@ -4,10 +4,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.navigation.NavHostController
-import androidx.navigation.NavType
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
@@ -15,13 +15,16 @@ import com.vinish.nextup.data.sample.SampleDeadlines
 import com.vinish.nextup.model.Category
 import com.vinish.nextup.ui.DeadlineViewModel
 import com.vinish.nextup.ui.add.AddDeadlineScreen
-import java.time.LocalDate
 import com.vinish.nextup.ui.calendar.CalendarScreen
 import com.vinish.nextup.ui.categories.CategoriesScreen
 import com.vinish.nextup.ui.categories.CategoryDetailScreen
 import com.vinish.nextup.ui.details.DeadlineDetailsScreen
 import com.vinish.nextup.ui.home.HomeScreen
 import com.vinish.nextup.ui.profile.ProfileScreen
+import java.net.URLDecoder
+import java.net.URLEncoder
+import java.nio.charset.StandardCharsets
+import java.time.LocalDate
 
 @Composable
 fun AppNavigation(
@@ -30,6 +33,7 @@ fun AppNavigation(
     viewModel: DeadlineViewModel = viewModel()
 ) {
     val deadlines by viewModel.deadlines.collectAsStateWithLifecycle()
+    val categories by viewModel.categories.collectAsStateWithLifecycle()
 
     NavHost(
         navController = navController,
@@ -82,6 +86,7 @@ fun AppNavigation(
             AddDeadlineScreen(
                 modifier = modifier,
                 initialDate = initialDate,
+                categories = categories,
                 onBackClick = {
                     if (!navController.popBackStack()) {
                         navController.navigate(Screen.Home.route) {
@@ -99,8 +104,12 @@ fun AppNavigation(
             CategoriesScreen(
                 modifier = modifier,
                 deadlines = deadlines,
+                categories = categories,
                 onCategoryClick = { category ->
                     navController.navigate(Screen.CategoryDetail.createRoute(category.name))
+                },
+                onAddCategory = { categoryName ->
+                    viewModel.addCategory(categoryName)
                 }
             )
         }
@@ -111,17 +120,15 @@ fun AppNavigation(
                 navArgument("categoryName") { type = NavType.StringType }
             )
         ) { backStackEntry ->
-            val categoryName = backStackEntry.arguments?.getString("categoryName") ?: Category.OTHER.name
-            val selectedCategory = try {
-                Category.valueOf(categoryName)
-            } catch (_: IllegalArgumentException) {
-                Category.OTHER
-            }
+            val categoryName = backStackEntry.arguments?.getString("categoryName")
+                ?.let { URLDecoder.decode(it, StandardCharsets.UTF_8.toString()) }
+                ?: Category.OTHER.name
+            val selectedCategory = Category.fromName(categoryName)
 
             CategoryDetailScreen(
                 modifier = modifier,
                 category = selectedCategory,
-                deadlines = deadlines.filter { it.category == selectedCategory },
+                deadlines = deadlines.filter { it.category.name.equals(selectedCategory.name, ignoreCase = true) },
                 onBackClick = { navController.popBackStack() },
                 onDeadlineClick = { deadline ->
                     navController.navigate(Screen.Details.createRoute(deadline.id))
@@ -195,6 +202,7 @@ fun AppNavigation(
                 AddDeadlineScreen(
                     modifier = modifier,
                     existingDeadline = deadlineToEdit,
+                    categories = categories,
                     onBackClick = {
                         navController.popBackStack()
                     },

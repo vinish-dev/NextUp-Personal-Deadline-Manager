@@ -6,7 +6,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -24,14 +23,21 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.outlined.ChevronRight
 import androidx.compose.material.icons.outlined.Search
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -59,10 +65,15 @@ import com.vinish.nextup.ui.theme.TextSecondary
 fun CategoriesScreen(
     modifier: Modifier = Modifier,
     deadlines: List<Deadline>,
-    onCategoryClick: ((Category) -> Unit)? = null
+    categories: List<Category> = Category.builtInCategories,
+    onCategoryClick: ((Category) -> Unit)? = null,
+    onAddCategory: ((String) -> Unit)? = null
 ) {
-    val categoriesWithStats = Category.entries.map { category ->
-        val categoryDeadlines = deadlines.filter { it.category == category }
+    var showCreateDialog by remember { mutableStateOf(false) }
+    var newCategoryName by remember { mutableStateOf("") }
+
+    val categoriesWithStats = categories.map { category ->
+        val categoryDeadlines = deadlines.filter { it.category.name.equals(category.name, ignoreCase = true) }
         val total = categoryDeadlines.size
         val completed = categoryDeadlines.count { it.isCompleted }
         CategoryStats(
@@ -74,6 +85,44 @@ fun CategoriesScreen(
     val totalDeadlines = deadlines.size
     val completedDeadlines = deadlines.count { it.isCompleted }
     val pendingDeadlines = totalDeadlines - completedDeadlines
+
+    if (showCreateDialog) {
+        AlertDialog(
+            onDismissRequest = { showCreateDialog = false },
+            title = { Text(text = "Add New Category") },
+            text = {
+                OutlinedTextField(
+                    value = newCategoryName,
+                    onValueChange = { newCategoryName = it },
+                    label = { Text("Category name") },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        val trimmed = newCategoryName.trim()
+                        if (trimmed.isNotBlank() && onAddCategory != null) {
+                            onAddCategory(trimmed)
+                        }
+                        newCategoryName = ""
+                        showCreateDialog = false
+                    }
+                ) {
+                    Text("Add")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = {
+                    newCategoryName = ""
+                    showCreateDialog = false
+                }) {
+                    Text("Cancel")
+                }
+            }
+        )
+    }
 
     LazyColumn(
         modifier = modifier
@@ -226,7 +275,9 @@ fun CategoriesScreen(
 
         item {
             Card(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { showCreateDialog = true },
                 shape = RoundedCornerShape(20.dp),
                 colors = CardDefaults.cardColors(containerColor = BackgroundLight),
                 border = BorderStroke(1.dp, BorderLight)
@@ -360,13 +411,14 @@ private fun SummaryCard(
     }
 }
 
-private fun categoryAccent(category: Category) = when (category) {
-    Category.EDUCATION -> PrimaryBlue
-    Category.PERSONAL -> PriorityLowText
-    Category.WORK -> PriorityMediumText
-    Category.DOCUMENTS -> PriorityHighText
-    Category.FINANCE -> category.iconTint
-    Category.OTHER -> TextSecondary
+private fun categoryAccent(category: Category) = when (category.name.uppercase()) {
+    "EDUCATION" -> PrimaryBlue
+    "PERSONAL" -> PriorityLowText
+    "WORK" -> PriorityMediumText
+    "DOCUMENTS" -> PriorityHighText
+    "FINANCE" -> category.iconTint
+    "OTHER" -> TextSecondary
+    else -> category.iconTint
 }
 
 @Composable
