@@ -54,8 +54,9 @@ data class DueDateInfo(
  */
 fun formatDueDate(dueDate: LocalDate, dueTime: LocalTime?): DueDateInfo {
     val today = LocalDate.now()
-    val isOverdue = dueDate.isBefore(today)
-    val isToday = dueDate.isEqual(today)
+    val nowTime = LocalTime.now()
+    val isOverdue = dueDate.isBefore(today) || (dueDate.isEqual(today) && dueTime != null && dueTime.isBefore(nowTime))
+    val isToday = dueDate.isEqual(today) && !isOverdue
     val isTomorrow = dueDate.isEqual(today.plusDays(1))
 
     val dateStr = when {

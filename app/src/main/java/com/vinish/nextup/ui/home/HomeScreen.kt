@@ -20,7 +20,9 @@ import com.vinish.nextup.ui.home.model.OverviewItem
 import com.vinish.nextup.ui.home.components.HomeEmptyState
 import com.vinish.nextup.ui.home.model.OverviewType
 
+import com.vinish.nextup.model.isOverdue
 import java.time.LocalDate
+import java.time.LocalTime
 
 @Composable
 fun HomeScreen(
@@ -29,12 +31,14 @@ fun HomeScreen(
     onDeadlineClick: ((Deadline) -> Unit)? = null,
     onAddDeadlineClick: (() -> Unit)? = null
 ) {
-    val today = remember { LocalDate.now() }
+    val today = LocalDate.now()
+    val nowTime = LocalTime.now()
+
     val overdueDeadlines = remember(deadlines) {
-        deadlines.filter { !it.isCompleted && it.dueDate.isBefore(today) }
+        deadlines.filter { it.isOverdue(today, nowTime) }
     }
     val todayDeadlines = remember(deadlines) {
-        deadlines.filter { it.dueDate.isEqual(today) }
+        deadlines.filter { it.dueDate.isEqual(today) && !it.isOverdue(today, nowTime) }
     }
     val tomorrowDeadlines = remember(deadlines) {
         deadlines.filter { it.dueDate.isEqual(today.plusDays(1)) }
@@ -47,7 +51,7 @@ fun HomeScreen(
 
     val overdueCount = overdueDeadlines.size
     val todayCount = remember(deadlines) {
-        deadlines.count { !it.isCompleted && it.dueDate.isEqual(today) }
+        deadlines.count { !it.isCompleted && it.dueDate.isEqual(today) && !it.isOverdue(today, nowTime) }
     }
     val tomorrowCount = remember(deadlines) {
         deadlines.count { !it.isCompleted && it.dueDate.isEqual(today.plusDays(1)) }
@@ -56,8 +60,8 @@ fun HomeScreen(
         deadlines.count { !it.isCompleted && it.dueDate.isAfter(today.plusDays(1)) && it.dueDate.isBefore(today.plusDays(8)) }
     }
 
-    val hasUpcomingTasks = remember(todayDeadlines, tomorrowDeadlines, thisWeekDeadlines) {
-        todayDeadlines.isNotEmpty() || tomorrowDeadlines.isNotEmpty() || thisWeekDeadlines.isNotEmpty()
+    val hasTasks = remember(overdueDeadlines, todayDeadlines, tomorrowDeadlines, thisWeekDeadlines) {
+        overdueDeadlines.isNotEmpty() || todayDeadlines.isNotEmpty() || tomorrowDeadlines.isNotEmpty() || thisWeekDeadlines.isNotEmpty()
     }
 
     LazyColumn(
@@ -124,7 +128,7 @@ fun HomeScreen(
             }
         }
 
-        if (!hasUpcomingTasks) {
+        if (!hasTasks) {
             item {
                 HomeEmptyState(
                     onAddDeadlineClick = onAddDeadlineClick

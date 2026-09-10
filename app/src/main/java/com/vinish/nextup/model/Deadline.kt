@@ -16,3 +16,15 @@ data class Deadline(
     val subtasks: List<Subtask> = emptyList(),
     val isCompleted: Boolean = false
 )
+
+fun Deadline.isOverdue(
+    nowDate: LocalDate = LocalDate.now(),
+    nowTime: LocalTime = LocalTime.now()
+): Boolean {
+    if (isCompleted) return false
+    return when {
+        dueDate.isBefore(nowDate) -> true
+        dueDate.isEqual(nowDate) -> dueTime != null && dueTime.isBefore(nowTime)
+        else -> false
+    }
+}

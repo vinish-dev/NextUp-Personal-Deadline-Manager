@@ -43,7 +43,9 @@ import com.vinish.nextup.ui.theme.PriorityLowText
 import com.vinish.nextup.ui.theme.SurfaceWhite
 import com.vinish.nextup.ui.theme.TextPrimary
 import com.vinish.nextup.ui.theme.TextSecondary
+import com.vinish.nextup.model.isOverdue
 import java.time.LocalDate
+import java.time.LocalTime
 
 @Composable
 fun DeadlineHeroCard(
@@ -51,8 +53,9 @@ fun DeadlineHeroCard(
     modifier: Modifier = Modifier
 ) {
     val today = LocalDate.now()
-    val isOverdue = deadline.dueDate.isBefore(today) && !deadline.isCompleted
-    val isToday = deadline.dueDate.isEqual(today) && !deadline.isCompleted
+    val nowTime = LocalTime.now()
+    val isOverdue = deadline.isOverdue(today, nowTime)
+    val isToday = deadline.dueDate.isEqual(today) && !deadline.isCompleted && !isOverdue
 
     val (statusText, statusBg, statusColor) = when {
         deadline.isCompleted -> Triple("Completed", PriorityLowBg, PriorityLowText)
