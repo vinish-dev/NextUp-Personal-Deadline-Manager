@@ -1,6 +1,7 @@
 package com.vinish.nextup.ui.add
 
 import android.util.Log
+import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -22,6 +23,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -55,6 +57,7 @@ fun AddDeadlineScreen(
     onSaveDeadline: ((Deadline) -> Unit)? = null
 ) {
     val isEditMode = existingDeadline != null
+    val context = LocalContext.current
 
     var title by remember(existingDeadline) { mutableStateOf(existingDeadline?.title ?: "") }
     var description by remember(existingDeadline) { mutableStateOf(existingDeadline?.description ?: "") }
@@ -201,6 +204,9 @@ fun AddDeadlineScreen(
                             )
                         }
                         Log.d("AddDeadlineScreen", "Saved deadline: $deadlineToSave")
+                        if (deadlineToSave.reminder != null && deadlineToSave.reminder != Reminder.NONE) {
+                            Toast.makeText(context, "Reminder set", Toast.LENGTH_SHORT).show()
+                        }
                         onSaveDeadline?.invoke(deadlineToSave)
                         onBackClick()
                     }
