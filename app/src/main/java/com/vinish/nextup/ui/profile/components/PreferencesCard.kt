@@ -16,10 +16,14 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowRight
 import androidx.compose.material.icons.outlined.Notifications
+import androidx.compose.material.icons.outlined.TaskAlt
 import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.Switch
+import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -30,7 +34,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.vinish.nextup.ui.theme.BorderLight
+import com.vinish.nextup.ui.theme.BorderMedium
 import com.vinish.nextup.ui.theme.BorderStoke
+import com.vinish.nextup.ui.theme.PrimaryBlue
 import com.vinish.nextup.ui.theme.SurfaceSubtle
 import com.vinish.nextup.ui.theme.SurfaceWhite
 import com.vinish.nextup.ui.theme.TextPrimary
@@ -40,6 +47,8 @@ import com.vinish.nextup.ui.theme.TextTertiary
 @Composable
 fun PreferencesCard(
     modifier: Modifier = Modifier,
+    showCompletedDeadlines: Boolean = false,
+    onShowCompletedDeadlinesChange: ((Boolean) -> Unit)? = null,
     onRemindersClick: () -> Unit = {}
 ) {
     Card(
@@ -144,6 +153,70 @@ fun PreferencesCard(
                     modifier = Modifier.size(18.dp)
                 )
             }
+
+            Spacer(modifier = Modifier.height(12.dp))
+            HorizontalDivider(thickness = 1.dp, color = BorderLight)
+            Spacer(modifier = Modifier.height(12.dp))
+
+            // Show Completed Deadlines Item
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(12.dp))
+                    .clickable(enabled = onShowCompletedDeadlinesChange != null) {
+                        onShowCompletedDeadlinesChange?.invoke(!showCompletedDeadlines)
+                    }
+                    .padding(vertical = 4.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(38.dp)
+                        .clip(RoundedCornerShape(10.dp))
+                        .background(SurfaceSubtle),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Outlined.TaskAlt,
+                        contentDescription = null,
+                        tint = TextPrimary,
+                        modifier = Modifier.size(20.dp)
+                    )
+                }
+
+                Spacer(modifier = Modifier.width(14.dp))
+
+                Column(
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Text(
+                        text = "Show completed deadlines",
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = TextPrimary
+                    )
+                    Spacer(modifier = Modifier.height(2.dp))
+                    Text(
+                        text = "Display completed deadlines inside their categories.",
+                        fontSize = 12.sp,
+                        color = TextSecondary
+                    )
+                }
+
+                Spacer(modifier = Modifier.width(8.dp))
+
+                Switch(
+                    checked = showCompletedDeadlines,
+                    onCheckedChange = onShowCompletedDeadlinesChange,
+                    colors = SwitchDefaults.colors(
+                        checkedThumbColor = SurfaceWhite,
+                        checkedTrackColor = PrimaryBlue,
+                        uncheckedThumbColor = Color(0xFF94A3B8),
+                        uncheckedTrackColor = SurfaceSubtle,
+                        uncheckedBorderColor = BorderMedium
+                    )
+                )
+            }
         }
     }
 }
@@ -151,5 +224,7 @@ fun PreferencesCard(
 @Preview(showBackground = true)
 @Composable
 private fun PreferencesCardPreview() {
-    PreferencesCard()
+    PreferencesCard(
+        showCompletedDeadlines = false
+    )
 }

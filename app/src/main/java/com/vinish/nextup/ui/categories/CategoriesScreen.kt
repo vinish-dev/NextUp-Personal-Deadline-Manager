@@ -7,7 +7,10 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -16,7 +19,6 @@ import com.vinish.nextup.model.Deadline
 import com.vinish.nextup.model.Priority
 import com.vinish.nextup.ui.categories.components.AddCategoryCard
 import com.vinish.nextup.ui.categories.components.CategoryItemCard
-import com.vinish.nextup.ui.categories.components.CategoryStatsCard
 import com.vinish.nextup.ui.categories.components.CategoryTopBar
 import com.vinish.nextup.ui.theme.BackgroundLight
 import java.time.LocalDate
@@ -25,25 +27,18 @@ import java.time.LocalDate
 fun CategoriesScreen(
     modifier: Modifier = Modifier,
     deadlines: List<Deadline> = emptyList(),
+    showCompletedDeadlines: Boolean = false,
     onBackClick: () -> Unit = {},
     onMoreClick: () -> Unit = {},
     onCategoryClick: ((Category) -> Unit)? = null,
+    onDeadlineClick: ((Deadline) -> Unit)? = null,
+    onToggleComplete: ((Deadline) -> Unit)? = null,
     onAddCategoryClick: (() -> Unit)? = null
 ) {
-    val totalDeadlines = deadlines.size
-    val completedDeadlines = remember(deadlines) { deadlines.count { it.isCompleted } }
-    val pendingDeadlines = totalDeadlines - completedDeadlines
+    var expandedCategoryNames by remember { mutableStateOf(setOf<String>()) }
 
-    val displayCategories = remember {
-        listOf(
-            Category.EDUCATION,
-            Category.PERSONAL,
-            Category.WORK,
-//            Category.HEALTH,
-            Category.FINANCE,
-            Category.DOCUMENTS,
-            Category.OTHER
-        )
+    val displayCategories = remember(deadlines) {
+        Category.allFrom(deadlines)
     }
 
     LazyColumn(
@@ -61,30 +56,35 @@ fun CategoriesScreen(
             )
         }
 
-        // Summary Stats Card at top
-        // item {
-        //     CategoryStatsCard(
-        //         totalDeadlines = totalDeadlines,
-        //         completedDeadlines = completedDeadlines,
-        //         pendingDeadlines = pendingDeadlines
-        //     )
-        // }
-
         // Category Cards
         items(displayCategories, key = { it.name }) { category ->
             val categoryDeadlines = remember(deadlines, category) {
-                deadlines.filter { it.category == category }
+                deadlines.filter { it.category.matches(category) }
             }
             val total = categoryDeadlines.size
             val completed = remember(categoryDeadlines) {
                 categoryDeadlines.count { it.isCompleted }
             }
+            val categoryKey = category.name.uppercase()
+            val isExpanded = expandedCategoryNames.contains(categoryKey)
 
             CategoryItemCard(
                 category = category,
                 totalCount = total,
                 completedCount = completed,
-                onClick = onCategoryClick?.let { { it(category) } }
+                deadlines = categoryDeadlines,
+                isExpanded = isExpanded,
+                showCompletedDeadlines = showCompletedDeadlines,
+                onToggleExpand = {
+                    expandedCategoryNames = if (isExpanded) {
+                        expandedCategoryNames - categoryKey
+                    } else {
+                        expandedCategoryNames + categoryKey
+                    }
+                    onCategoryClick?.invoke(category)
+                },
+                onDeadlineClick = onDeadlineClick,
+                onToggleComplete = onToggleComplete
             )
         }
 

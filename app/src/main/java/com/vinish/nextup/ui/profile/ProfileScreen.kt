@@ -27,6 +27,8 @@ fun ProfileScreen(
     modifier: Modifier = Modifier,
     deadlines: List<Deadline> = emptyList(),
     userName: String = "Vinish",
+    showCompletedDeadlines: Boolean = false,
+    onShowCompletedDeadlinesChange: ((Boolean) -> Unit)? = null,
     onMoreClick: () -> Unit = {},
     onUserCardClick: () -> Unit = {},
     onPriorityClick: ((Priority) -> Unit)? = null,
@@ -93,6 +95,8 @@ fun ProfileScreen(
         // Preferences Card
         item {
             PreferencesCard(
+                showCompletedDeadlines = showCompletedDeadlines,
+                onShowCompletedDeadlinesChange = onShowCompletedDeadlinesChange,
                 onRemindersClick = onRemindersClick
             )
         }

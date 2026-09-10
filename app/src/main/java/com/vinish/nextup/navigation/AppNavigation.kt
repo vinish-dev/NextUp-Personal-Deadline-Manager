@@ -28,6 +28,7 @@ fun AppNavigation(
     viewModel: DeadlineViewModel = viewModel()
 ) {
     val deadlines by viewModel.deadlines.collectAsStateWithLifecycle()
+    val showCompletedInCategories by viewModel.showCompletedInCategories.collectAsStateWithLifecycle()
 
     NavHost(
         navController = navController,
@@ -97,12 +98,19 @@ fun AppNavigation(
             CategoriesScreen(
                 modifier = modifier,
                 deadlines = deadlines,
+                showCompletedDeadlines = showCompletedInCategories,
                 onBackClick = {
                     if (!navController.popBackStack()) {
                         navController.navigate(Screen.Home.route) {
                             popUpTo(Screen.Home.route) { inclusive = true }
                         }
                     }
+                },
+                onDeadlineClick = { deadline ->
+                    navController.navigate(Screen.Details.createRoute(deadline.id))
+                },
+                onToggleComplete = { deadline ->
+                    viewModel.toggleCompleted(deadline)
                 }
             )
         }
@@ -110,7 +118,11 @@ fun AppNavigation(
         composable(Screen.Profile.route) {
             ProfileScreen(
                 modifier = modifier,
-                deadlines = deadlines
+                deadlines = deadlines,
+                showCompletedDeadlines = showCompletedInCategories,
+                onShowCompletedDeadlinesChange = { enabled ->
+                    viewModel.setShowCompletedInCategories(enabled)
+                }
             )
         }
 

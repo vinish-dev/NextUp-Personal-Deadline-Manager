@@ -8,9 +8,12 @@ import com.vinish.nextup.data.DeadlineRepository
 import com.vinish.nextup.data.local.AppDatabase
 import com.vinish.nextup.model.Deadline
 import com.vinish.nextup.model.Subtask
+import android.content.Context
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
@@ -19,12 +22,24 @@ class DeadlineViewModel(application: Application) : AndroidViewModel(application
     private val repository: DeadlineRepository = (application as? NextUpApplication)?.repository
         ?: DeadlineRepository(AppDatabase.getDatabase(application).deadlineDao())
 
+    private val prefs = application.getSharedPreferences("nextup_preferences", Context.MODE_PRIVATE)
+
     val deadlines: StateFlow<List<Deadline>> = repository.allDeadlines
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5000),
             initialValue = emptyList()
         )
+
+    private val _showCompletedInCategories = MutableStateFlow(
+        prefs.getBoolean("show_completed_in_categories", false)
+    )
+    val showCompletedInCategories: StateFlow<Boolean> = _showCompletedInCategories.asStateFlow()
+
+    fun setShowCompletedInCategories(enabled: Boolean) {
+        _showCompletedInCategories.value = enabled
+        prefs.edit().putBoolean("show_completed_in_categories", enabled).apply()
+    }
 
     fun getDeadline(id: Long): Flow<Deadline?> {
         return repository.getDeadlineById(id)
