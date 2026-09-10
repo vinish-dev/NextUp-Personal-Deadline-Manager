@@ -30,11 +30,7 @@ class DeadlineConverters {
     fun fromCategory(category: Category): String = category.name
 
     @TypeConverter
-    fun toCategory(value: String): Category = try {
-        Category.valueOf(value)
-    } catch (e: Exception) {
-        Category.OTHER
-    }
+    fun toCategory(value: String): Category = Category.fromName(value)
 
     @TypeConverter
     fun fromPriority(priority: Priority): String = priority.name
