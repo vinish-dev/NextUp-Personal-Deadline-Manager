@@ -29,6 +29,8 @@ fun ProfileScreen(
     userName: String = "Vinish",
     showCompletedDeadlines: Boolean = false,
     onShowCompletedDeadlinesChange: ((Boolean) -> Unit)? = null,
+    useSampleData: Boolean = false,
+    onUseSampleDataChange: ((Boolean) -> Unit)? = null,
     onMoreClick: () -> Unit = {},
     onUserCardClick: () -> Unit = {},
     onPriorityClick: ((Priority) -> Unit)? = null,
@@ -96,6 +98,8 @@ fun ProfileScreen(
             PreferencesCard(
                 showCompletedDeadlines = showCompletedDeadlines,
                 onShowCompletedDeadlinesChange = onShowCompletedDeadlinesChange,
+                useSampleData = useSampleData,
+                onUseSampleDataChange = onUseSampleDataChange,
                 onRemindersClick = onRemindersClick
             )
         }

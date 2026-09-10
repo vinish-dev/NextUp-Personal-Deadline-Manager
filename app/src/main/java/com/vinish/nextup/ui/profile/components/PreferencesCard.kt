@@ -16,6 +16,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowRight
 import androidx.compose.material.icons.outlined.Notifications
+import androidx.compose.material.icons.outlined.Storage
 import androidx.compose.material.icons.outlined.TaskAlt
 import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.material3.Card
@@ -49,6 +50,8 @@ fun PreferencesCard(
     modifier: Modifier = Modifier,
     showCompletedDeadlines: Boolean = false,
     onShowCompletedDeadlinesChange: ((Boolean) -> Unit)? = null,
+    useSampleData: Boolean = false,
+    onUseSampleDataChange: ((Boolean) -> Unit)? = null,
     onRemindersClick: () -> Unit = {}
 ) {
     Card(
@@ -94,7 +97,7 @@ fun PreferencesCard(
                     )
                     Spacer(modifier = Modifier.height(2.dp))
                     Text(
-                        text = "App preferences",
+                        text = "Customize your experience",
                         fontSize = 12.sp,
                         color = TextSecondary
                     )
@@ -217,6 +220,70 @@ fun PreferencesCard(
                     )
                 )
             }
+
+            Spacer(modifier = Modifier.height(12.dp))
+            HorizontalDivider(thickness = 1.dp, color = BorderLight)
+            Spacer(modifier = Modifier.height(12.dp))
+
+            // Sample Data / Real Room Data Toggle Item
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(12.dp))
+                    .clickable(enabled = onUseSampleDataChange != null) {
+                        onUseSampleDataChange?.invoke(!useSampleData)
+                    }
+                    .padding(vertical = 4.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(38.dp)
+                        .clip(RoundedCornerShape(10.dp))
+                        .background(SurfaceSubtle),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Outlined.Storage,
+                        contentDescription = null,
+                        tint = TextPrimary,
+                        modifier = Modifier.size(20.dp)
+                    )
+                }
+
+                Spacer(modifier = Modifier.width(14.dp))
+
+                Column(
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Text(
+                        text = "Sample Data Mode",
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = TextPrimary
+                    )
+                    Spacer(modifier = Modifier.height(2.dp))
+                    Text(
+                        text = if (useSampleData) "Using sample demo deadlines" else "Using real Room database",
+                        fontSize = 12.sp,
+                        color = TextSecondary
+                    )
+                }
+
+                Spacer(modifier = Modifier.width(8.dp))
+
+                Switch(
+                    checked = useSampleData,
+                    onCheckedChange = onUseSampleDataChange,
+                    colors = SwitchDefaults.colors(
+                        checkedThumbColor = SurfaceWhite,
+                        checkedTrackColor = PrimaryBlue,
+                        uncheckedThumbColor = Color(0xFF94A3B8),
+                        uncheckedTrackColor = SurfaceSubtle,
+                        uncheckedBorderColor = BorderMedium
+                    )
+                )
+            }
         }
     }
 }
@@ -225,6 +292,7 @@ fun PreferencesCard(
 @Composable
 private fun PreferencesCardPreview() {
     PreferencesCard(
-        showCompletedDeadlines = false
+        showCompletedDeadlines = false,
+        useSampleData = false
     )
 }

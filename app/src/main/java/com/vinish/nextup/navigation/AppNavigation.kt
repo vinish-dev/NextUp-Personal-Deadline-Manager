@@ -29,6 +29,7 @@ fun AppNavigation(
 ) {
     val deadlines by viewModel.deadlines.collectAsStateWithLifecycle()
     val showCompletedInCategories by viewModel.showCompletedInCategories.collectAsStateWithLifecycle()
+    val useSampleData by viewModel.useSampleData.collectAsStateWithLifecycle()
 
     NavHost(
         navController = navController,
@@ -122,6 +123,10 @@ fun AppNavigation(
                 showCompletedDeadlines = showCompletedInCategories,
                 onShowCompletedDeadlinesChange = { enabled ->
                     viewModel.setShowCompletedInCategories(enabled)
+                },
+                useSampleData = useSampleData,
+                onUseSampleDataChange = { enabled ->
+                    viewModel.setUseSampleData(enabled)
                 }
             )
         }
