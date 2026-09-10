@@ -94,7 +94,7 @@ fun PreferencesCard(
                     )
                     Spacer(modifier = Modifier.height(2.dp))
                     Text(
-                        text = "Customize your experience",
+                        text = "App preferences",
                         fontSize = 12.sp,
                         color = TextSecondary
                     )
@@ -197,7 +197,7 @@ fun PreferencesCard(
                     )
                     Spacer(modifier = Modifier.height(2.dp))
                     Text(
-                        text = "Display completed deadlines inside their categories.",
+                        text = "Display completed deadlines inside categories.",
                         fontSize = 12.sp,
                         color = TextSecondary
                     )

@@ -24,7 +24,6 @@ import androidx.compose.material.icons.rounded.KeyboardArrowDown
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
-import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -86,7 +85,7 @@ fun ProfileOverviewCard(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 // Overview bar chart icon
-                Box(
+                /*Box(
                     modifier = Modifier
                         .size(42.dp)
                         .clip(RoundedCornerShape(12.dp))
@@ -102,7 +101,7 @@ fun ProfileOverviewCard(
                 }
 
                 Spacer(modifier = Modifier.width(12.dp))
-
+*/
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
                         text = "Overview",
@@ -116,7 +115,7 @@ fun ProfileOverviewCard(
                 Spacer(modifier = Modifier.width(8.dp))
 
                 // Timeframe Pill Button
-                Box(
+                /*Box(
                     modifier = Modifier
                         .clip(RoundedCornerShape(20.dp))
                         .background(SurfaceSubtle)
@@ -140,7 +139,7 @@ fun ProfileOverviewCard(
                             modifier = Modifier.size(16.dp)
                         )
                     }
-                }
+                }*/
             }
 
             Spacer(modifier = Modifier.height(20.dp))
@@ -194,41 +193,41 @@ fun ProfileOverviewCard(
                 )
             }
 
-            Spacer(modifier = Modifier.height(20.dp))
+//            Spacer(modifier = Modifier.height(20.dp))
 
-            // Completion Rate Row
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = "Completion Rate",
-                    fontSize = 13.sp,
-                    fontWeight = FontWeight.Medium,
-                    color = TextPrimary
-                )
-
-                Spacer(modifier = Modifier.width(12.dp))
-
-                LinearProgressIndicator(
-                    progress = { completionRatio },
-                    modifier = Modifier
-                        .weight(1f)
-                        .height(8.dp)
-                        .clip(RoundedCornerShape(4.dp)),
-                    color = PrimaryBlue,
-                    trackColor = Color(0xFFE2E8F0)
-                )
-
-                Spacer(modifier = Modifier.width(12.dp))
-
-                Text(
-                    text = "$completionPercentage%",
-                    fontSize = 13.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = TextPrimary
-                )
-            }
+            // Completion Rate Row//
+//            Row(
+//                modifier = Modifier.fillMaxWidth(),
+//                verticalAlignment = Alignment.CenterVertically
+//            ) {
+//                Text(
+//                    text = "Completion Rate",
+//                    fontSize = 13.sp,
+//                    fontWeight = FontWeight.Medium,
+//                    color = TextPrimary
+//                )
+//
+//                Spacer(modifier = Modifier.width(12.dp))
+//
+//                LinearProgressIndicator(
+//                    progress = { completionRatio },
+//                    modifier = Modifier
+//                        .weight(1f)
+//                        .height(8.dp)
+//                        .clip(RoundedCornerShape(4.dp)),
+//                    color = PrimaryBlue,
+//                    trackColor = Color(0xFFE2E8F0)
+//                )
+//
+//                Spacer(modifier = Modifier.width(12.dp))
+//
+//                Text(
+//                    text = "$completionPercentage%",
+//                    fontSize = 13.sp,
+//                    fontWeight = FontWeight.Bold,
+//                    color = TextPrimary
+//                )
+//            }
         }
     }
 }

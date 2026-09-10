@@ -40,7 +40,7 @@ import com.vinish.nextup.ui.theme.TextTertiary
 fun UserProfileCard(
     modifier: Modifier = Modifier,
     userName: String = "Vinish",
-    workspaceName: String = "Personal Workspace",
+    subtitle: String? = "Personal account",
     tagline: String = "",
     onCardClick: () -> Unit = {}
 ) {
@@ -88,13 +88,15 @@ fun UserProfileCard(
                     color = TextPrimary
                 )
 
-                Spacer(modifier = Modifier.height(2.dp))
+                if (!subtitle.isNullOrBlank()) {
+                    Spacer(modifier = Modifier.height(2.dp))
 
-                Text(
-                    text = workspaceName,
-                    fontSize = 13.sp,
-                    color = TextSecondary
-                )
+                    Text(
+                        text = subtitle,
+                        fontSize = 13.sp,
+                        color = TextSecondary
+                    )
+                }
             }
 
             Spacer(modifier = Modifier.width(8.dp))

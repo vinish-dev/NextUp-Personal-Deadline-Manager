@@ -66,8 +66,7 @@ fun ProfileScreen(
         item {
             UserProfileCard(
                 userName = userName,
-                workspaceName = "Personal Workspace",
-                tagline = "Making progress, one deadline at a time",
+                subtitle = "Personal account",
                 onCardClick = onUserCardClick
             )
         }
@@ -83,14 +82,14 @@ fun ProfileScreen(
         }
 
         // Pending Priorities Card
-        item {
+        /*item {
             PendingPrioritiesCard(
                 highPriorityCount = highPriorityCount,
                 mediumPriorityCount = mediumPriorityCount,
                 lowPriorityCount = lowPriorityCount,
                 onPriorityClick = onPriorityClick
             )
-        }
+        }*/
 
         // Preferences Card
         item {
@@ -102,9 +101,9 @@ fun ProfileScreen(
         }
 
         // Bottom Motivation Card
-        item {
+        /*item {
             MotivationCard()
-        }
+        }*/
     }
 }
 

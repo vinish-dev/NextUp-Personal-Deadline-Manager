@@ -73,7 +73,7 @@ fun ProfileHeader(
         Spacer(modifier = Modifier.height(4.dp))
 
         Text(
-            text = "Manage your account and track your progress",
+            text = "Manage your account and preferences",
             fontSize = 13.sp,
             fontWeight = FontWeight.Normal,
             color = TextSecondary
