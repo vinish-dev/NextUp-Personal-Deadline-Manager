@@ -37,25 +37,11 @@ import com.vinish.nextup.ui.theme.SurfaceWhite
 import com.vinish.nextup.ui.theme.TextPrimary
 import com.vinish.nextup.ui.theme.TextSecondary
 
-/**
- * Returns a human-friendly display name for Category.
- */
-
-// TODO: replace with Enum having displayName
-fun Category.displayName(): String = when (this) {
-    Category.EDUCATION -> "Academic"
-    Category.PERSONAL -> "Personal"
-    Category.WORK -> "Work"
-//    Category.HEALTH -> "Health"
-    Category.FINANCE -> "Finance"
-    Category.DOCUMENTS -> "Documents"
-    Category.OTHER -> "Other"
-}
-
 @Composable
 fun CategorySelector(
     selectedCategory: Category,
     onCategorySelected: (Category) -> Unit,
+    categories: List<Category> = Category.builtInCategories,
     modifier: Modifier = Modifier
 ) {
     var expanded by remember { mutableStateOf(false) }
@@ -82,7 +68,6 @@ fun CategorySelector(
                     .padding(horizontal = 14.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // Category Icon Badge
                 Box(
                     modifier = Modifier
                         .size(36.dp)
@@ -108,7 +93,6 @@ fun CategorySelector(
                     modifier = Modifier.weight(1f)
                 )
 
-                // todo: change icon based on expanded state
                 Icon(
                     imageVector = Icons.Filled.KeyboardArrowDown,
                     contentDescription = "Select category",
@@ -120,10 +104,9 @@ fun CategorySelector(
             DropdownMenu(
                 expanded = expanded,
                 onDismissRequest = { expanded = false },
-                modifier = Modifier
-                    .background(SurfaceWhite)
+                modifier = Modifier.background(SurfaceWhite)
             ) {
-                Category.entries.forEach { category ->
+                categories.forEach { category ->
                     DropdownMenuItem(
                         text = {
                             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -145,7 +128,7 @@ fun CategorySelector(
                                 Text(
                                     text = category.displayName(),
                                     fontSize = 15.sp,
-                                    fontWeight = if (category == selectedCategory) FontWeight.Bold else FontWeight.Normal,
+                                    fontWeight = if (category.matches(selectedCategory)) FontWeight.Bold else FontWeight.Normal,
                                     color = TextPrimary
                                 )
                             }
@@ -166,6 +149,7 @@ fun CategorySelector(
 private fun CategorySelectorPreview() {
     CategorySelector(
         selectedCategory = Category.EDUCATION,
-        onCategorySelected = {}
+        onCategorySelected = {},
+        categories = Category.builtInCategories
     )
 }
