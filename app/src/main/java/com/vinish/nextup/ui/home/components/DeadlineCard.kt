@@ -30,17 +30,21 @@ import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.outlined.Checklist
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Schedule
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.SwipeToDismissBox
 import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -370,7 +374,51 @@ fun DeadlineCard(
             cardContent()
         }
     } else {
+        var showDeleteConfirmDialog by remember { mutableStateOf(false) }
+
+        if (showDeleteConfirmDialog) {
+            AlertDialog(
+                onDismissRequest = { showDeleteConfirmDialog = false },
+                title = {
+                    Text(
+                        text = "Delete Deadline?",
+                        fontWeight = FontWeight.Bold,
+                        color = TextPrimary
+                    )
+                },
+                text = {
+                    Text(
+                        text = "Are you sure you want to delete \"${deadline.title}\"? This action cannot be undone.",
+                        color = TextSecondary,
+                        fontSize = 14.sp
+                    )
+                },
+                confirmButton = {
+                    TextButton(
+                        onClick = {
+                            showDeleteConfirmDialog = false
+                            onDelete?.invoke()
+                        }
+                    ) {
+                        Text(
+                            text = "Delete",
+                            color = Color(0xFFDC2626),
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showDeleteConfirmDialog = false }) {
+                        Text("Cancel", color = TextSecondary)
+                    }
+                },
+                containerColor = SurfaceWhite,
+                shape = RoundedCornerShape(20.dp)
+            )
+        }
+
         val dismissState = rememberSwipeToDismissBoxState(
+            positionalThreshold = { totalDistance -> totalDistance * 0.65f },
             confirmValueChange = { dismissValue ->
                 when (dismissValue) {
                     SwipeToDismissBoxValue.StartToEnd -> {
@@ -381,8 +429,8 @@ fun DeadlineCard(
                     SwipeToDismissBoxValue.EndToStart -> {
                         if (onDelete != null) {
                             haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                            onDelete.invoke()
-                            true
+                            showDeleteConfirmDialog = true
+                            false // Snap back safely and require confirmation before deletion
                         } else {
                             false
                         }

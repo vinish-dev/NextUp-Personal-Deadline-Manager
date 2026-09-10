@@ -66,13 +66,19 @@ import com.vinish.nextup.ui.theme.TextPrimary
 import com.vinish.nextup.ui.theme.TextSecondary
 import com.vinish.nextup.ui.theme.TextTertiary
 
+import androidx.compose.material.icons.outlined.Close
+import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+
 @Composable
 fun DeadlineSubtasksCard(
     subtasks: List<Subtask>,
     onToggleSubtask: (Subtask) -> Unit,
     onAddSubtask: (String) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onDeleteSubtask: ((Subtask) -> Unit)? = null
 ) {
+    val haptic = LocalHapticFeedback.current
     var newSubtaskText by remember { mutableStateOf("") }
     val completedCount = subtasks.count { it.isCompleted }
     val totalCount = subtasks.size
@@ -146,6 +152,29 @@ fun DeadlineSubtasksCard(
                 )
             }
 
+            // Celebration banner when all subtasks are finished
+            if (totalCount > 0 && completedCount == totalCount) {
+                Spacer(modifier = Modifier.height(12.dp))
+                Surface(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(10.dp),
+                    color = PriorityLowBg,
+                    border = BorderStroke(0.5.dp, PriorityLowText.copy(alpha = 0.2f))
+                ) {
+                    Row(
+                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "🎉 All steps done! You're ready to complete this deadline.",
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            color = PriorityLowText
+                        )
+                    }
+                }
+            }
+
             Spacer(modifier = Modifier.height(16.dp))
 
             // Subtasks list
@@ -171,8 +200,11 @@ fun DeadlineSubtasksCard(
                                 .clickable(
                                     interactionSource = remember { MutableInteractionSource() },
                                     indication = ripple(bounded = true)
-                                ) { onToggleSubtask(subtask) }
-                                .padding(vertical = 8.dp, horizontal = 4.dp),
+                                ) {
+                                    haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                                    onToggleSubtask(subtask)
+                                }
+                                .padding(vertical = 6.dp, horizontal = 4.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Box(
@@ -209,6 +241,23 @@ fun DeadlineSubtasksCard(
                                     .weight(1f)
                                     .alpha(itemAlpha)
                             )
+
+                            if (onDeleteSubtask != null) {
+                                IconButton(
+                                    onClick = {
+                                        haptic.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                                        onDeleteSubtask(subtask)
+                                    },
+                                    modifier = Modifier.size(28.dp)
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Outlined.Close,
+                                        contentDescription = "Remove step",
+                                        tint = TextTertiary,
+                                        modifier = Modifier.size(15.dp)
+                                    )
+                                }
+                            }
                         }
                     }
                 }

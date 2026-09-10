@@ -25,6 +25,12 @@ import com.vinish.nextup.ui.details.components.DeadlineSubtasksCard
 import com.vinish.nextup.ui.details.components.DetailsTopBar
 import com.vinish.nextup.ui.theme.BackgroundLight
 
+import android.content.Intent
+import androidx.compose.ui.platform.LocalContext
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
+import java.util.Locale
+
 @Composable
 fun DeadlineDetailsScreen(
     modifier: Modifier = Modifier,
@@ -36,8 +42,11 @@ fun DeadlineDetailsScreen(
     onToggleCompleted: ((Deadline) -> Unit)? = null,
     onToggleSubtask: ((Deadline, Subtask) -> Unit)? = null,
     onAddSubtask: ((Deadline, String) -> Unit)? = null,
+    onDeleteSubtask: ((Deadline, Subtask) -> Unit)? = null,
+    onReschedule: ((Deadline, LocalDate) -> Unit)? = null,
     onShareClick: ((Deadline) -> Unit)? = null
 ) {
+    val context = LocalContext.current
     val activeDeadline = initialDeadline
         ?: SampleDeadlines.sampleDeadlines.find { it.id == deadlineId }
 
@@ -46,6 +55,38 @@ fun DeadlineDetailsScreen(
             onBackClick()
         }
         return
+    }
+
+    val handleShare: () -> Unit = {
+        if (onShareClick != null) {
+            onShareClick.invoke(activeDeadline)
+        } else {
+            val dateStr = activeDeadline.dueDate.format(DateTimeFormatter.ofPattern("EEE, d MMM yyyy", Locale.ENGLISH))
+            val timeStr = activeDeadline.dueTime?.format(DateTimeFormatter.ofPattern("h:mm a", Locale.ENGLISH))
+            val dueStr = if (timeStr != null) "$dateStr at $timeStr" else dateStr
+            val sb = StringBuilder()
+            sb.append("📌 *${activeDeadline.title}*\n")
+            if (!activeDeadline.description.isNullOrBlank()) {
+                sb.append("${activeDeadline.description}\n\n")
+            }
+            sb.append("📅 Due: $dueStr\n")
+            sb.append("🏷️ Category: ${activeDeadline.category.displayName} | Priority: ${activeDeadline.priority.name.lowercase().replaceFirstChar { it.uppercase() }}\n")
+            if (activeDeadline.subtasks.isNotEmpty()) {
+                val done = activeDeadline.subtasks.count { it.isCompleted }
+                sb.append("\n📋 Subtasks ($done/${activeDeadline.subtasks.size}):\n")
+                activeDeadline.subtasks.forEach { sub ->
+                    sb.append("  ${if (sub.isCompleted) "✓" else "□"} ${sub.title}\n")
+                }
+            }
+            sb.append("\nManaged with NextUp 🚀")
+
+            val sendIntent = Intent().apply {
+                action = Intent.ACTION_SEND
+                putExtra(Intent.EXTRA_TEXT, sb.toString())
+                type = "text/plain"
+            }
+            context.startActivity(Intent.createChooser(sendIntent, "Share Deadline"))
+        }
     }
 
     Scaffold(
@@ -57,14 +98,13 @@ fun DeadlineDetailsScreen(
                 category = activeDeadline.category,
                 onEditClick = { onEditClick?.invoke(activeDeadline) },
                 onDeleteClick = { onDeleteClick?.invoke(activeDeadline) },
-                onShareClick = { onShareClick?.invoke(activeDeadline) }
+                onShareClick = handleShare
             )
         },
         bottomBar = {
             DeadlineBottomBar(
                 isCompleted = activeDeadline.isCompleted,
-                onToggleCompleted = { onToggleCompleted?.invoke(activeDeadline) },
-                onEditClick = { onEditClick?.invoke(activeDeadline) }
+                onToggleCompleted = { onToggleCompleted?.invoke(activeDeadline) }
             )
         }
     ) { paddingValues ->
@@ -75,20 +115,21 @@ fun DeadlineDetailsScreen(
             verticalArrangement = Arrangement.spacedBy(16.dp),
             contentPadding = PaddingValues(horizontal = 20.dp, vertical = 12.dp)
         ) {
-            // Hero card: Category icon -> Title -> Description -> Status / Priority
+            // Hero card: Category accent -> Urgency Countdown -> Title -> Description -> Postpone chips
             item {
                 DeadlineHeroCard(
                     deadline = activeDeadline,
-                    onToggleCompleted = { onToggleCompleted?.invoke(activeDeadline) }
+                    onToggleCompleted = { onToggleCompleted?.invoke(activeDeadline) },
+                    onReschedule = { newDate -> onReschedule?.invoke(activeDeadline, newDate) }
                 )
             }
 
-            // Info Card: Due Date, Reminder, Repeat
+            // Info Card: Due Date, Priority, Reminder, Repeat, and Calendar Sync
             item {
                 DeadlineInfoCard(deadline = activeDeadline)
             }
 
-            // Subtasks card: Progress bar, interactive list, and inline add
+            // Subtasks card: Progress bar, interactive list, delete item, and inline add
             item {
                 DeadlineSubtasksCard(
                     subtasks = activeDeadline.subtasks,
@@ -97,6 +138,9 @@ fun DeadlineDetailsScreen(
                     },
                     onAddSubtask = { newTitle ->
                         onAddSubtask?.invoke(activeDeadline, newTitle)
+                    },
+                    onDeleteSubtask = { subtaskToDelete ->
+                        onDeleteSubtask?.invoke(activeDeadline, subtaskToDelete)
                     }
                 )
             }

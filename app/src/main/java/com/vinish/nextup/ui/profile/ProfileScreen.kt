@@ -37,8 +37,11 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.Switch
+import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -49,15 +52,20 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import android.content.Intent
+import android.provider.Settings
+import androidx.lifecycle.compose.LifecycleResumeEffect
 import com.vinish.nextup.data.sample.SampleDeadlines
 import com.vinish.nextup.model.Deadline
 import com.vinish.nextup.model.Priority
+import com.vinish.nextup.notifications.NotificationCapturePreferences
 import com.vinish.nextup.ui.theme.BackgroundLight
 import com.vinish.nextup.ui.theme.BorderLight
 import com.vinish.nextup.ui.theme.PrimaryBlue
@@ -89,8 +97,26 @@ fun ProfileScreen(
     deadlines: List<Deadline> = SampleDeadlines.sampleDeadlines,
     onClearCompleted: (() -> Unit)? = null
 ) {
+    val context = LocalContext.current
     val haptic = LocalHapticFeedback.current
     var showClearDialog by remember { mutableStateOf(false) }
+
+    var isSmartCaptureEnabled by remember {
+        mutableStateOf(NotificationCapturePreferences.isFeatureEnabled(context))
+    }
+    var isAutoCreateEnabled by remember {
+        mutableStateOf(NotificationCapturePreferences.isAutoCreateEnabled(context))
+    }
+    var hasNotificationAccess by remember {
+        mutableStateOf(NotificationCapturePreferences.hasNotificationListenerPermission(context))
+    }
+
+    LifecycleResumeEffect(Unit) {
+        hasNotificationAccess = NotificationCapturePreferences.hasNotificationListenerPermission(context)
+        isSmartCaptureEnabled = NotificationCapturePreferences.isFeatureEnabled(context)
+        isAutoCreateEnabled = NotificationCapturePreferences.isAutoCreateEnabled(context)
+        onPauseOrDispose { }
+    }
 
     val stats = remember(deadlines) {
         var completed = 0
@@ -502,6 +528,116 @@ fun ProfileScreen(
                         title = "Deadline Reminders",
                         subtitle = "Timely alerts on due date"
                     )
+                    Spacer(modifier = Modifier.height(14.dp))
+
+                    // Smart Notification Capture (Auto-detection like OTP)
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(38.dp)
+                                .clip(RoundedCornerShape(10.dp))
+                                .background(PrimaryBlueLight),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                imageVector = Icons.Outlined.Notifications,
+                                contentDescription = null,
+                                tint = PrimaryBlue,
+                                modifier = Modifier.size(18.dp)
+                            )
+                        }
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = "Smart Deadline Capture",
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                color = TextPrimary
+                            )
+                            Spacer(modifier = Modifier.height(1.dp))
+                            Text(
+                                text = if (!hasNotificationAccess) "Requires notification permission · Tap to grant"
+                                else if (isSmartCaptureEnabled) "Autofills tasks from meetings & apps"
+                                else "Paused",
+                                fontSize = 12.sp,
+                                color = if (!hasNotificationAccess) PriorityHighText else TextSecondary
+                            )
+                        }
+                        if (hasNotificationAccess) {
+                            Switch(
+                                checked = isSmartCaptureEnabled,
+                                onCheckedChange = { isChecked ->
+                                    isSmartCaptureEnabled = isChecked
+                                    NotificationCapturePreferences.setFeatureEnabled(context, isChecked)
+                                },
+                                colors = SwitchDefaults.colors(
+                                    checkedThumbColor = Color.White,
+                                    checkedTrackColor = PrimaryBlue,
+                                    uncheckedThumbColor = Color.White,
+                                    uncheckedTrackColor = BorderLight
+                                )
+                            )
+                        } else {
+                            OutlinedButton(
+                                onClick = {
+                                    val intent = Intent(Settings.ACTION_NOTIFICATION_LISTENER_SETTINGS)
+                                    intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
+                                    context.startActivity(intent)
+                                },
+                                shape = RoundedCornerShape(10.dp),
+                                border = BorderStroke(1.dp, BorderLight),
+                                contentPadding = PaddingValues(horizontal = 10.dp, vertical = 4.dp)
+                            ) {
+                                Text(
+                                    text = "Enable",
+                                    fontSize = 12.sp,
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = PrimaryBlue
+                                )
+                            }
+                        }
+                    }
+
+                    if (hasNotificationAccess && isSmartCaptureEnabled) {
+                        Spacer(modifier = Modifier.height(10.dp))
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(start = 50.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    text = "Auto-save without prompt",
+                                    fontSize = 13.sp,
+                                    fontWeight = FontWeight.Medium,
+                                    color = TextPrimary
+                                )
+                                Text(
+                                    text = if (isAutoCreateEnabled) "Saves directly in background" else "Shows OTP-style prompt first",
+                                    fontSize = 11.sp,
+                                    color = TextSecondary
+                                )
+                            }
+                            Switch(
+                                checked = isAutoCreateEnabled,
+                                onCheckedChange = { isChecked ->
+                                    isAutoCreateEnabled = isChecked
+                                    NotificationCapturePreferences.setAutoCreateEnabled(context, isChecked)
+                                },
+                                colors = SwitchDefaults.colors(
+                                    checkedThumbColor = Color.White,
+                                    checkedTrackColor = PrimaryBlue,
+                                    uncheckedThumbColor = Color.White,
+                                    uncheckedTrackColor = BorderLight
+                                )
+                            )
+                        }
+                    }
+
                     Spacer(modifier = Modifier.height(14.dp))
                     SettingsRow(
                         icon = Icons.Outlined.Vibration,

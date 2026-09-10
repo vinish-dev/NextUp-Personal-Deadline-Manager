@@ -99,16 +99,16 @@ fun DetailsTopBar(
         )
     }
 
-    Row(
+    Box(
         modifier = modifier
             .fillMaxWidth()
             .padding(horizontal = 18.dp, vertical = 10.dp),
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.SpaceBetween
+        contentAlignment = Alignment.Center
     ) {
         // Back circular button
         Surface(
             modifier = Modifier
+                .align(Alignment.CenterStart)
                 .size(42.dp)
                 .clip(CircleShape)
                 .clickable(
@@ -129,41 +129,43 @@ fun DetailsTopBar(
             }
         }
 
-        // Category Badge
-        if (category != null) {
-            Surface(
-                shape = RoundedCornerShape(20.dp),
-                color = category.iconBackground,
-                border = BorderStroke(1.dp, category.iconTint.copy(alpha = 0.25f))
-            ) {
-                Row(
-                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Icon(
-                        imageVector = category.icon,
-                        contentDescription = null,
-                        tint = category.iconTint,
-                        modifier = Modifier.size(16.dp)
-                    )
-                    Spacer(modifier = Modifier.width(6.dp))
-                    Text(
-                        text = category.displayName,
-                        fontSize = 13.sp,
-                        fontWeight = FontWeight.SemiBold,
-                        color = category.iconTint
-                    )
-                }
-            }
-        } else {
-            Spacer(modifier = Modifier.weight(1f))
-        }
+        Text(
+            text = "Details",
+            fontSize = 18.sp,
+            fontWeight = FontWeight.Bold,
+            color = TextPrimary,
+            modifier = Modifier.align(Alignment.Center)
+        )
 
         // Action buttons
         Row(
+            modifier = Modifier.align(Alignment.CenterEnd),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
+            // Quick Share button
+            Surface(
+                modifier = Modifier
+                    .size(42.dp)
+                    .clip(CircleShape)
+                    .clickable(
+                        interactionSource = remember { MutableInteractionSource() },
+                        indication = ripple(bounded = true)
+                    ) { onShareClick() },
+                shape = CircleShape,
+                color = SurfaceWhite,
+                border = BorderStroke(1.dp, BorderLight)
+            ) {
+                Box(contentAlignment = Alignment.Center) {
+                    Icon(
+                        imageVector = Icons.Outlined.Share,
+                        tint = TextPrimary,
+                        contentDescription = "Share Deadline",
+                        modifier = Modifier.size(18.dp)
+                    )
+                }
+            }
+
             // Quick Edit button
             Surface(
                 modifier = Modifier

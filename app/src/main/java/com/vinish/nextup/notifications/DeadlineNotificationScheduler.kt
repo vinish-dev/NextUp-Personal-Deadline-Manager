@@ -21,9 +21,15 @@ object DeadlineNotificationScheduler {
     private const val CHANNEL_NAME = "Deadline Reminders"
     private const val CHANNEL_DESC = "Notifications and timely alerts for your personal deadlines"
 
+    const val SMART_CAPTURE_CHANNEL_ID = "smart_capture_channel"
+    private const val SMART_CAPTURE_CHANNEL_NAME = "Smart Deadline Suggestions"
+    private const val SMART_CAPTURE_CHANNEL_DESC = "Instant prompts to add deadlines detected from other apps"
+
     fun initNotificationChannel(context: Context) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val channel = NotificationChannel(
+            val notificationManager = context.getSystemService(NotificationManager::class.java)
+
+            val reminderChannel = NotificationChannel(
                 CHANNEL_ID,
                 CHANNEL_NAME,
                 NotificationManager.IMPORTANCE_HIGH
@@ -34,8 +40,21 @@ object DeadlineNotificationScheduler {
                 setShowBadge(true)
                 lockscreenVisibility = android.app.Notification.VISIBILITY_PUBLIC
             }
-            val notificationManager = context.getSystemService(NotificationManager::class.java)
-            notificationManager?.createNotificationChannel(channel)
+
+            val captureChannel = NotificationChannel(
+                SMART_CAPTURE_CHANNEL_ID,
+                SMART_CAPTURE_CHANNEL_NAME,
+                NotificationManager.IMPORTANCE_HIGH
+            ).apply {
+                description = SMART_CAPTURE_CHANNEL_DESC
+                enableVibration(true)
+                vibrationPattern = longArrayOf(0, 200, 100, 200)
+                setShowBadge(true)
+                lockscreenVisibility = android.app.Notification.VISIBILITY_PUBLIC
+            }
+
+            notificationManager?.createNotificationChannel(reminderChannel)
+            notificationManager?.createNotificationChannel(captureChannel)
         }
     }
 

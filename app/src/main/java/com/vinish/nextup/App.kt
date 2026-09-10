@@ -19,7 +19,9 @@ import androidx.compose.runtime.LaunchedEffect
 fun App(
     modifier: Modifier = Modifier,
     targetDeadlineId: Long? = null,
-    onTargetDeadlineHandled: (() -> Unit)? = null
+    onTargetDeadlineHandled: (() -> Unit)? = null,
+    autofillPayload: AutofillPayload? = null,
+    onAutofillPayloadHandled: (() -> Unit)? = null
 ) {
     val navController = rememberNavController()
 
@@ -27,6 +29,22 @@ fun App(
         if (targetDeadlineId != null && targetDeadlineId > 0) {
             navController.navigate(Screen.Details.createRoute(targetDeadlineId))
             onTargetDeadlineHandled?.invoke()
+        }
+    }
+
+    LaunchedEffect(autofillPayload) {
+        autofillPayload?.let { payload ->
+            navController.navigate(
+                Screen.Add.createRoute(
+                    date = payload.date,
+                    title = payload.title,
+                    description = payload.description,
+                    time = payload.time,
+                    category = payload.category?.name,
+                    priority = payload.priority?.name
+                )
+            )
+            onAutofillPayloadHandled?.invoke()
         }
     }
 

@@ -27,12 +27,27 @@ sealed class Screen(
     )
 
     data object Add : Screen(
-        "add?date={date}",
+        "add?date={date}&title={title}&desc={desc}&time={time}&category={category}&priority={priority}",
         "Add",
         Icons.Outlined.AddCircleOutline
     ) {
-        fun createRoute(date: java.time.LocalDate? = null): String =
-            if (date != null) "add?date=$date" else "add"
+        fun createRoute(
+            date: java.time.LocalDate? = null,
+            title: String? = null,
+            description: String? = null,
+            time: java.time.LocalTime? = null,
+            category: String? = null,
+            priority: String? = null
+        ): String {
+            val params = mutableListOf<String>()
+            if (date != null) params.add("date=$date")
+            if (!title.isNullOrBlank()) params.add("title=${java.net.URLEncoder.encode(title, "UTF-8")}")
+            if (!description.isNullOrBlank()) params.add("desc=${java.net.URLEncoder.encode(description, "UTF-8")}")
+            if (time != null) params.add("time=$time")
+            if (!category.isNullOrBlank()) params.add("category=$category")
+            if (!priority.isNullOrBlank()) params.add("priority=$priority")
+            return if (params.isEmpty()) "add" else "add?" + params.joinToString("&")
+        }
     }
 
     data object Categories : Screen(

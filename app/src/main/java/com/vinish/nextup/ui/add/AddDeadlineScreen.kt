@@ -49,22 +49,43 @@ import java.time.LocalTime
 fun AddDeadlineScreen(
     modifier: Modifier = Modifier,
     initialDate: LocalDate? = null,
+    initialTitle: String = "",
+    initialDescription: String = "",
+    initialTime: LocalTime? = null,
+    initialCategory: Category? = null,
+    initialPriority: Priority? = null,
     existingDeadline: Deadline? = null,
     onBackClick: () -> Unit = {},
     onSaveDeadline: ((Deadline) -> Unit)? = null
 ) {
     val isEditMode = existingDeadline != null
 
-    var title by remember(existingDeadline) { mutableStateOf(existingDeadline?.title ?: "") }
-    var description by remember(existingDeadline) { mutableStateOf(existingDeadline?.description ?: "") }
-    var category by remember(existingDeadline) { mutableStateOf(existingDeadline?.category ?: Category.EDUCATION) }
+    var title by remember(existingDeadline, initialTitle) {
+        mutableStateOf(existingDeadline?.title ?: initialTitle)
+    }
+    var description by remember(existingDeadline, initialDescription) {
+        mutableStateOf(existingDeadline?.description ?: initialDescription)
+    }
+    var category by remember(existingDeadline, initialCategory) {
+        mutableStateOf(existingDeadline?.category ?: (initialCategory ?: Category.EDUCATION))
+    }
     var dueDate by remember(existingDeadline, initialDate) {
         mutableStateOf(existingDeadline?.dueDate ?: (initialDate ?: LocalDate.now()))
     }
-    var dueTime by remember(existingDeadline) { mutableStateOf<LocalTime?>(existingDeadline?.dueTime) }
-    var reminder by remember(existingDeadline) { mutableStateOf(existingDeadline?.reminder ?: Reminder.NONE) }
-    var priority by remember(existingDeadline) { mutableStateOf(existingDeadline?.priority ?: Priority.MEDIUM) }
-    var recurrence by remember(existingDeadline) { mutableStateOf(existingDeadline?.recurrence ?: Recurrence.NONE) }
+    var dueTime by remember(existingDeadline, initialTime) {
+        mutableStateOf<LocalTime?>(existingDeadline?.dueTime ?: initialTime)
+    }
+    var reminder by remember(existingDeadline, initialTime) {
+        mutableStateOf(
+            existingDeadline?.reminder ?: (if (initialTime != null) Reminder.AT_TIME else Reminder.NONE)
+        )
+    }
+    var priority by remember(existingDeadline, initialPriority) {
+        mutableStateOf(existingDeadline?.priority ?: (initialPriority ?: Priority.MEDIUM))
+    }
+    var recurrence by remember(existingDeadline) {
+        mutableStateOf(existingDeadline?.recurrence ?: Recurrence.NONE)
+    }
 
     var isSubtasksEnabled by remember(existingDeadline) {
         mutableStateOf(existingDeadline?.subtasks?.isNotEmpty() == true)

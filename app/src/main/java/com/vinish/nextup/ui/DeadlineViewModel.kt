@@ -96,4 +96,21 @@ class DeadlineViewModel(application: Application) : AndroidViewModel(application
             repository.updateDeadline(deadline.copy(subtasks = updatedSubtasks))
         }
     }
+
+    fun deleteSubtask(deadline: Deadline, subtask: Subtask) {
+        viewModelScope.launch {
+            val updatedSubtasks = deadline.subtasks.filter { it.id != subtask.id }
+            repository.updateDeadline(deadline.copy(subtasks = updatedSubtasks))
+        }
+    }
+
+    fun rescheduleDeadline(deadline: Deadline, newDate: java.time.LocalDate) {
+        viewModelScope.launch {
+            val updated = deadline.copy(dueDate = newDate)
+            repository.updateDeadline(updated)
+            if (!updated.isCompleted) {
+                DeadlineNotificationScheduler.scheduleReminder(getApplication(), updated)
+            }
+        }
+    }
 }

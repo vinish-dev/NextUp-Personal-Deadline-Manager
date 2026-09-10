@@ -30,7 +30,26 @@
 
         <receiver
             android:name=".notifications.DeadlineReminderReceiver"
-            android:exported="false" />
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.vinish.nextup.ACTION_SHOW_REMINDER" />
+                <action android:name="com.vinish.nextup.ACTION_MARK_DONE" />
+                <action android:name="com.vinish.nextup.ACTION_SNOOZE" />
+                <action android:name="com.vinish.nextup.ACTION_AUTOFILL_ADD" />
+                <action android:name="com.vinish.nextup.ACTION_DISMISS_SUGGESTION" />
+            </intent-filter>
+        </receiver>
+
+        <!-- Background Service for detecting deadlines from incoming notifications -->
+        <service
+            android:name=".notifications.DeadlineNotificationListenerService"
+            android:label="NextUp Smart Deadline Capture"
+            android:permission="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.service.notification.NotificationListenerService" />
+            </intent-filter>
+        </service>
     </application>
 
 </manifest>

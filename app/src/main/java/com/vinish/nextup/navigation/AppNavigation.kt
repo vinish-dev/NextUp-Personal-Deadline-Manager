@@ -18,10 +18,13 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
 import com.vinish.nextup.data.sample.SampleDeadlines
+import com.vinish.nextup.model.Category
 import com.vinish.nextup.model.Deadline
+import com.vinish.nextup.model.Priority
 import com.vinish.nextup.ui.DeadlineViewModel
 import com.vinish.nextup.ui.add.AddDeadlineScreen
 import java.time.LocalDate
+import java.time.LocalTime
 import com.vinish.nextup.ui.calendar.CalendarScreen
 import com.vinish.nextup.ui.categories.CategoriesScreen
 import com.vinish.nextup.ui.details.DeadlineDetailsScreen
@@ -100,20 +103,58 @@ fun AppNavigation(
                     type = NavType.StringType
                     nullable = true
                     defaultValue = null
+                },
+                navArgument("title") {
+                    type = NavType.StringType
+                    nullable = true
+                    defaultValue = null
+                },
+                navArgument("desc") {
+                    type = NavType.StringType
+                    nullable = true
+                    defaultValue = null
+                },
+                navArgument("time") {
+                    type = NavType.StringType
+                    nullable = true
+                    defaultValue = null
+                },
+                navArgument("category") {
+                    type = NavType.StringType
+                    nullable = true
+                    defaultValue = null
+                },
+                navArgument("priority") {
+                    type = NavType.StringType
+                    nullable = true
+                    defaultValue = null
                 }
             )
         ) { backStackEntry ->
             val dateStr = backStackEntry.arguments?.getString("date")
-            val initialDate = dateStr?.let {
-                try {
-                    LocalDate.parse(it)
-                } catch (e: Exception) {
-                    null
-                }
+            val titleStr = backStackEntry.arguments?.getString("title")?.let {
+                runCatching { java.net.URLDecoder.decode(it, "UTF-8") }.getOrDefault(it)
             }
+            val descStr = backStackEntry.arguments?.getString("desc")?.let {
+                runCatching { java.net.URLDecoder.decode(it, "UTF-8") }.getOrDefault(it)
+            }
+            val timeStr = backStackEntry.arguments?.getString("time")
+            val catStr = backStackEntry.arguments?.getString("category")
+            val prioStr = backStackEntry.arguments?.getString("priority")
+
+            val initialDate = dateStr?.let { runCatching { LocalDate.parse(it) }.getOrNull() }
+            val initialTime = timeStr?.let { runCatching { LocalTime.parse(it) }.getOrNull() }
+            val initialCategory = catStr?.let { runCatching { Category.valueOf(it) }.getOrNull() }
+            val initialPriority = prioStr?.let { runCatching { Priority.valueOf(it) }.getOrNull() }
+
             AddDeadlineScreen(
                 modifier = modifier,
                 initialDate = initialDate,
+                initialTitle = titleStr.orEmpty(),
+                initialDescription = descStr.orEmpty(),
+                initialTime = initialTime,
+                initialCategory = initialCategory,
+                initialPriority = initialPriority,
                 onBackClick = {
                     if (!navController.popBackStack()) {
                         navController.navigate(Screen.Home.route) {
@@ -193,6 +234,12 @@ fun AppNavigation(
                     },
                     onAddSubtask = { deadline, title ->
                         viewModel.addSubtask(deadline, title)
+                    },
+                    onDeleteSubtask = { deadline, subtask ->
+                        viewModel.deleteSubtask(deadline, subtask)
+                    },
+                    onReschedule = { deadline, newDate ->
+                        viewModel.rescheduleDeadline(deadline, newDate)
                     }
                 )
             } else {

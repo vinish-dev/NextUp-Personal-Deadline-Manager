@@ -18,6 +18,61 @@ class DeadlineReminderReceiver : BroadcastReceiver() {
 
     override fun onReceive(context: Context, intent: Intent) {
         val action = intent.action ?: ACTION_SHOW_REMINDER
+
+        if (action == ACTION_DISMISS_SUGGESTION) {
+            val notificationId = intent.getIntExtra(EXTRA_NOTIFICATION_ID, -1)
+            if (notificationId != -1) {
+                NotificationManagerCompat.from(context).cancel(notificationId)
+            }
+            return
+        }
+
+        if (action == ACTION_AUTOFILL_ADD) {
+            val notificationId = intent.getIntExtra(EXTRA_NOTIFICATION_ID, -1)
+            if (notificationId != -1) {
+                NotificationManagerCompat.from(context).cancel(notificationId)
+            }
+
+            val title = intent.getStringExtra(EXTRA_TITLE) ?: "Captured Deadline"
+            val description = intent.getStringExtra(EXTRA_DESCRIPTION)
+            val dateStr = intent.getStringExtra(EXTRA_DUE_DATE)
+            val timeStr = intent.getStringExtra(EXTRA_DUE_TIME)
+            val categoryStr = intent.getStringExtra(EXTRA_CATEGORY) ?: "PERSONAL"
+            val priorityStr = intent.getStringExtra(EXTRA_PRIORITY) ?: "MEDIUM"
+
+            val dueDate = dateStr?.let { runCatching { java.time.LocalDate.parse(it) }.getOrNull() } ?: java.time.LocalDate.now()
+            val dueTime = timeStr?.let { runCatching { java.time.LocalTime.parse(it) }.getOrNull() }
+            val category = runCatching { com.vinish.nextup.model.Category.valueOf(categoryStr) }.getOrDefault(com.vinish.nextup.model.Category.PERSONAL)
+            val priority = runCatching { com.vinish.nextup.model.Priority.valueOf(priorityStr) }.getOrDefault(com.vinish.nextup.model.Priority.MEDIUM)
+
+            val pendingResult = goAsync()
+            CoroutineScope(Dispatchers.IO).launch {
+                try {
+                    val db = AppDatabase.getDatabase(context)
+                    val newDeadline = com.vinish.nextup.model.Deadline(
+                        title = title,
+                        description = description,
+                        dueDate = dueDate,
+                        dueTime = dueTime,
+                        category = category,
+                        priority = priority,
+                        reminder = if (dueTime != null) com.vinish.nextup.model.Reminder.AT_TIME else com.vinish.nextup.model.Reminder.ONE_DAY_BEFORE,
+                        isCompleted = false
+                    )
+                    val id = db.deadlineDao().insertDeadline(
+                        com.vinish.nextup.data.local.DeadlineEntity.fromDomain(newDeadline)
+                    )
+                    DeadlineNotificationScheduler.scheduleReminder(context, newDeadline.copy(id = id))
+                } catch (_: Exception) {
+                    // Ignore
+                } finally {
+                    pendingResult.finish()
+                }
+            }
+            Toast.makeText(context, "Added to NextUp: $title", Toast.LENGTH_SHORT).show()
+            return
+        }
+
         val deadlineId = intent.getLongExtra(EXTRA_DEADLINE_ID, -1L)
         if (deadlineId == -1L) return
 
@@ -175,6 +230,8 @@ class DeadlineReminderReceiver : BroadcastReceiver() {
         const val ACTION_SHOW_REMINDER = "com.vinish.nextup.ACTION_SHOW_REMINDER"
         const val ACTION_MARK_DONE = "com.vinish.nextup.ACTION_MARK_DONE"
         const val ACTION_SNOOZE = "com.vinish.nextup.ACTION_SNOOZE"
+        const val ACTION_AUTOFILL_ADD = "com.vinish.nextup.ACTION_AUTOFILL_ADD"
+        const val ACTION_DISMISS_SUGGESTION = "com.vinish.nextup.ACTION_DISMISS_SUGGESTION"
 
         const val EXTRA_DEADLINE_ID = "extra_deadline_id"
         const val EXTRA_TITLE = "extra_title"
@@ -183,5 +240,8 @@ class DeadlineReminderReceiver : BroadcastReceiver() {
         const val EXTRA_DESCRIPTION = "extra_description"
         const val EXTRA_PRIORITY = "extra_priority"
         const val EXTRA_SUBTASKS = "extra_subtasks"
+        const val EXTRA_DUE_DATE = "extra_due_date"
+        const val EXTRA_DUE_TIME = "extra_due_time"
+        const val EXTRA_NOTIFICATION_ID = "extra_notification_id"
     }
 }
