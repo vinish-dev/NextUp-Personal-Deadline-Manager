@@ -20,6 +20,11 @@ import com.vinish.nextup.ui.profile.components.ProfileHeader
 import com.vinish.nextup.ui.profile.components.ProfileOverviewCard
 import com.vinish.nextup.ui.profile.components.UserProfileCard
 import com.vinish.nextup.ui.theme.BackgroundLight
+import android.content.Intent
+import android.net.Uri
+import android.os.Build
+import android.provider.Settings
+import androidx.compose.ui.platform.LocalContext
 import java.time.LocalDate
 
 @Composable
@@ -95,12 +100,28 @@ fun ProfileScreen(
 
         // Preferences Card
         item {
+            val context = LocalContext.current
             PreferencesCard(
                 showCompletedDeadlines = showCompletedDeadlines,
                 onShowCompletedDeadlinesChange = onShowCompletedDeadlinesChange,
                 useSampleData = useSampleData,
                 onUseSampleDataChange = onUseSampleDataChange,
-                onRemindersClick = onRemindersClick
+                onRemindersClick = {
+                    try {
+                        val intent = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                            Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS).apply {
+                                putExtra(Settings.EXTRA_APP_PACKAGE, context.packageName)
+                            }
+                        } else {
+                            Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
+                                data = Uri.parse("package:${context.packageName}")
+                            }
+                        }
+                        context.startActivity(intent)
+                    } catch (_: Exception) {
+                        onRemindersClick()
+                    }
+                }
             )
         }
 

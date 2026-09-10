@@ -10,12 +10,14 @@ import com.vinish.nextup.data.local.AppDatabase
 import com.vinish.nextup.data.sample.SampleDeadlines
 import com.vinish.nextup.model.Deadline
 import com.vinish.nextup.model.Subtask
+import com.vinish.nextup.notification.DeadlineNotificationScheduler
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
@@ -24,6 +26,10 @@ class DeadlineViewModel(application: Application) : AndroidViewModel(application
 
     private val repository: DeadlineRepository = (application as? NextUpApplication)?.repository
         ?: DeadlineRepository(AppDatabase.getDatabase(application).deadlineDao())
+
+    private val notificationScheduler: DeadlineNotificationScheduler =
+        (application as? NextUpApplication)?.notificationScheduler
+            ?: DeadlineNotificationScheduler(application)
 
     private val prefs = application.getSharedPreferences("nextup_preferences", Context.MODE_PRIVATE)
 
@@ -59,6 +65,21 @@ class DeadlineViewModel(application: Application) : AndroidViewModel(application
     fun setUseSampleData(enabled: Boolean) {
         _useSampleData.value = enabled
         prefs.edit().putBoolean("use_sample_data", enabled).apply()
+        if (!enabled) {
+            // Re-sync all real deadline alarms when switching back to Real Room Data
+            viewModelScope.launch {
+                try {
+                    val roomDeadlines = repository.allDeadlines.first()
+                    roomDeadlines.forEach { deadline ->
+                        if (!deadline.isCompleted) {
+                            notificationScheduler.schedule(deadline)
+                        } else {
+                            notificationScheduler.cancel(deadline.id)
+                        }
+                    }
+                } catch (_: Exception) {}
+            }
+        }
     }
 
     fun getDeadline(id: Long): Flow<Deadline?> {
@@ -82,11 +103,14 @@ class DeadlineViewModel(application: Application) : AndroidViewModel(application
             onSaved?.invoke()
         } else {
             viewModelScope.launch {
-                if (deadline.id == 0L) {
-                    repository.insertDeadline(deadline)
+                val saved = if (deadline.id == 0L) {
+                    val id = repository.insertDeadline(deadline)
+                    deadline.copy(id = id)
                 } else {
                     repository.updateDeadline(deadline)
+                    deadline
                 }
+                notificationScheduler.schedule(saved)
                 onSaved?.invoke()
             }
         }
@@ -97,6 +121,7 @@ class DeadlineViewModel(application: Application) : AndroidViewModel(application
             _sampleDeadlines.value = _sampleDeadlines.value.filterNot { it.id == id }
             onDeleted?.invoke()
         } else {
+            notificationScheduler.cancel(id)
             viewModelScope.launch {
                 repository.deleteDeadlineById(id)
                 onDeleted?.invoke()
@@ -105,13 +130,19 @@ class DeadlineViewModel(application: Application) : AndroidViewModel(application
     }
 
     fun toggleCompleted(deadline: Deadline) {
+        val willBeCompleted = !deadline.isCompleted
         if (_useSampleData.value) {
             _sampleDeadlines.value = _sampleDeadlines.value.map {
-                if (it.id == deadline.id) it.copy(isCompleted = !it.isCompleted) else it
+                if (it.id == deadline.id) it.copy(isCompleted = willBeCompleted) else it
             }
         } else {
+            if (willBeCompleted) {
+                notificationScheduler.cancel(deadline.id)
+            } else {
+                notificationScheduler.schedule(deadline.copy(isCompleted = false))
+            }
             viewModelScope.launch {
-                repository.updateCompletionStatus(deadline.id, !deadline.isCompleted)
+                repository.updateCompletionStatus(deadline.id, willBeCompleted)
             }
         }
     }
