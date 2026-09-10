@@ -30,14 +30,14 @@ class DeadlineNotificationReceiver : BroadcastReceiver() {
                     CoroutineScope(Dispatchers.IO).launch {
                         try {
                             val deadline = repository.getDeadlineByIdOnce(deadlineId)
-                            if (deadline != null && !deadline.isCompleted) {
+                            if (deadline == null || !deadline.isCompleted) {
                                 NotificationHelper.showDeadlineNotification(
                                     context = context,
                                     deadlineId = deadlineId,
-                                    title = deadline.title,
-                                    description = deadline.description,
+                                    title = deadline?.title ?: title,
+                                    description = deadline?.description ?: description,
                                     dueText = dueText,
-                                    priority = deadline.priority.name
+                                    priority = deadline?.priority?.name ?: priority
                                 )
                             }
                         } catch (_: Exception) {

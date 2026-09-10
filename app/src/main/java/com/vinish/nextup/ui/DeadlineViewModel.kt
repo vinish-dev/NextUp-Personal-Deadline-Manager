@@ -92,14 +92,20 @@ class DeadlineViewModel(application: Application) : AndroidViewModel(application
 
     fun saveDeadline(deadline: Deadline, onSaved: (() -> Unit)? = null) {
         if (_useSampleData.value) {
-            if (deadline.id == 0L) {
+            val saved = if (deadline.id == 0L) {
                 val newId = (_sampleDeadlines.value.maxOfOrNull { it.id } ?: 0L) + 1L
-                _sampleDeadlines.value = _sampleDeadlines.value + deadline.copy(id = newId)
+                deadline.copy(id = newId)
+            } else {
+                deadline
+            }
+            if (deadline.id == 0L) {
+                _sampleDeadlines.value = _sampleDeadlines.value + saved
             } else {
                 _sampleDeadlines.value = _sampleDeadlines.value.map {
-                    if (it.id == deadline.id) deadline else it
+                    if (it.id == saved.id) saved else it
                 }
             }
+            notificationScheduler.schedule(saved)
             onSaved?.invoke()
         } else {
             viewModelScope.launch {
@@ -117,11 +123,11 @@ class DeadlineViewModel(application: Application) : AndroidViewModel(application
     }
 
     fun deleteDeadline(id: Long, onDeleted: (() -> Unit)? = null) {
+        notificationScheduler.cancel(id)
         if (_useSampleData.value) {
             _sampleDeadlines.value = _sampleDeadlines.value.filterNot { it.id == id }
             onDeleted?.invoke()
         } else {
-            notificationScheduler.cancel(id)
             viewModelScope.launch {
                 repository.deleteDeadlineById(id)
                 onDeleted?.invoke()
@@ -131,16 +137,17 @@ class DeadlineViewModel(application: Application) : AndroidViewModel(application
 
     fun toggleCompleted(deadline: Deadline) {
         val willBeCompleted = !deadline.isCompleted
+        if (willBeCompleted) {
+            notificationScheduler.cancel(deadline.id)
+        } else {
+            notificationScheduler.schedule(deadline.copy(isCompleted = false))
+        }
+
         if (_useSampleData.value) {
             _sampleDeadlines.value = _sampleDeadlines.value.map {
                 if (it.id == deadline.id) it.copy(isCompleted = willBeCompleted) else it
             }
         } else {
-            if (willBeCompleted) {
-                notificationScheduler.cancel(deadline.id)
-            } else {
-                notificationScheduler.schedule(deadline.copy(isCompleted = false))
-            }
             viewModelScope.launch {
                 repository.updateCompletionStatus(deadline.id, willBeCompleted)
             }

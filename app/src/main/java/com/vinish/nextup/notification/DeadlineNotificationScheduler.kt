@@ -21,16 +21,26 @@ class DeadlineNotificationScheduler(private val context: Context) {
             return
         }
 
-        val triggerEpochMillis = calculateTriggerTimeMillis(deadline) ?: run {
+        var triggerEpochMillis = calculateTriggerTimeMillis(deadline) ?: run {
             cancel(deadline.id)
             return
         }
 
         val now = System.currentTimeMillis()
         if (triggerEpochMillis <= now) {
-            // Reminder time has already passed
-            cancel(deadline.id)
-            return
+            val targetTime = deadline.dueTime ?: LocalTime.of(23, 59)
+            val dueDateTime = LocalDateTime.of(deadline.dueDate, targetTime)
+            val dueEpochMillis = dueDateTime.atZone(ZoneId.systemDefault()).toInstant().toEpochMilli()
+
+            if (dueEpochMillis > now) {
+                // Deadline is still upcoming, but the reminder threshold (e.g., 10m/1h before) has passed.
+                // Trigger in 2 seconds so the user is immediately reminded.
+                triggerEpochMillis = now + 2000L
+            } else {
+                // The deadline itself has already passed
+                cancel(deadline.id)
+                return
+            }
         }
 
         val intent = Intent(context, DeadlineNotificationReceiver::class.java).apply {
@@ -112,7 +122,11 @@ class DeadlineNotificationScheduler(private val context: Context) {
     }
 
     private fun calculateTriggerTimeMillis(deadline: Deadline): Long? {
-        val targetTime = deadline.dueTime ?: LocalTime.of(9, 0)
+        val targetTime = deadline.dueTime ?: if (deadline.dueDate == java.time.LocalDate.now()) {
+            LocalTime.now().plusHours(1)
+        } else {
+            LocalTime.of(9, 0)
+        }
         val dueDateTime = LocalDateTime.of(deadline.dueDate, targetTime)
 
         val reminder = deadline.reminder ?: return null

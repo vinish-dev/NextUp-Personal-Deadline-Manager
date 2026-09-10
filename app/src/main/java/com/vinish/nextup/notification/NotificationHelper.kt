@@ -50,6 +50,8 @@ object NotificationHelper {
         dueText: String?,
         priority: String?
     ) {
+        createNotificationChannel(context)
+
         val tapIntent = Intent(context, MainActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
             putExtra(EXTRA_DEADLINE_ID, deadlineId)
@@ -89,15 +91,17 @@ object NotificationHelper {
         }.ifEmpty { "Upcoming deadline" }
 
         val notification = NotificationCompat.Builder(context, CHANNEL_ID)
-            .setSmallIcon(R.mipmap.ic_launcher)
+            .setSmallIcon(R.drawable.ic_notification)
+            .setColor(0xFF2563EB.toInt())
             .setContentTitle(title)
             .setContentText(contentMessage)
             .setStyle(NotificationCompat.BigTextStyle().bigText(contentMessage))
             .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .setDefaults(NotificationCompat.DEFAULT_ALL)
             .setAutoCancel(true)
             .setContentIntent(tapPendingIntent)
             .addAction(
-                android.R.drawable.checkbox_on_background,
+                0,
                 "Mark as Completed",
                 markCompletePendingIntent
             )
@@ -106,8 +110,8 @@ object NotificationHelper {
         try {
             val notificationManager = NotificationManagerCompat.from(context)
             notificationManager.notify(deadlineId.toInt(), notification)
-        } catch (_: SecurityException) {
-            // In case POST_NOTIFICATIONS permission was revoked by user
+        } catch (e: Exception) {
+            android.util.Log.e("NotificationHelper", "Failed to post notification", e)
         }
     }
 
