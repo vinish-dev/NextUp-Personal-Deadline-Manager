@@ -58,6 +58,18 @@ import com.vinish.nextup.ui.theme.TextPrimary
 import com.vinish.nextup.ui.theme.TextSecondary
 import com.vinish.nextup.ui.theme.TextTertiary
 
+import androidx.compose.runtime.Immutable
+
+@Immutable
+private data class CategorySummary(
+    val category: Category,
+    val deadlines: List<Deadline>,
+    val totalCount: Int,
+    val completedCount: Int,
+    val pendingCount: Int,
+    val progress: Float
+)
+
 @Composable
 fun CategoriesScreen(
     modifier: Modifier = Modifier,
@@ -67,6 +79,23 @@ fun CategoriesScreen(
     onDeleteDeadline: ((Deadline) -> Unit)? = null
 ) {
     var expandedCategory by remember { mutableStateOf<Category?>(null) }
+
+    val categorySummaries = remember(deadlines) {
+        val grouped = deadlines.groupBy { it.category }
+        Category.entries.map { category ->
+            val list = grouped[category] ?: emptyList()
+            val total = list.size
+            val completed = list.count { it.isCompleted }
+            CategorySummary(
+                category = category,
+                deadlines = list,
+                totalCount = total,
+                completedCount = completed,
+                pendingCount = total - completed,
+                progress = if (total > 0) completed.toFloat() / total else 0f
+            )
+        }
+    }
 
     LazyColumn(
         modifier = modifier
@@ -100,12 +129,13 @@ fun CategoriesScreen(
         }
 
         // Category Cards
-        Category.entries.forEach { category ->
-            val categoryDeadlines = deadlines.filter { it.category == category }
-            val totalCount = categoryDeadlines.size
-            val completedCount = categoryDeadlines.count { it.isCompleted }
-            val pendingCount = totalCount - completedCount
-            val progress = if (totalCount > 0) completedCount.toFloat() / totalCount.toFloat() else 0f
+        categorySummaries.forEach { summary ->
+            val category = summary.category
+            val categoryDeadlines = summary.deadlines
+            val totalCount = summary.totalCount
+            val completedCount = summary.completedCount
+            val pendingCount = summary.pendingCount
+            val progress = summary.progress
             val isExpanded = expandedCategory == category
 
             item(key = category.name) {

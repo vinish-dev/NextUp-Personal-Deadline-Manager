@@ -1,9 +1,12 @@
 package com.vinish.nextup.ui.home.components
 
 import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -37,12 +40,19 @@ import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawWithContent
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.font.FontWeight
@@ -60,6 +70,8 @@ import com.vinish.nextup.ui.theme.BorderStoke
 import com.vinish.nextup.ui.theme.PrimaryBlue
 import com.vinish.nextup.ui.theme.PrimaryBlueLight
 import com.vinish.nextup.ui.theme.PriorityHighText
+import com.vinish.nextup.ui.theme.PriorityMediumText
+import com.vinish.nextup.ui.theme.PriorityLowText
 import com.vinish.nextup.ui.theme.SurfaceSubtle
 import com.vinish.nextup.ui.theme.SurfaceWhite
 import com.vinish.nextup.ui.theme.TextPrimary
@@ -67,12 +79,17 @@ import com.vinish.nextup.ui.theme.TextSecondary
 import com.vinish.nextup.ui.theme.TextTertiary
 import java.time.LocalDate
 import java.time.LocalTime
+import androidx.compose.runtime.Immutable
 import java.time.format.DateTimeFormatter
 import java.util.Locale
+
+private val DueDateFormatter: DateTimeFormatter = DateTimeFormatter.ofPattern("d MMM", Locale.ENGLISH)
+private val DueTimeFormatter: DateTimeFormatter = DateTimeFormatter.ofPattern("h:mm a", Locale.ENGLISH)
 
 /**
  * Holds formatted date/time text and alert indicator for a deadline.
  */
+@Immutable
 data class DueDateInfo(
     val text: String,
     val isAlert: Boolean,
@@ -94,10 +111,10 @@ fun formatDueDate(dueDate: LocalDate, dueTime: LocalTime?): DueDateInfo {
         isOverdue -> "Overdue"
         isToday -> "Today"
         isTomorrow -> "Tomorrow"
-        else -> dueDate.format(DateTimeFormatter.ofPattern("d MMM", Locale.ENGLISH))
+        else -> dueDate.format(DueDateFormatter)
     }
 
-    val timeStr = dueTime?.format(DateTimeFormatter.ofPattern("h:mm a", Locale.ENGLISH))
+    val timeStr = dueTime?.format(DueTimeFormatter)
     val fullStr = if (timeStr != null) "$dateStr · $timeStr" else dateStr
     val isAlert = isOverdue || isToday
 
@@ -118,12 +135,25 @@ fun DeadlineCard(
     enableSwipe: Boolean = true
 ) {
     val haptic = LocalHapticFeedback.current
-    val dueDateInfo = formatDueDate(deadline.dueDate, deadline.dueTime)
-    val completedCount = deadline.subtasks.count { it.isCompleted }
+    val dueDateInfo = remember(deadline.dueDate, deadline.dueTime) {
+        formatDueDate(deadline.dueDate, deadline.dueTime)
+    }
+    val completedCount = remember(deadline.subtasks) {
+        deadline.subtasks.count { it.isCompleted }
+    }
     val totalSubtasks = deadline.subtasks.size
 
+    val targetCheckboxBorderColor = remember(deadline.isCompleted, deadline.priority) {
+        if (deadline.isCompleted) PrimaryBlue
+        else when (deadline.priority) {
+            Priority.HIGH -> PriorityHighText
+            Priority.MEDIUM -> PriorityMediumText
+            Priority.LOW -> PriorityLowText
+        }
+    }
+
     val checkboxBorderColor by animateColorAsState(
-        targetValue = if (deadline.isCompleted) PrimaryBlue else BorderMedium,
+        targetValue = targetCheckboxBorderColor,
         animationSpec = spring(stiffness = Spring.StiffnessMediumLow),
         label = "checkboxBorder"
     )
@@ -146,15 +176,67 @@ fun DeadlineCard(
         label = "contentAlpha"
     )
 
+    val scope = rememberCoroutineScope()
+    val wipeProgress = remember { Animatable(0f) }
+
+    val handleToggleCompleted = {
+        if (!deadline.isCompleted) {
+            // Fast, punchy wipe across the card before state update
+            scope.launch {
+                wipeProgress.snapTo(0f)
+                wipeProgress.animateTo(
+                    targetValue = 1f,
+                    animationSpec = tween(durationMillis = 220, easing = FastOutSlowInEasing)
+                )
+                onToggleCompleted?.invoke()
+                delay(60)
+                wipeProgress.snapTo(0f)
+            }
+        } else {
+            onToggleCompleted?.invoke()
+        }
+    }
+
+    val cardShape = remember { RoundedCornerShape(16.dp) }
+
     val cardContent = @Composable {
         Card(
             modifier = Modifier
                 .fillMaxWidth()
+                .clip(cardShape)
+                .drawWithContent {
+                    drawContent()
+                    val progress = wipeProgress.value
+                    if (progress > 0f && progress <= 1f) {
+                        // Crisp completion wipe banner / sweep effect
+                        val wipeWidth = size.width * progress
+                        // Light primary blue wash with subtle gradient edge
+                        drawRect(
+                            brush = Brush.horizontalGradient(
+                                colors = listOf(
+                                    PrimaryBlue.copy(alpha = 0.16f),
+                                    PrimaryBlue.copy(alpha = 0.28f),
+                                    PrimaryBlue.copy(alpha = 0.45f)
+                                ),
+                                startX = 0f,
+                                endX = wipeWidth
+                            ),
+                            topLeft = Offset.Zero,
+                            size = Size(wipeWidth, size.height)
+                        )
+                        // Leading edge highlight line for crisp physical wipe look
+                        drawRect(
+                            color = PrimaryBlue.copy(alpha = 0.85f),
+                            topLeft = Offset(wipeWidth - 3.dp.toPx().coerceAtLeast(0f), 0f),
+                            size = Size(3.dp.toPx(), size.height)
+                        )
+                    }
+                }
                 .then(
                     if (onClick != null) Modifier.clickable(onClick = onClick)
                     else Modifier
                 ),
-            shape = RoundedCornerShape(16.dp),
+            shape = cardShape,
             colors = CardDefaults.cardColors(containerColor = SurfaceWhite),
             elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
             border = BorderStroke(
@@ -175,13 +257,13 @@ fun DeadlineCard(
                         .scale(checkboxScale)
                         .clip(CircleShape)
                         .background(checkboxBgColor)
-                        .border(1.5.dp, checkboxBorderColor, CircleShape)
+                        .border(1.75.dp, checkboxBorderColor, CircleShape)
                         .clickable(
                             interactionSource = remember { MutableInteractionSource() },
                             indication = null
                         ) {
                             haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                            onToggleCompleted?.invoke()
+                            handleToggleCompleted()
                         },
                     contentAlignment = Alignment.Center
                 ) {
@@ -279,11 +361,6 @@ fun DeadlineCard(
                         }
                     }
                 }
-
-                Spacer(modifier = Modifier.width(10.dp))
-
-                // Priority badge on trailing edge
-                PriorityTag(priority = deadline.priority)
             }
         }
     }

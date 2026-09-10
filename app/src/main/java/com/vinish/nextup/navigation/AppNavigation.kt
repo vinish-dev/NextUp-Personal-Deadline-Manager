@@ -1,5 +1,11 @@
 package com.vinish.nextup.navigation
 
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.scaleOut
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -32,7 +38,19 @@ fun AppNavigation(
 
     NavHost(
         navController = navController,
-        startDestination = Screen.Home.route
+        startDestination = Screen.Home.route,
+        enterTransition = {
+            fadeIn(animationSpec = tween(durationMillis = 140, easing = FastOutSlowInEasing))
+        },
+        exitTransition = {
+            fadeOut(animationSpec = tween(durationMillis = 100, easing = FastOutSlowInEasing))
+        },
+        popEnterTransition = {
+            fadeIn(animationSpec = tween(durationMillis = 140, easing = FastOutSlowInEasing))
+        },
+        popExitTransition = {
+            fadeOut(animationSpec = tween(durationMillis = 100, easing = FastOutSlowInEasing))
+        }
     ) {
         composable(Screen.Home.route) {
             HomeScreen(

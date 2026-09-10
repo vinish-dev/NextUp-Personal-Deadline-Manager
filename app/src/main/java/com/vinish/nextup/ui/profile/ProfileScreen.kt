@@ -70,6 +70,19 @@ import com.vinish.nextup.ui.theme.TextPrimary
 import com.vinish.nextup.ui.theme.TextSecondary
 import com.vinish.nextup.ui.theme.TextTertiary
 
+import androidx.compose.runtime.Immutable
+
+@Immutable
+private data class ProfileStats(
+    val totalCount: Int,
+    val completedCount: Int,
+    val pendingCount: Int,
+    val completionRate: Int,
+    val highPriorityCount: Int,
+    val mediumPriorityCount: Int,
+    val lowPriorityCount: Int
+)
+
 @Composable
 fun ProfileScreen(
     modifier: Modifier = Modifier,
@@ -79,14 +92,43 @@ fun ProfileScreen(
     val haptic = LocalHapticFeedback.current
     var showClearDialog by remember { mutableStateOf(false) }
 
-    val totalCount = deadlines.size
-    val completedCount = remember(deadlines) { deadlines.count { it.isCompleted } }
-    val pendingCount = totalCount - completedCount
-    val completionRate = if (totalCount > 0) ((completedCount.toFloat() / totalCount.toFloat()) * 100).toInt() else 0
+    val stats = remember(deadlines) {
+        var completed = 0
+        var high = 0
+        var medium = 0
+        var low = 0
+        for (d in deadlines) {
+            if (d.isCompleted) {
+                completed++
+            } else {
+                when (d.priority) {
+                    Priority.HIGH -> high++
+                    Priority.MEDIUM -> medium++
+                    Priority.LOW -> low++
+                }
+            }
+        }
+        val total = deadlines.size
+        val pending = total - completed
+        val rate = if (total > 0) ((completed.toFloat() / total.toFloat()) * 100).toInt() else 0
+        ProfileStats(
+            totalCount = total,
+            completedCount = completed,
+            pendingCount = pending,
+            completionRate = rate,
+            highPriorityCount = high,
+            mediumPriorityCount = medium,
+            lowPriorityCount = low
+        )
+    }
 
-    val highPriorityCount = remember(deadlines) { deadlines.count { it.priority == Priority.HIGH && !it.isCompleted } }
-    val mediumPriorityCount = remember(deadlines) { deadlines.count { it.priority == Priority.MEDIUM && !it.isCompleted } }
-    val lowPriorityCount = remember(deadlines) { deadlines.count { it.priority == Priority.LOW && !it.isCompleted } }
+    val totalCount = stats.totalCount
+    val completedCount = stats.completedCount
+    val pendingCount = stats.pendingCount
+    val completionRate = stats.completionRate
+    val highPriorityCount = stats.highPriorityCount
+    val mediumPriorityCount = stats.mediumPriorityCount
+    val lowPriorityCount = stats.lowPriorityCount
 
     val momentumMessage = when {
         totalCount == 0 -> "No deadlines yet — tap + to schedule your first goal."

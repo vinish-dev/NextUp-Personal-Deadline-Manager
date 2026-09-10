@@ -30,9 +30,36 @@ object DeadlineNotificationScheduler {
             ).apply {
                 description = CHANNEL_DESC
                 enableVibration(true)
+                vibrationPattern = longArrayOf(0, 250, 150, 250)
+                setShowBadge(true)
+                lockscreenVisibility = android.app.Notification.VISIBILITY_PUBLIC
             }
             val notificationManager = context.getSystemService(NotificationManager::class.java)
             notificationManager?.createNotificationChannel(channel)
+        }
+    }
+
+    fun formatDueInfo(dueDate: java.time.LocalDate, dueTime: LocalTime?): String {
+        val today = java.time.LocalDate.now()
+        val isToday = dueDate.isEqual(today)
+        val isTomorrow = dueDate.isEqual(today.plusDays(1))
+        val isYesterday = dueDate.isEqual(today.minusDays(1))
+        val isOverdue = dueDate.isBefore(today)
+
+        val datePart = when {
+            isToday -> "Due today"
+            isTomorrow -> "Due tomorrow"
+            isYesterday -> "Overdue (yesterday)"
+            isOverdue -> "Overdue"
+            dueDate.year == today.year -> "Due " + dueDate.format(DateTimeFormatter.ofPattern("EEE, d MMM", Locale.ENGLISH))
+            else -> "Due " + dueDate.format(DateTimeFormatter.ofPattern("d MMM yyyy", Locale.ENGLISH))
+        }
+
+        return if (dueTime != null) {
+            val timePart = dueTime.format(DateTimeFormatter.ofPattern("h:mm a", Locale.ENGLISH))
+            "$datePart at $timePart"
+        } else {
+            datePart
         }
     }
 
@@ -60,23 +87,54 @@ object DeadlineNotificationScheduler {
             return
         }
 
-        val dueInfo = if (deadline.dueTime != null) {
-            val timeStr = deadline.dueTime.format(DateTimeFormatter.ofPattern("h:mm a", Locale.ENGLISH))
-            "Due on ${deadline.dueDate} at $timeStr"
-        } else {
-            "Due on ${deadline.dueDate}"
-        }
+        val dueInfo = formatDueInfo(deadline.dueDate, deadline.dueTime)
+        val pendingSubtasks = ArrayList(deadline.subtasks.filter { !it.isCompleted }.map { it.title })
 
         val intent = Intent(context, DeadlineReminderReceiver::class.java).apply {
+            action = DeadlineReminderReceiver.ACTION_SHOW_REMINDER
             putExtra(DeadlineReminderReceiver.EXTRA_DEADLINE_ID, deadline.id)
             putExtra(DeadlineReminderReceiver.EXTRA_TITLE, deadline.title)
             putExtra(DeadlineReminderReceiver.EXTRA_DUE_INFO, dueInfo)
             putExtra(DeadlineReminderReceiver.EXTRA_CATEGORY, deadline.category.displayName)
+            putExtra(DeadlineReminderReceiver.EXTRA_DESCRIPTION, deadline.description)
+            putExtra(DeadlineReminderReceiver.EXTRA_PRIORITY, deadline.priority.name)
+            putStringArrayListExtra(DeadlineReminderReceiver.EXTRA_SUBTASKS, pendingSubtasks)
         }
 
+        scheduleAlarm(context, deadline.id, triggerMillis, intent)
+    }
+
+    fun scheduleSnooze(
+        context: Context,
+        deadlineId: Long,
+        title: String,
+        dueInfo: String,
+        category: String,
+        description: String? = null,
+        priority: String? = null,
+        pendingSubtasks: ArrayList<String>? = null,
+        minutes: Long = 60
+    ) {
+        val triggerMillis = System.currentTimeMillis() + (minutes * 60 * 1000L)
+
+        val intent = Intent(context, DeadlineReminderReceiver::class.java).apply {
+            action = DeadlineReminderReceiver.ACTION_SHOW_REMINDER
+            putExtra(DeadlineReminderReceiver.EXTRA_DEADLINE_ID, deadlineId)
+            putExtra(DeadlineReminderReceiver.EXTRA_TITLE, title)
+            putExtra(DeadlineReminderReceiver.EXTRA_DUE_INFO, dueInfo)
+            putExtra(DeadlineReminderReceiver.EXTRA_CATEGORY, category)
+            putExtra(DeadlineReminderReceiver.EXTRA_DESCRIPTION, description)
+            putExtra(DeadlineReminderReceiver.EXTRA_PRIORITY, priority)
+            putStringArrayListExtra(DeadlineReminderReceiver.EXTRA_SUBTASKS, pendingSubtasks)
+        }
+
+        scheduleAlarm(context, deadlineId, triggerMillis, intent)
+    }
+
+    private fun scheduleAlarm(context: Context, deadlineId: Long, triggerMillis: Long, intent: Intent) {
         val pendingIntent = PendingIntent.getBroadcast(
             context,
-            deadline.id.toInt(),
+            deadlineId.toInt(),
             intent,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )

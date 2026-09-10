@@ -13,9 +13,22 @@ import com.vinish.nextup.navigation.AppNavigation
 import com.vinish.nextup.navigation.Screen
 import com.vinish.nextup.ui.components.NextUpBottomNavigation
 
+import androidx.compose.runtime.LaunchedEffect
+
 @Composable
-fun App(modifier: Modifier = Modifier) {
+fun App(
+    modifier: Modifier = Modifier,
+    targetDeadlineId: Long? = null,
+    onTargetDeadlineHandled: (() -> Unit)? = null
+) {
     val navController = rememberNavController()
+
+    LaunchedEffect(targetDeadlineId) {
+        if (targetDeadlineId != null && targetDeadlineId > 0) {
+            navController.navigate(Screen.Details.createRoute(targetDeadlineId))
+            onTargetDeadlineHandled?.invoke()
+        }
+    }
 
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
@@ -39,16 +52,7 @@ fun App(modifier: Modifier = Modifier) {
                     onItemClick = { route ->
                         if (route == "add") {
                             navController.navigate(Screen.Add.createRoute())
-                        } else if (route == Screen.Home.route) {
-                            navController.navigate(Screen.Home.route) {
-                                popUpTo(navController.graph.findStartDestination().id) {
-                                    inclusive = false
-                                    saveState = false
-                                }
-                                launchSingleTop = true
-                                restoreState = false
-                            }
-                        } else {
+                        } else if (route != currentRoute) {
                             navController.navigate(route) {
                                 popUpTo(navController.graph.findStartDestination().id) {
                                     saveState = true

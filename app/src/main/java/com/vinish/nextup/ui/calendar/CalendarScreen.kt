@@ -36,12 +36,12 @@ fun CalendarScreen(
     var selectedDate by remember { mutableStateOf(LocalDate.now()) }
     var currentMonth by remember { mutableStateOf(YearMonth.from(selectedDate)) }
 
-    val deadlinesByDate by remember(deadlines) {
-        derivedStateOf { deadlines.groupBy { it.dueDate } }
+    val deadlinesByDate = remember(deadlines) {
+        deadlines.groupBy { it.dueDate }
     }
 
-    val selectedDayDeadlines by remember(selectedDate, deadlinesByDate) {
-        derivedStateOf { deadlinesByDate[selectedDate] ?: emptyList() }
+    val selectedDayDeadlines = remember(selectedDate, deadlinesByDate) {
+        deadlinesByDate[selectedDate] ?: emptyList()
     }
 
     Box(

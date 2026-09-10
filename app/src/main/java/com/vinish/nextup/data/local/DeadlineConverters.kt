@@ -11,8 +11,9 @@ import com.vinish.nextup.model.Subtask
 import java.time.LocalDate
 import java.time.LocalTime
 
-class DeadlineConverters {
+object DeadlineConverters {
     private val gson = Gson()
+    private val subtasksType: java.lang.reflect.Type = object : TypeToken<List<Subtask>>() {}.type
 
     @TypeConverter
     fun fromLocalDate(date: LocalDate?): String? = date?.toString()
@@ -78,8 +79,7 @@ class DeadlineConverters {
     fun toSubtasksList(value: String?): List<Subtask> {
         if (value.isNullOrBlank()) return emptyList()
         return try {
-            val type = object : TypeToken<List<Subtask>>() {}.type
-            gson.fromJson(value, type) ?: emptyList()
+            gson.fromJson(value, subtasksType) ?: emptyList()
         } catch (e: Exception) {
             emptyList()
         }

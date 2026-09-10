@@ -1,6 +1,7 @@
 package com.vinish.nextup.data.local
 
 import androidx.room.Entity
+import androidx.room.Index
 import androidx.room.PrimaryKey
 import com.vinish.nextup.model.Category
 import com.vinish.nextup.model.Deadline
@@ -11,7 +12,13 @@ import com.vinish.nextup.model.Subtask
 import java.time.LocalDate
 import java.time.LocalTime
 
-@Entity(tableName = "deadlines")
+@Entity(
+    tableName = "deadlines",
+    indices = [
+        Index(value = ["dueDate", "dueTime"]),
+        Index(value = ["isCompleted"])
+    ]
+)
 data class DeadlineEntity(
     @PrimaryKey(autoGenerate = true)
     val id: Long = 0L,

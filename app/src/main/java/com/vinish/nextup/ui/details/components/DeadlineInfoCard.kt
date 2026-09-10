@@ -51,16 +51,16 @@ import com.vinish.nextup.ui.theme.TextSecondary
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 
+private val InfoDateFormatter: DateTimeFormatter = DateTimeFormatter.ofPattern("d MMM yyyy", Locale.ENGLISH)
+private val InfoTimeFormatter: DateTimeFormatter = DateTimeFormatter.ofPattern("h:mm a", Locale.ENGLISH)
+
 @Composable
 fun DeadlineInfoCard(
     deadline: Deadline,
     modifier: Modifier = Modifier
 ) {
-    val dateFormatter = DateTimeFormatter.ofPattern("d MMM yyyy", Locale.ENGLISH)
-    val timeFormatter = DateTimeFormatter.ofPattern("h:mm a", Locale.ENGLISH)
-
-    val dateString = deadline.dueDate.format(dateFormatter)
-    val timeString = deadline.dueTime?.format(timeFormatter)
+    val dateString = deadline.dueDate.format(InfoDateFormatter)
+    val timeString = deadline.dueTime?.format(InfoTimeFormatter)
     val dueDateTimeString = if (timeString != null) "$dateString\n$timeString" else dateString
 
     val reminderString = deadline.reminder?.displayName() ?: "None"

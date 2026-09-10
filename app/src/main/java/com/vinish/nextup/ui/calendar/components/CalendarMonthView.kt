@@ -12,6 +12,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -34,12 +35,15 @@ fun CalendarMonthView(
     onNextMonthClick: () -> Unit = {},
     onTodayClick: () -> Unit = {}
 ) {
-    val firstOfMonth = currentMonth.atDay(1)
-    val daysInMonth = currentMonth.lengthOfMonth()
-    val leadingDays = firstOfMonth.dayOfWeek.value - 1
-    val totalVisibleDays = leadingDays + daysInMonth
-    val numRows = ceil(totalVisibleDays / 7.0).toInt()
-    val startDate = firstOfMonth.minusDays(leadingDays.toLong())
+    val (numRows, startDate) = remember(currentMonth) {
+        val firstOfMonth = currentMonth.atDay(1)
+        val daysInMonth = currentMonth.lengthOfMonth()
+        val leadingDays = firstOfMonth.dayOfWeek.value - 1
+        val totalVisibleDays = leadingDays + daysInMonth
+        val rows = ceil(totalVisibleDays / 7.0).toInt()
+        val start = firstOfMonth.minusDays(leadingDays.toLong())
+        Pair(rows, start)
+    }
 
     Card(
         modifier = modifier.fillMaxWidth(),

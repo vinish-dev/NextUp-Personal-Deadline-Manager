@@ -172,7 +172,7 @@ fun AddDeadlineScreen(
                     if (title.isBlank()) {
                         titleError = true
                     } else {
-                        val deadlineToSave = if (isEditMode && existingDeadline != null) {
+                        val deadlineToSave = if (existingDeadline != null) {
                             existingDeadline.copy(
                                 title = title.trim(),
                                 description = description.trim().ifEmpty { null },

@@ -42,6 +42,9 @@ import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 
+private val SelectDateFormatter: DateTimeFormatter = DateTimeFormatter.ofPattern("d MMM yyyy", Locale.ENGLISH)
+private val SelectTimeFormatter: DateTimeFormatter = DateTimeFormatter.ofPattern("h:mm a", Locale.ENGLISH)
+
 @Composable
 fun DateTimeSelector(
     selectedDate: LocalDate,
@@ -51,8 +54,6 @@ fun DateTimeSelector(
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
-    val dateFormatter = DateTimeFormatter.ofPattern("d MMM yyyy", Locale.ENGLISH)
-    val timeFormatter = DateTimeFormatter.ofPattern("h:mm a", Locale.ENGLISH)
 
     Column(modifier = modifier.fillMaxWidth()) {
         // Due Date Section
@@ -96,7 +97,7 @@ fun DateTimeSelector(
             Spacer(modifier = Modifier.width(14.dp))
 
             Text(
-                text = selectedDate.format(dateFormatter),
+                text = selectedDate.format(SelectDateFormatter),
                 fontSize = 15.sp,
                 fontWeight = FontWeight.Medium,
                 color = TextPrimary
@@ -148,7 +149,7 @@ fun DateTimeSelector(
             Spacer(modifier = Modifier.width(14.dp))
 
             Text(
-                text = selectedTime?.format(timeFormatter) ?: "Add time...",
+                text = selectedTime?.format(SelectTimeFormatter) ?: "Add time...",
                 fontSize = 15.sp,
                 fontWeight = if (selectedTime != null) FontWeight.Medium else FontWeight.Normal,
                 color = if (selectedTime != null) TextPrimary else TextTertiary,

@@ -60,9 +60,26 @@ import com.vinish.nextup.ui.theme.SurfaceWhite
 import com.vinish.nextup.ui.theme.TextPrimary
 import com.vinish.nextup.ui.theme.TextSecondary
 import com.vinish.nextup.ui.theme.TextTertiary
+import androidx.compose.runtime.Immutable
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.Locale
+
+private val DateHeaderFormatter: DateTimeFormatter = DateTimeFormatter.ofPattern("EEEE, d MMMM", Locale.ENGLISH)
+
+@Immutable
+private data class DeadlineBuckets(
+    val overdue: List<Deadline>,
+    val today: List<Deadline>,
+    val tomorrow: List<Deadline>,
+    val thisWeek: List<Deadline>,
+    val later: List<Deadline>,
+    val upcomingAll: List<Deadline>,
+    val completed: List<Deadline>,
+    val pendingCount: Int,
+    val completedCount: Int,
+    val hasUpcoming: Boolean
+)
 
 enum class HomeFilter(val title: String) {
     ALL("All"),
@@ -86,104 +103,139 @@ fun HomeScreen(
     var selectedFilter by remember { mutableStateOf(HomeFilter.ALL) }
     var showCompletedSection by remember { mutableStateOf(false) }
 
-    val overdueDeadlines = remember(deadlines) {
-        deadlines.filter { !it.isCompleted && it.dueDate.isBefore(today) }
-    }
-    val todayDeadlines = remember(deadlines) {
-        deadlines.filter { !it.isCompleted && it.dueDate.isEqual(today) }
-    }
-    val tomorrowDeadlines = remember(deadlines) {
-        deadlines.filter { !it.isCompleted && it.dueDate.isEqual(today.plusDays(1)) }
-    }
-    val thisWeekDeadlines = remember(deadlines) {
-        deadlines.filter {
-            !it.isCompleted && it.dueDate.isAfter(today.plusDays(1)) && it.dueDate.isBefore(today.plusDays(8))
+    val buckets = remember(deadlines, today) {
+        val overdue = mutableListOf<Deadline>()
+        val todayList = mutableListOf<Deadline>()
+        val tomorrow = mutableListOf<Deadline>()
+        val thisWeek = mutableListOf<Deadline>()
+        val later = mutableListOf<Deadline>()
+        val upcomingAll = mutableListOf<Deadline>()
+        val completed = mutableListOf<Deadline>()
+
+        val tomorrowDate = today.plusDays(1)
+        val weekEndDate = today.plusDays(8)
+
+        for (d in deadlines) {
+            if (d.isCompleted) {
+                completed.add(d)
+            } else {
+                val date = d.dueDate
+                when {
+                    date.isBefore(today) -> overdue.add(d)
+                    date.isEqual(today) -> todayList.add(d)
+                    date.isEqual(tomorrowDate) -> {
+                        tomorrow.add(d)
+                        upcomingAll.add(d)
+                    }
+                    date.isBefore(weekEndDate) -> {
+                        thisWeek.add(d)
+                        upcomingAll.add(d)
+                    }
+                    else -> {
+                        later.add(d)
+                        upcomingAll.add(d)
+                    }
+                }
+            }
         }
-    }
-    val laterDeadlines = remember(deadlines) {
-        deadlines.filter {
-            !it.isCompleted && it.dueDate.isAfter(today.plusDays(7))
-        }
-    }
-    val upcomingAllDeadlines = remember(deadlines) {
-        deadlines.filter { !it.isCompleted && it.dueDate.isAfter(today) }
-    }
-    val completedDeadlines = remember(deadlines) {
-        deadlines.filter { it.isCompleted }
+
+        DeadlineBuckets(
+            overdue = overdue,
+            today = todayList,
+            tomorrow = tomorrow,
+            thisWeek = thisWeek,
+            later = later,
+            upcomingAll = upcomingAll,
+            completed = completed,
+            pendingCount = deadlines.size - completed.size,
+            completedCount = completed.size,
+            hasUpcoming = todayList.isNotEmpty() || tomorrow.isNotEmpty() || thisWeek.isNotEmpty() || later.isNotEmpty()
+        )
     }
 
-    val pendingCount = remember(deadlines) { deadlines.count { !it.isCompleted } }
-    val completedCount = completedDeadlines.size
+    val overdueDeadlines = buckets.overdue
+    val todayDeadlines = buckets.today
+    val tomorrowDeadlines = buckets.tomorrow
+    val thisWeekDeadlines = buckets.thisWeek
+    val laterDeadlines = buckets.later
+    val upcomingAllDeadlines = buckets.upcomingAll
+    val completedDeadlines = buckets.completed
+    val pendingCount = buckets.pendingCount
+    val completedCount = buckets.completedCount
+    val hasUpcomingTasks = buckets.hasUpcoming
 
-    val hasUpcomingTasks = remember(todayDeadlines, tomorrowDeadlines, thisWeekDeadlines, laterDeadlines) {
-        todayDeadlines.isNotEmpty() || tomorrowDeadlines.isNotEmpty() || thisWeekDeadlines.isNotEmpty() || laterDeadlines.isNotEmpty()
-    }
-
-    val formattedDateHeader = remember {
-        LocalDate.now().format(DateTimeFormatter.ofPattern("EEEE, d MMMM", Locale.ENGLISH)).uppercase()
+    val formattedDateHeader = remember(today) {
+        today.format(DateHeaderFormatter)
     }
 
     LazyColumn(
         modifier = modifier.fillMaxSize(),
-        verticalArrangement = Arrangement.spacedBy(16.dp),
-        contentPadding = PaddingValues(horizontal = 18.dp, vertical = 16.dp)
+        verticalArrangement = Arrangement.spacedBy(14.dp),
+        contentPadding = PaddingValues(horizontal = 18.dp, vertical = 14.dp)
     ) {
-        // Editorial Header
+        // Minimalist Header
         item {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(top = 4.dp, bottom = 4.dp),
+                    .padding(top = 2.dp, bottom = 2.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Column(modifier = Modifier.weight(1f)) {
+                Column {
                     Text(
                         text = formattedDateHeader,
-                        style = MaterialTheme.typography.labelSmall,
-                        color = TextTertiary,
-                        letterSpacing = 1.sp
+                        style = MaterialTheme.typography.labelMedium,
+                        fontWeight = FontWeight.SemiBold,
+                        color = TextSecondary,
+                        letterSpacing = 0.5.sp
                     )
                     Spacer(modifier = Modifier.height(2.dp))
                     Text(
-                        text = "My Deadlines",
-                        style = MaterialTheme.typography.headlineLarge,
+                        text = "NextUp",
+                        fontSize = 34.sp,
+                        fontWeight = FontWeight.ExtraBold,
+                        lineHeight = 40.sp,
+                        letterSpacing = (-0.8).sp,
                         color = TextPrimary
-                    )
-                    Spacer(modifier = Modifier.height(2.dp))
-                    Text(
-                        text = "$pendingCount pending · $completedCount completed",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = TextSecondary
                     )
                 }
 
-                // Avatar / Profile Shortcut
-                Box(
-                    modifier = Modifier
-                        .size(44.dp)
-                        .clip(CircleShape)
-                        .background(PrimaryBlueLight)
-                        .clickable { onAvatarClick?.invoke() },
-                    contentAlignment = Alignment.Center
+                // Glanceable Status Badge
+                Surface(
+                    shape = RoundedCornerShape(12.dp),
+                    color = when {
+                        overdueDeadlines.isNotEmpty() -> PriorityHighBg
+                        pendingCount == 0 -> Color(0xFFDCFCE7)
+                        else -> PrimaryBlueLight
+                    }
                 ) {
                     Text(
-                        text = "V",
-                        color = PrimaryBlue,
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.Bold
+                        text = when {
+                            overdueDeadlines.isNotEmpty() -> "${overdueDeadlines.size} overdue"
+                            pendingCount == 0 -> "All caught up"
+                            else -> "$pendingCount active"
+                        },
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = when {
+                            overdueDeadlines.isNotEmpty() -> PriorityHighText
+                            pendingCount == 0 -> Color(0xFF16A34A)
+                            else -> PrimaryBlue
+                        },
+                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp)
                     )
                 }
             }
         }
 
-        // Smart Filter Pills (Things 3 / Apple Reminders style)
+        // Compact Filter Chips
         item {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .horizontalScroll(rememberScrollState()),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                horizontalArrangement = Arrangement.spacedBy(6.dp)
             ) {
                 HomeFilter.entries.forEach { filter ->
                     val isSelected = selectedFilter == filter
@@ -196,8 +248,14 @@ fun HomeScreen(
                     }
                     val isOverdueFilterWithItems = filter == HomeFilter.OVERDUE && filterCount > 0
 
+                    val label = if (filterCount > 0 && filter != HomeFilter.ALL) {
+                        "${filter.title} ($filterCount)"
+                    } else {
+                        filter.title
+                    }
+
                     Surface(
-                        shape = RoundedCornerShape(20.dp),
+                        shape = RoundedCornerShape(14.dp),
                         color = when {
                             isSelected && isOverdueFilterWithItems -> PriorityHighText
                             isSelected -> PrimaryBlue
@@ -208,56 +266,23 @@ fun HomeScreen(
                             width = 1.dp,
                             color = when {
                                 isSelected -> Color.Transparent
-                                isOverdueFilterWithItems -> PriorityHighText.copy(alpha = 0.3f)
+                                isOverdueFilterWithItems -> PriorityHighText.copy(alpha = 0.25f)
                                 else -> BorderLight
                             }
                         ),
                         modifier = Modifier.clickable { selectedFilter = filter }
                     ) {
-                        Row(
-                            modifier = Modifier.padding(horizontal = 14.dp, vertical = 7.dp),
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(6.dp)
-                        ) {
-                            Text(
-                                text = filter.title,
-                                fontSize = 13.sp,
-                                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
-                                color = when {
-                                    isSelected -> Color.White
-                                    isOverdueFilterWithItems -> PriorityHighText
-                                    else -> TextPrimary
-                                }
-                            )
-
-                            // Count indicator badge
-                            if (filterCount > 0) {
-                                Box(
-                                    modifier = Modifier
-                                        .clip(CircleShape)
-                                        .background(
-                                            when {
-                                                isSelected -> Color.White.copy(alpha = 0.25f)
-                                                isOverdueFilterWithItems -> PriorityHighText.copy(alpha = 0.15f)
-                                                else -> PrimaryBlueLight
-                                            }
-                                        )
-                                        .padding(horizontal = 6.dp, vertical = 1.dp),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    Text(
-                                        text = filterCount.toString(),
-                                        fontSize = 11.sp,
-                                        fontWeight = FontWeight.Bold,
-                                        color = when {
-                                            isSelected -> Color.White
-                                            isOverdueFilterWithItems -> PriorityHighText
-                                            else -> PrimaryBlue
-                                        }
-                                    )
-                                }
-                            }
-                        }
+                        Text(
+                            text = label,
+                            fontSize = 13.sp,
+                            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+                            color = when {
+                                isSelected -> Color.White
+                                isOverdueFilterWithItems -> PriorityHighText
+                                else -> TextPrimary
+                            },
+                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
+                        )
                     }
                 }
             }

@@ -41,12 +41,14 @@ fun DeadlineSection(
         )
 
         displayDeadlines.forEach { deadline ->
-            DeadlineCard(
-                deadline = deadline,
-                onClick = onDeadlineClick?.let { { it(deadline) } },
-                onToggleCompleted = onToggleCompleted?.let { { it(deadline) } },
-                onDelete = onDeleteDeadline?.let { { it(deadline) } }
-            )
+            androidx.compose.runtime.key(deadline.id) {
+                DeadlineCard(
+                    deadline = deadline,
+                    onClick = if (onDeadlineClick != null) { { onDeadlineClick(deadline) } } else null,
+                    onToggleCompleted = if (onToggleCompleted != null) { { onToggleCompleted(deadline) } } else null,
+                    onDelete = if (onDeleteDeadline != null) { { onDeleteDeadline(deadline) } } else null
+                )
+            }
         }
     }
 }

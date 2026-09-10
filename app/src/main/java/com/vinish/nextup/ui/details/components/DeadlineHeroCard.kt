@@ -2,7 +2,10 @@ package com.vinish.nextup.ui.details.components
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -31,11 +34,18 @@ import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawWithContent
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.tooling.preview.Preview
@@ -44,7 +54,6 @@ import androidx.compose.ui.unit.sp
 import com.vinish.nextup.model.Category
 import com.vinish.nextup.model.Deadline
 import com.vinish.nextup.model.Priority
-import com.vinish.nextup.ui.home.components.PriorityTag
 import com.vinish.nextup.ui.theme.AlertBannerBg
 import com.vinish.nextup.ui.theme.AlertBannerText
 import com.vinish.nextup.ui.theme.BorderLight
@@ -53,6 +62,7 @@ import com.vinish.nextup.ui.theme.PrimaryBlue
 import com.vinish.nextup.ui.theme.PrimaryBlueLight
 import com.vinish.nextup.ui.theme.PriorityHighBg
 import com.vinish.nextup.ui.theme.PriorityHighText
+import com.vinish.nextup.ui.theme.PriorityMediumText
 import com.vinish.nextup.ui.theme.PriorityLowBg
 import com.vinish.nextup.ui.theme.PriorityLowText
 import com.vinish.nextup.ui.theme.SurfaceWhite
@@ -90,9 +100,67 @@ fun DeadlineHeroCard(
         label = "hero_alpha"
     )
 
+    val checkboxBorderColor = remember(deadline.isCompleted, deadline.priority) {
+        if (deadline.isCompleted) PrimaryBlue
+        else when (deadline.priority) {
+            Priority.HIGH -> PriorityHighText
+            Priority.MEDIUM -> PriorityMediumText
+            Priority.LOW -> PriorityLowText
+        }
+    }
+
+    val scope = rememberCoroutineScope()
+    val wipeProgress = remember { Animatable(0f) }
+
+    val handleToggleCompleted = {
+        if (!deadline.isCompleted) {
+            scope.launch {
+                wipeProgress.snapTo(0f)
+                wipeProgress.animateTo(
+                    targetValue = 1f,
+                    animationSpec = tween(durationMillis = 220, easing = FastOutSlowInEasing)
+                )
+                onToggleCompleted?.invoke()
+                delay(60)
+                wipeProgress.snapTo(0f)
+            }
+        } else {
+            onToggleCompleted?.invoke()
+        }
+    }
+
+    val heroShape = remember { RoundedCornerShape(24.dp) }
+
     Card(
-        modifier = modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(24.dp),
+        modifier = modifier
+            .fillMaxWidth()
+            .clip(heroShape)
+            .drawWithContent {
+                drawContent()
+                val progress = wipeProgress.value
+                if (progress > 0f && progress <= 1f) {
+                    val wipeWidth = size.width * progress
+                    drawRect(
+                        brush = Brush.horizontalGradient(
+                            colors = listOf(
+                                PrimaryBlue.copy(alpha = 0.16f),
+                                PrimaryBlue.copy(alpha = 0.28f),
+                                PrimaryBlue.copy(alpha = 0.45f)
+                            ),
+                            startX = 0f,
+                            endX = wipeWidth
+                        ),
+                        topLeft = Offset.Zero,
+                        size = Size(wipeWidth, size.height)
+                    )
+                    drawRect(
+                        color = PrimaryBlue.copy(alpha = 0.85f),
+                        topLeft = Offset(wipeWidth - 3.dp.toPx().coerceAtLeast(0f), 0f),
+                        size = Size(3.dp.toPx(), size.height)
+                    )
+                }
+            },
+        shape = heroShape,
         colors = CardDefaults.cardColors(containerColor = SurfaceWhite),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
         border = BorderStroke(width = 1.dp, color = BorderLight)
@@ -102,11 +170,10 @@ fun DeadlineHeroCard(
                 .fillMaxWidth()
                 .padding(22.dp)
         ) {
-            // Status and Priority Row
+            // Status Row
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
+                verticalAlignment = Alignment.CenterVertically
             ) {
                 // Status Badge
                 Surface(
@@ -121,9 +188,6 @@ fun DeadlineHeroCard(
                         modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp)
                     )
                 }
-
-                // Priority Badge
-                PriorityTag(priority = deadline.priority)
             }
 
             Spacer(modifier = Modifier.height(18.dp))
@@ -141,13 +205,13 @@ fun DeadlineHeroCard(
                         .background(if (deadline.isCompleted) PrimaryBlue else Color.Transparent)
                         .border(
                             width = if (deadline.isCompleted) 0.dp else 2.dp,
-                            color = if (deadline.isCompleted) PrimaryBlue else BorderMedium,
+                            color = checkboxBorderColor,
                             shape = CircleShape
                         )
                         .clickable(
                             interactionSource = remember { MutableInteractionSource() },
                             indication = ripple(bounded = true)
-                        ) { onToggleCompleted?.invoke() },
+                        ) { handleToggleCompleted() },
                     contentAlignment = Alignment.Center
                 ) {
                     if (deadline.isCompleted) {

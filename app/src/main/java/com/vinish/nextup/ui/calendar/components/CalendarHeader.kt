@@ -34,6 +34,8 @@ import java.time.YearMonth
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 
+private val MonthTitleFormatter: DateTimeFormatter = DateTimeFormatter.ofPattern("MMMM yyyy", Locale.ENGLISH)
+
 @Composable
 fun CalendarHeader(
     currentMonth: YearMonth,
@@ -43,7 +45,7 @@ fun CalendarHeader(
     modifier: Modifier = Modifier,
     isCurrentMonth: Boolean = currentMonth == YearMonth.now()
 ) {
-    val monthTitle = currentMonth.format(DateTimeFormatter.ofPattern("MMMM yyyy", Locale.ENGLISH))
+    val monthTitle = currentMonth.format(MonthTitleFormatter)
 
     Row(
         modifier = modifier.fillMaxWidth(),

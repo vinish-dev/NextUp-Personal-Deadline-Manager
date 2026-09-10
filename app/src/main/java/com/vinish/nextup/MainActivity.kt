@@ -11,9 +11,16 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
+import android.content.Intent
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import com.vinish.nextup.notifications.DeadlineReminderReceiver
 import com.vinish.nextup.ui.theme.NextUpTheme
 
 class MainActivity : ComponentActivity() {
+
+    private var targetDeadlineId by mutableStateOf<Long?>(null)
 
     private val requestNotificationPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
@@ -23,6 +30,8 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        handleNotificationIntent(intent)
+
         enableEdgeToEdge(
             statusBarStyle = SystemBarStyle.light(
                 Color.TRANSPARENT,
@@ -38,8 +47,24 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             NextUpTheme {
-                App()
+                App(
+                    targetDeadlineId = targetDeadlineId,
+                    onTargetDeadlineHandled = { targetDeadlineId = null }
+                )
             }
+        }
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        handleNotificationIntent(intent)
+    }
+
+    private fun handleNotificationIntent(intent: Intent?) {
+        val id = intent?.getLongExtra(DeadlineReminderReceiver.EXTRA_DEADLINE_ID, -1L) ?: -1L
+        if (id != -1L) {
+            targetDeadlineId = id
         }
     }
 
