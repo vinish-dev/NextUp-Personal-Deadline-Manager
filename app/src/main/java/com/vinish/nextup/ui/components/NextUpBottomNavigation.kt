@@ -71,19 +71,19 @@ fun NextUpBottomNavigation(
         )
 
         NavigationBarItem(
-            selected = currentRoute == "calendar",
-            onClick = { onItemClick("calendar") },
+            selected = currentRoute == "categories",
+            onClick = { onItemClick("categories") },
             icon = {
                 Icon(
-                    imageVector = if (currentRoute == "calendar") Icons.Filled.CalendarMonth else Icons.Outlined.CalendarMonth,
-                    contentDescription = "Calendar"
+                    imageVector = if (currentRoute == "categories") Icons.Filled.Category else Icons.Outlined.Category,
+                    contentDescription = "All"
                 )
             },
             label = {
                 Text(
-                    text = "Calendar",
+                    text = "All",
                     fontSize = 12.sp,
-                    fontWeight = if (currentRoute == "calendar") FontWeight.Bold else FontWeight.Normal
+                    fontWeight = if (currentRoute == "categories") FontWeight.Bold else FontWeight.Normal
                 )
             },
             colors = navItemStyle
@@ -119,21 +119,21 @@ fun NextUpBottomNavigation(
                 indicatorColor = SurfaceWhite
             )
         )
-        
+
         NavigationBarItem(
-            selected = currentRoute == "categories",
-            onClick = { onItemClick("categories") },
+            selected = currentRoute == "calendar",
+            onClick = { onItemClick("calendar") },
             icon = {
                 Icon(
-                    imageVector = if (currentRoute == "categories") Icons.Filled.Category else Icons.Outlined.Category,
-                    contentDescription = "Categories"
+                    imageVector = if (currentRoute == "calendar") Icons.Filled.CalendarMonth else Icons.Outlined.CalendarMonth,
+                    contentDescription = "Calendar"
                 )
             },
             label = {
                 Text(
-                    text = "Categories",
+                    text = "Calendar",
                     fontSize = 12.sp,
-                    fontWeight = if (currentRoute == "categories") FontWeight.Bold else FontWeight.Normal
+                    fontWeight = if (currentRoute == "calendar") FontWeight.Bold else FontWeight.Normal
                 )
             },
             colors = navItemStyle
