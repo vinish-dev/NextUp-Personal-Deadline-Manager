@@ -28,3 +28,32 @@ fun Deadline.isOverdue(
         else -> false
     }
 }
+
+private val COMMON_ACRONYMS = setOf(
+    "dsa", "dbms", "sql", "cse", "ui/ux", "api", "ai", "ml", "os", "it", "pdf", "hr", "pr", "qa", "iot"
+)
+
+fun String.toTitleCase(): String {
+    if (isBlank()) return this
+    return split(" ").joinToString(" ") { word ->
+        when {
+            word.isEmpty() -> word
+            word.lowercase(java.util.Locale.getDefault()) in COMMON_ACRONYMS -> word.uppercase(java.util.Locale.getDefault())
+            word.length > 1 && word.all { !it.isLetter() || it.isUpperCase() } -> word
+            else -> word.replaceFirstChar {
+                if (it.isLowerCase()) it.titlecase(java.util.Locale.getDefault()) else it.toString()
+            }
+        }
+    }
+}
+
+fun String.toSentenceCase(): String {
+    val trimmed = trim()
+    if (trimmed.isEmpty()) return this
+    val regex = Regex("""(^|[.!?]\s+)(\p{Ll})""")
+    return regex.replace(trimmed) { matchResult ->
+        val prefix = matchResult.groupValues[1]
+        val letter = matchResult.groupValues[2]
+        prefix + letter.uppercase(java.util.Locale.getDefault())
+    }
+}

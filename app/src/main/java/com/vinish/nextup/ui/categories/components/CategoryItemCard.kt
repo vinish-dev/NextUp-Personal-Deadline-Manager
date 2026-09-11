@@ -43,6 +43,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.vinish.nextup.model.toTitleCase
 import com.vinish.nextup.model.Category
 import com.vinish.nextup.model.Deadline
 import com.vinish.nextup.model.Priority
@@ -309,7 +310,7 @@ fun CategoryTaskItem(
         // Title and Due Date Info
         Column(modifier = Modifier.weight(1f)) {
             Text(
-                text = deadline.title,
+                text = deadline.title.toTitleCase(),
                 fontSize = 14.sp,
                 fontWeight = FontWeight.SemiBold,
                 color = if (deadline.isCompleted) TextTertiary else TextPrimary,

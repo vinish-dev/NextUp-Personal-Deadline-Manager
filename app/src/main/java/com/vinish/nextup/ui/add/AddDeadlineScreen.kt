@@ -34,6 +34,8 @@ import com.vinish.nextup.model.Priority
 import com.vinish.nextup.model.Recurrence
 import com.vinish.nextup.model.Reminder
 import com.vinish.nextup.model.Subtask
+import com.vinish.nextup.model.toSentenceCase
+import com.vinish.nextup.model.toTitleCase
 import com.vinish.nextup.ui.add.components.AddTopBar
 import com.vinish.nextup.ui.add.components.CategorySelector
 import com.vinish.nextup.ui.add.components.DateTimeSelector
@@ -177,10 +179,12 @@ fun AddDeadlineScreen(
                     if (title.isBlank()) {
                         titleError = true
                     } else {
+                        val formattedTitle = title.trim().toTitleCase()
+                        val formattedDescription = description.trim().ifEmpty { null }?.toSentenceCase()
                         val deadlineToSave = if (isEditMode && existingDeadline != null) {
                             existingDeadline.copy(
-                                title = title.trim(),
-                                description = description.trim().ifEmpty { null },
+                                title = formattedTitle,
+                                description = formattedDescription,
                                 dueDate = dueDate,
                                 dueTime = dueTime,
                                 category = category,
@@ -191,8 +195,8 @@ fun AddDeadlineScreen(
                             )
                         } else {
                             Deadline(
-                                title = title.trim(),
-                                description = description.trim().ifEmpty { null },
+                                title = formattedTitle,
+                                description = formattedDescription,
                                 dueDate = dueDate,
                                 dueTime = dueTime,
                                 category = category,

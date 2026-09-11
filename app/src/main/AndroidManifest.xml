@@ -37,6 +37,8 @@
             <intent-filter>
                 <action android:name="com.vinish.nextup.ACTION_DEADLINE_REMINDER" />
                 <action android:name="com.vinish.nextup.ACTION_MARK_COMPLETED" />
+                <action android:name="com.vinish.nextup.ACTION_SHOW_SNOOZE_OPTIONS" />
+                <action android:name="com.vinish.nextup.ACTION_APPLY_SNOOZE" />
             </intent-filter>
         </receiver>
 
