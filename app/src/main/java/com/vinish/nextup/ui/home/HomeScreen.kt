@@ -20,44 +20,61 @@ import com.vinish.nextup.ui.home.model.OverviewItem
 import com.vinish.nextup.ui.home.components.HomeEmptyState
 import com.vinish.nextup.ui.home.model.OverviewType
 
+import com.vinish.nextup.model.isOverdue
+import java.time.DayOfWeek
 import java.time.LocalDate
+import java.time.LocalTime
+import java.time.temporal.TemporalAdjusters
 
 @Composable
 fun HomeScreen(
     modifier: Modifier = Modifier,
-    deadlines: List<Deadline> = SampleDeadlines.sampleDeadlines,
+    deadlines: List<Deadline> = emptyList(),
     onDeadlineClick: ((Deadline) -> Unit)? = null,
     onAddDeadlineClick: (() -> Unit)? = null
 ) {
-    val today = remember { LocalDate.now() }
+    val today = LocalDate.now()
+    val nowTime = LocalTime.now()
+    val tomorrow = today.plusDays(1)
+    val endOfWeek = today.with(TemporalAdjusters.nextOrSame(DayOfWeek.SUNDAY))
+
     val overdueDeadlines = remember(deadlines) {
-        deadlines.filter { !it.isCompleted && it.dueDate.isBefore(today) }
+        deadlines.filter { it.isOverdue(today, nowTime) }
     }
     val todayDeadlines = remember(deadlines) {
-        deadlines.filter { it.dueDate.isEqual(today) }
+        deadlines.filter { it.dueDate.isEqual(today) && !it.isOverdue(today, nowTime) }
     }
     val tomorrowDeadlines = remember(deadlines) {
-        deadlines.filter { it.dueDate.isEqual(today.plusDays(1)) }
+        deadlines.filter { it.dueDate.isEqual(tomorrow) && !it.isOverdue(today, nowTime) }
     }
     val thisWeekDeadlines = remember(deadlines) {
         deadlines.filter {
-            it.dueDate.isAfter(today.plusDays(1)) && it.dueDate.isBefore(today.plusDays(8))
+            it.dueDate.isAfter(tomorrow) && !it.dueDate.isAfter(endOfWeek) && !it.isOverdue(today, nowTime)
         }
+    }
+    val laterDeadlines = remember(deadlines, overdueDeadlines, todayDeadlines, tomorrowDeadlines, thisWeekDeadlines) {
+        deadlines.filter { deadline ->
+            deadline !in overdueDeadlines &&
+            deadline !in todayDeadlines &&
+            deadline !in tomorrowDeadlines &&
+            deadline !in thisWeekDeadlines &&
+            !deadline.dueDate.isBefore(today)
+        }.sortedWith(compareBy({ it.dueDate }, { it.dueTime }))
     }
 
     val overdueCount = overdueDeadlines.size
-    val todayCount = remember(deadlines) {
-        deadlines.count { !it.isCompleted && it.dueDate.isEqual(today) }
+    val todayCount = remember(todayDeadlines) {
+        todayDeadlines.count { !it.isCompleted }
     }
-    val tomorrowCount = remember(deadlines) {
-        deadlines.count { !it.isCompleted && it.dueDate.isEqual(today.plusDays(1)) }
+    val tomorrowCount = remember(tomorrowDeadlines) {
+        tomorrowDeadlines.count { !it.isCompleted }
     }
-    val thisWeekCount = remember(deadlines) {
-        deadlines.count { !it.isCompleted && it.dueDate.isAfter(today.plusDays(1)) && it.dueDate.isBefore(today.plusDays(8)) }
+    val thisWeekCount = remember(thisWeekDeadlines) {
+        thisWeekDeadlines.count { !it.isCompleted }
     }
 
-    val hasUpcomingTasks = remember(todayDeadlines, tomorrowDeadlines, thisWeekDeadlines) {
-        todayDeadlines.isNotEmpty() || tomorrowDeadlines.isNotEmpty() || thisWeekDeadlines.isNotEmpty()
+    val hasTasks = remember(overdueDeadlines, todayDeadlines, tomorrowDeadlines, thisWeekDeadlines, laterDeadlines) {
+        overdueDeadlines.isNotEmpty() || todayDeadlines.isNotEmpty() || tomorrowDeadlines.isNotEmpty() || thisWeekDeadlines.isNotEmpty() || laterDeadlines.isNotEmpty()
     }
 
     LazyColumn(
@@ -124,7 +141,17 @@ fun HomeScreen(
             }
         }
 
-        if (!hasUpcomingTasks) {
+        if (laterDeadlines.isNotEmpty()) {
+            item {
+                DeadlineSection(
+                    title = "Later",
+                    deadlines = laterDeadlines,
+                    onDeadlineClick = onDeadlineClick
+                )
+            }
+        }
+
+        if (!hasTasks) {
             item {
                 HomeEmptyState(
                     onAddDeadlineClick = onAddDeadlineClick

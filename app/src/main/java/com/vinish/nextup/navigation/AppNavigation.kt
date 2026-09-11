@@ -11,20 +11,15 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
-import com.vinish.nextup.data.sample.SampleDeadlines
-import com.vinish.nextup.model.Category
+import com.vinish.nextup.model.Deadline
 import com.vinish.nextup.ui.DeadlineViewModel
 import com.vinish.nextup.ui.add.AddDeadlineScreen
+import java.time.LocalDate
 import com.vinish.nextup.ui.calendar.CalendarScreen
 import com.vinish.nextup.ui.categories.CategoriesScreen
-import com.vinish.nextup.ui.categories.CategoryDetailScreen
 import com.vinish.nextup.ui.details.DeadlineDetailsScreen
 import com.vinish.nextup.ui.home.HomeScreen
 import com.vinish.nextup.ui.profile.ProfileScreen
-import java.net.URLDecoder
-import java.net.URLEncoder
-import java.nio.charset.StandardCharsets
-import java.time.LocalDate
 
 @Composable
 fun AppNavigation(
@@ -33,7 +28,8 @@ fun AppNavigation(
     viewModel: DeadlineViewModel = viewModel()
 ) {
     val deadlines by viewModel.deadlines.collectAsStateWithLifecycle()
-    val categories by viewModel.categories.collectAsStateWithLifecycle()
+    val showCompletedInCategories by viewModel.showCompletedInCategories.collectAsStateWithLifecycle()
+    val useSampleData by viewModel.useSampleData.collectAsStateWithLifecycle()
 
     NavHost(
         navController = navController,
@@ -86,7 +82,6 @@ fun AppNavigation(
             AddDeadlineScreen(
                 modifier = modifier,
                 initialDate = initialDate,
-                categories = categories,
                 onBackClick = {
                     if (!navController.popBackStack()) {
                         navController.navigate(Screen.Home.route) {
@@ -104,41 +99,38 @@ fun AppNavigation(
             CategoriesScreen(
                 modifier = modifier,
                 deadlines = deadlines,
-                categories = categories,
-                onCategoryClick = { category ->
-                    navController.navigate(Screen.CategoryDetail.createRoute(category.name))
+                showCompletedDeadlines = showCompletedInCategories,
+                onBackClick = {
+                    if (!navController.popBackStack()) {
+                        navController.navigate(Screen.Home.route) {
+                            popUpTo(Screen.Home.route) { inclusive = true }
+                        }
+                    }
                 },
-                onAddCategory = { categoryName ->
-                    viewModel.addCategory(categoryName)
-                }
-            )
-        }
-
-        composable(
-            route = Screen.CategoryDetail.route,
-            arguments = listOf(
-                navArgument("categoryName") { type = NavType.StringType }
-            )
-        ) { backStackEntry ->
-            val categoryName = backStackEntry.arguments?.getString("categoryName")
-                ?.let { URLDecoder.decode(it, StandardCharsets.UTF_8.toString()) }
-                ?: Category.OTHER.name
-            val selectedCategory = Category.fromName(categoryName)
-
-            CategoryDetailScreen(
-                modifier = modifier,
-                category = selectedCategory,
-                deadlines = deadlines.filter { it.category.name.equals(selectedCategory.name, ignoreCase = true) },
-                onBackClick = { navController.popBackStack() },
                 onDeadlineClick = { deadline ->
                     navController.navigate(Screen.Details.createRoute(deadline.id))
+                },
+                onToggleComplete = { deadline ->
+                    viewModel.toggleCompleted(deadline)
                 }
             )
         }
 
         composable(Screen.Profile.route) {
-            ProfileScreen(modifier = modifier)
+            ProfileScreen(
+                modifier = modifier,
+                deadlines = deadlines,
+                showCompletedDeadlines = showCompletedInCategories,
+                onShowCompletedDeadlinesChange = { enabled ->
+                    viewModel.setShowCompletedInCategories(enabled)
+                },
+                useSampleData = useSampleData,
+                onUseSampleDataChange = { enabled ->
+                    viewModel.setUseSampleData(enabled)
+                }
+            )
         }
+
         composable(
             route = Screen.Details.route,
             arguments = listOf(
@@ -153,8 +145,6 @@ fun AppNavigation(
             val currentDeadline by deadlineFlow.collectAsStateWithLifecycle(initialValue = null)
             val activeDeadline = currentDeadline
                 ?: deadlines.find { it.id == deadlineId }
-                ?: SampleDeadlines.sampleDeadlines.find { it.id == deadlineId }
-                ?: SampleDeadlines.sampleDeadlines.first()
 
             DeadlineDetailsScreen(
                 modifier = modifier,
@@ -196,13 +186,11 @@ fun AppNavigation(
             val currentDeadline by deadlineFlow.collectAsStateWithLifecycle(initialValue = null)
             val deadlineToEdit = currentDeadline
                 ?: deadlines.find { it.id == deadlineId }
-                ?: SampleDeadlines.sampleDeadlines.find { it.id == deadlineId }
 
             if (deadlineToEdit != null) {
                 AddDeadlineScreen(
                     modifier = modifier,
                     existingDeadline = deadlineToEdit,
-                    categories = categories,
                     onBackClick = {
                         navController.popBackStack()
                     },
@@ -213,4 +201,4 @@ fun AppNavigation(
             }
         }
     }
-}
+}

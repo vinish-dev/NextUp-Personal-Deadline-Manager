@@ -28,6 +28,7 @@ import androidx.compose.ui.unit.sp
 import com.vinish.nextup.model.Category
 import com.vinish.nextup.model.Deadline
 import com.vinish.nextup.model.Priority
+import com.vinish.nextup.model.toTitleCase
 import com.vinish.nextup.ui.theme.BorderStoke
 import com.vinish.nextup.ui.theme.PriorityHighText
 import com.vinish.nextup.ui.theme.SurfaceWhite
@@ -54,8 +55,9 @@ data class DueDateInfo(
  */
 fun formatDueDate(dueDate: LocalDate, dueTime: LocalTime?): DueDateInfo {
     val today = LocalDate.now()
-    val isOverdue = dueDate.isBefore(today)
-    val isToday = dueDate.isEqual(today)
+    val nowTime = LocalTime.now()
+    val isOverdue = dueDate.isBefore(today) || (dueDate.isEqual(today) && dueTime != null && dueTime.isBefore(nowTime))
+    val isToday = dueDate.isEqual(today) && !isOverdue
     val isTomorrow = dueDate.isEqual(today.plusDays(1))
 
     val dateStr = when {
@@ -122,7 +124,7 @@ fun DeadlineCard(
             // Title & Due Subtitle
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = deadline.title,
+                    text = deadline.title.toTitleCase(),
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Bold,
                     color = TextPrimary,

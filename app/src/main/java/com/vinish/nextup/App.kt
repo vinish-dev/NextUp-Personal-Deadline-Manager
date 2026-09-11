@@ -3,6 +3,7 @@ package com.vinish.nextup
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavGraph.Companion.findStartDestination
@@ -13,11 +14,20 @@ import com.vinish.nextup.navigation.Screen
 import com.vinish.nextup.ui.components.NextUpBottomNavigation
 
 @Composable
-fun App(modifier: Modifier = Modifier) {
+fun App(
+    modifier: Modifier = Modifier,
+    initialDeadlineId: Long? = null
+) {
     val navController = rememberNavController()
 
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
+
+    LaunchedEffect(initialDeadlineId) {
+        if (initialDeadlineId != null && initialDeadlineId > 0) {
+            navController.navigate(Screen.Details.createRoute(initialDeadlineId))
+        }
+    }
 
     Scaffold(
         modifier = modifier,

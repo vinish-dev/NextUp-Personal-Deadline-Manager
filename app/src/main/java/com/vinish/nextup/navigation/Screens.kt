@@ -38,7 +38,7 @@ sealed class Screen(
 
     data object Categories : Screen(
         "categories",
-        "Categories",
+        "All",
         Icons.Outlined.Category
     )
 
@@ -75,8 +75,8 @@ sealed class Screen(
 
 val bottomNavItems = listOf(
     Screen.Home,
-    Screen.Calendar,
-    Screen.Add,
     Screen.Categories,
+    Screen.Add,
+    Screen.Calendar,
     Screen.Profile
 )
