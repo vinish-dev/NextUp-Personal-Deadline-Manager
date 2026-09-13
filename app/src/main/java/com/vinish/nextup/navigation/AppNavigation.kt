@@ -14,12 +14,9 @@ import androidx.navigation.navArgument
 import com.vinish.nextup.model.Deadline
 import com.vinish.nextup.ui.DeadlineViewModel
 import com.vinish.nextup.ui.add.AddDeadlineScreen
-import java.time.LocalDate
-import com.vinish.nextup.ui.calendar.CalendarScreen
-import com.vinish.nextup.ui.categories.CategoriesScreen
 import com.vinish.nextup.ui.details.DeadlineDetailsScreen
-import com.vinish.nextup.ui.home.HomeScreen
-import com.vinish.nextup.ui.profile.ProfileScreen
+import com.vinish.nextup.ui.main.MainPagerScreen
+import java.time.LocalDate
 
 @Composable
 fun AppNavigation(
@@ -28,36 +25,44 @@ fun AppNavigation(
     viewModel: DeadlineViewModel = viewModel()
 ) {
     val deadlines by viewModel.deadlines.collectAsStateWithLifecycle()
-    val showCompletedInCategories by viewModel.showCompletedInCategories.collectAsStateWithLifecycle()
-    val useSampleData by viewModel.useSampleData.collectAsStateWithLifecycle()
 
     NavHost(
         navController = navController,
         startDestination = Screen.Home.route
     ) {
         composable(Screen.Home.route) {
-            HomeScreen(
+            MainPagerScreen(
+                navController = navController,
+                viewModel = viewModel,
                 modifier = modifier,
-                deadlines = deadlines,
-                onDeadlineClick = { deadline ->
-                    navController.navigate(Screen.Details.createRoute(deadline.id))
-                },
-                onAddDeadlineClick = {
-                    navController.navigate(Screen.Add.createRoute())
-                }
+                initialPage = 0
+            )
+        }
+
+        composable(Screen.Profile.route) {
+            MainPagerScreen(
+                navController = navController,
+                viewModel = viewModel,
+                modifier = modifier,
+                initialPage = 3
+            )
+        }
+
+        composable(Screen.Categories.route) {
+            MainPagerScreen(
+                navController = navController,
+                viewModel = viewModel,
+                modifier = modifier,
+                initialPage = 1
             )
         }
 
         composable(Screen.Calendar.route) {
-            CalendarScreen(
+            MainPagerScreen(
+                navController = navController,
+                viewModel = viewModel,
                 modifier = modifier,
-                deadlines = deadlines,
-                onAddDeadlineClick = { selectedDate ->
-                    navController.navigate(Screen.Add.createRoute(selectedDate))
-                },
-                onDeadlineClick = { deadline ->
-                    navController.navigate(Screen.Details.createRoute(deadline.id))
-                }
+                initialPage = 2
             )
         }
 
@@ -91,42 +96,6 @@ fun AppNavigation(
                 },
                 onSaveDeadline = { newDeadline ->
                     viewModel.saveDeadline(newDeadline)
-                }
-            )
-        }
-
-        composable(Screen.Categories.route) {
-            CategoriesScreen(
-                modifier = modifier,
-                deadlines = deadlines,
-                showCompletedDeadlines = showCompletedInCategories,
-                onBackClick = {
-                    if (!navController.popBackStack()) {
-                        navController.navigate(Screen.Home.route) {
-                            popUpTo(Screen.Home.route) { inclusive = true }
-                        }
-                    }
-                },
-                onDeadlineClick = { deadline ->
-                    navController.navigate(Screen.Details.createRoute(deadline.id))
-                },
-                onToggleComplete = { deadline ->
-                    viewModel.toggleCompleted(deadline)
-                }
-            )
-        }
-
-        composable(Screen.Profile.route) {
-            ProfileScreen(
-                modifier = modifier,
-                deadlines = deadlines,
-                showCompletedDeadlines = showCompletedInCategories,
-                onShowCompletedDeadlinesChange = { enabled ->
-                    viewModel.setShowCompletedInCategories(enabled)
-                },
-                useSampleData = useSampleData,
-                onUseSampleDataChange = { enabled ->
-                    viewModel.setUseSampleData(enabled)
                 }
             )
         }

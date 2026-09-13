@@ -31,7 +31,9 @@ fun HomeScreen(
     modifier: Modifier = Modifier,
     deadlines: List<Deadline> = emptyList(),
     onDeadlineClick: ((Deadline) -> Unit)? = null,
-    onAddDeadlineClick: (() -> Unit)? = null
+    onAddDeadlineClick: (() -> Unit)? = null,
+    onAvatarClick: (() -> Unit)? = null,
+    onOverviewClick: ((OverviewType) -> Unit)? = null
 ) {
     val today = LocalDate.now()
     val nowTime = LocalTime.now()
@@ -72,6 +74,9 @@ fun HomeScreen(
     val thisWeekCount = remember(thisWeekDeadlines) {
         thisWeekDeadlines.count { !it.isCompleted }
     }
+    val allTasksCount = remember(deadlines) {
+        deadlines.count { !it.isCompleted }
+    }
 
     val hasTasks = remember(overdueDeadlines, todayDeadlines, tomorrowDeadlines, thisWeekDeadlines, laterDeadlines) {
         overdueDeadlines.isNotEmpty() || todayDeadlines.isNotEmpty() || tomorrowDeadlines.isNotEmpty() || thisWeekDeadlines.isNotEmpty() || laterDeadlines.isNotEmpty()
@@ -84,7 +89,8 @@ fun HomeScreen(
     ) {
         item {
             GreetingSection(
-                name = "Vinish"
+                name = "Vinish",
+                onAvatarClick = onAvatarClick
             )
         }
 
@@ -95,8 +101,9 @@ fun HomeScreen(
                     OverviewItem(OverviewType.OVERDUE, overdueCount),
                     OverviewItem(OverviewType.TODAY, todayCount),
                     OverviewItem(OverviewType.TOMORROW, tomorrowCount),
-                    OverviewItem(OverviewType.THIS_WEEK, thisWeekCount)
-                )
+                    OverviewItem(OverviewType.ALL_TASKS, allTasksCount)
+                ),
+                onItemClick = onOverviewClick
             )
         }
 

@@ -43,7 +43,7 @@ private fun OverviewSectionPreview() {
             OverviewItem(OverviewType.OVERDUE, 2),
             OverviewItem(OverviewType.TODAY, 4),
             OverviewItem(OverviewType.TOMORROW, 1),
-            OverviewItem(OverviewType.THIS_WEEK, 5)
+            OverviewItem(OverviewType.ALL_TASKS, 5)
         )
     )
 }
