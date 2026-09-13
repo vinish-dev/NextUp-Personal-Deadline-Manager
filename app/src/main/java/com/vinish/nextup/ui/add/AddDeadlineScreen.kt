@@ -87,7 +87,6 @@ fun AddDeadlineScreen(
         topBar = {
             AddTopBar(
                 title = if (isEditMode) "Edit Deadline" else "Add Deadline",
-                modifier = Modifier.padding(top = 8.dp, bottom = 4.dp),
                 onBackClick = onBackClick
             )
         }
