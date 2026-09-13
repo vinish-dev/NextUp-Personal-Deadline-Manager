@@ -84,7 +84,7 @@ fun PrioritySelector(
                 Box(
                     modifier = Modifier
                         .weight(1f)
-                        .height(48.dp)
+                        .height(42.dp)
                         .clip(RoundedCornerShape(12.dp))
                         .background(if (isSelected) bgColor else SurfaceWhite)
                         .border(

@@ -20,8 +20,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.vinish.nextup.ui.theme.PrimaryBlue
-import com.vinish.nextup.ui.theme.PrimaryBlueLight
 import com.vinish.nextup.ui.theme.TextPrimary
 import com.vinish.nextup.ui.theme.TextSecondary
 import java.util.Calendar
@@ -53,9 +51,11 @@ fun GreetingSection(
     ) {
         Column(modifier = Modifier.weight(1f)) {
             Text(
-                text = "$greeting, $name",
+//                text = "$greeting, $name",
+                text = "NextUp",
                 style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.Bold,
+                letterSpacing = 1.5.sp,
                 color = TextPrimary
             )
             Text(
@@ -71,7 +71,7 @@ fun GreetingSection(
             modifier = Modifier
                 .size(48.dp)
                 .clip(CircleShape)
-                .background(PrimaryBlueLight)
+                .background(MaterialTheme.colorScheme.primaryContainer)
                 .then(
                     if (onAvatarClick != null) Modifier.clickable(onClick = onAvatarClick)
                     else Modifier
@@ -80,7 +80,7 @@ fun GreetingSection(
         ) {
             Text(
                 text = userInitial,
-                color = PrimaryBlue,
+                color = MaterialTheme.colorScheme.onPrimaryContainer,
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Bold
             )

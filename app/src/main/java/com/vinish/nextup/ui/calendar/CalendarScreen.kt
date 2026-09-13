@@ -14,6 +14,7 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
@@ -30,17 +31,17 @@ import com.vinish.nextup.model.Deadline
 import com.vinish.nextup.ui.calendar.components.CalendarHeader
 import com.vinish.nextup.ui.calendar.components.CalendarMonthView
 import com.vinish.nextup.ui.calendar.components.CalendarScheduleSection
-import com.vinish.nextup.ui.theme.BackgroundLight
-import com.vinish.nextup.ui.theme.PrimaryBlue
 import java.time.LocalDate
 import java.time.YearMonth
 
 @Composable
 fun CalendarScreen(
     modifier: Modifier = Modifier,
-    deadlines: List<Deadline> = SampleDeadlines.sampleDeadlines,
+    deadlines: List<Deadline> = emptyList(),
     onDeadlineClick: ((Deadline) -> Unit)? = null,
-    onAddDeadlineClick: (LocalDate) -> Unit = {}
+    onToggleComplete: ((Deadline) -> Unit)? = null,
+    onAddDeadlineClick: (LocalDate) -> Unit = {},
+    onEditDeadline: ((Deadline) -> Unit)? = null
 ) {
     var selectedDate by remember { mutableStateOf(LocalDate.now()) }
     var currentMonth by remember { mutableStateOf(YearMonth.from(selectedDate)) }
@@ -56,14 +57,14 @@ fun CalendarScreen(
     Box(
         modifier = modifier
             .fillMaxSize()
-            .background(BackgroundLight)
+            .background(MaterialTheme.colorScheme.background)
     ) {
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
-            contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 88.dp)
+            contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 20.dp, bottom = 88.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // Month-Year in the middle with left/right arrows on the extreme ends
+            // Month Header & Navigation
             item {
                 CalendarHeader(
                     currentMonth = currentMonth,
@@ -102,33 +103,20 @@ fun CalendarScreen(
                 CalendarScheduleSection(
                     selectedDate = selectedDate,
                     deadlines = selectedDayDeadlines,
-                    onDeadlineClick = onDeadlineClick
+                    onDeadlineClick = onDeadlineClick,
+                    onToggleComplete = onToggleComplete,
+                    onEditClick = onEditDeadline
                 )
             }
         }
 
-        // Blue round plus button on the bottom right above the nav bar
-        FloatingActionButton(
+        // Round plus button on the bottom right above the nav bar
+        com.vinish.nextup.ui.components.AddDeadlineFab(
             onClick = { onAddDeadlineClick(selectedDate) },
-            shape = CircleShape,
-            containerColor = PrimaryBlue,
-            contentColor = Color.White,
-            elevation = FloatingActionButtonDefaults.elevation(
-                defaultElevation = 6.dp,
-                pressedElevation = 8.dp
-            ),
             modifier = Modifier
                 .align(Alignment.BottomEnd)
                 .padding(end = 20.dp, bottom = 20.dp)
-                .size(56.dp)
-        ) {
-            Icon(
-                imageVector = Icons.Filled.Add,
-                contentDescription = "Add Deadline",
-                tint = Color.White,
-                modifier = Modifier.size(28.dp)
-            )
-        }
+        )
     }
 }
 

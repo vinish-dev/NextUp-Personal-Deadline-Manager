@@ -3,6 +3,7 @@ package com.vinish.nextup.ui.home.model
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.DateRange
 import androidx.compose.material.icons.outlined.Event
+import androidx.compose.material.icons.outlined.Task
 import androidx.compose.material.icons.outlined.Today
 import androidx.compose.material.icons.outlined.Warning
 import androidx.compose.ui.graphics.Color
@@ -45,6 +46,16 @@ enum class OverviewType(
         iconTint = Color(0xFF9333EA),        // Accent purple
         titleColor = Color(0xFF6B21A8),      // Deep contrast purple
         subtitleColor = Color(0xFF7E22CE)    // Medium purple
+    ),
+
+    ALL_TASKS(
+        title = "All Tasks",
+        subtitle = "All deadlines",
+        icon = Icons.Outlined.Task,
+        backgroundColor = Color(0xFFE8F5E9), // Light green wash
+        iconTint = Color(0xFF2EB872),        // Nature green
+        titleColor = Color(0xFF166534),      // Deep contrast green
+        subtitleColor = Color(0xFF2EB872)    // Medium green
     ),
 
     THIS_WEEK(

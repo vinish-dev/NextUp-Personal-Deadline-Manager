@@ -11,19 +11,11 @@ import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.navArgument
-import com.vinish.nextup.data.sample.SampleDeadlines
-import com.vinish.nextup.model.Category
+import com.vinish.nextup.model.Deadline
 import com.vinish.nextup.ui.DeadlineViewModel
 import com.vinish.nextup.ui.add.AddDeadlineScreen
-import com.vinish.nextup.ui.calendar.CalendarScreen
-import com.vinish.nextup.ui.categories.CategoriesScreen
-import com.vinish.nextup.ui.categories.CategoryDetailScreen
 import com.vinish.nextup.ui.details.DeadlineDetailsScreen
-import com.vinish.nextup.ui.home.HomeScreen
-import com.vinish.nextup.ui.profile.ProfileScreen
-import java.net.URLDecoder
-import java.net.URLEncoder
-import java.nio.charset.StandardCharsets
+import com.vinish.nextup.ui.main.MainPagerScreen
 import java.time.LocalDate
 
 @Composable
@@ -33,35 +25,53 @@ fun AppNavigation(
     viewModel: DeadlineViewModel = viewModel()
 ) {
     val deadlines by viewModel.deadlines.collectAsStateWithLifecycle()
-    val categories by viewModel.categories.collectAsStateWithLifecycle()
 
     NavHost(
         navController = navController,
         startDestination = Screen.Home.route
     ) {
         composable(Screen.Home.route) {
-            HomeScreen(
+            MainPagerScreen(
+                navController = navController,
+                viewModel = viewModel,
                 modifier = modifier,
-                deadlines = deadlines,
-                onDeadlineClick = { deadline ->
-                    navController.navigate(Screen.Details.createRoute(deadline.id))
-                },
-                onAddDeadlineClick = {
-                    navController.navigate(Screen.Add.createRoute())
-                }
+                initialPage = 0
+            )
+        }
+
+        composable(Screen.AllTasks.route) {
+            MainPagerScreen(
+                navController = navController,
+                viewModel = viewModel,
+                modifier = modifier,
+                initialPage = 1
+            )
+        }
+
+        composable(Screen.Categories.route) {
+            MainPagerScreen(
+                navController = navController,
+                viewModel = viewModel,
+                modifier = modifier,
+                initialPage = 2
             )
         }
 
         composable(Screen.Calendar.route) {
-            CalendarScreen(
+            MainPagerScreen(
+                navController = navController,
+                viewModel = viewModel,
                 modifier = modifier,
-                deadlines = deadlines,
-                onAddDeadlineClick = { selectedDate ->
-                    navController.navigate(Screen.Add.createRoute(selectedDate))
-                },
-                onDeadlineClick = { deadline ->
-                    navController.navigate(Screen.Details.createRoute(deadline.id))
-                }
+                initialPage = 3
+            )
+        }
+
+        composable(Screen.Profile.route) {
+            MainPagerScreen(
+                navController = navController,
+                viewModel = viewModel,
+                modifier = modifier,
+                initialPage = 4
             )
         }
 
@@ -86,7 +96,6 @@ fun AppNavigation(
             AddDeadlineScreen(
                 modifier = modifier,
                 initialDate = initialDate,
-                categories = categories,
                 onBackClick = {
                     if (!navController.popBackStack()) {
                         navController.navigate(Screen.Home.route) {
@@ -100,45 +109,6 @@ fun AppNavigation(
             )
         }
 
-        composable(Screen.Categories.route) {
-            CategoriesScreen(
-                modifier = modifier,
-                deadlines = deadlines,
-                categories = categories,
-                onCategoryClick = { category ->
-                    navController.navigate(Screen.CategoryDetail.createRoute(category.name))
-                },
-                onAddCategory = { categoryName ->
-                    viewModel.addCategory(categoryName)
-                }
-            )
-        }
-
-        composable(
-            route = Screen.CategoryDetail.route,
-            arguments = listOf(
-                navArgument("categoryName") { type = NavType.StringType }
-            )
-        ) { backStackEntry ->
-            val categoryName = backStackEntry.arguments?.getString("categoryName")
-                ?.let { URLDecoder.decode(it, StandardCharsets.UTF_8.toString()) }
-                ?: Category.OTHER.name
-            val selectedCategory = Category.fromName(categoryName)
-
-            CategoryDetailScreen(
-                modifier = modifier,
-                category = selectedCategory,
-                deadlines = deadlines.filter { it.category.name.equals(selectedCategory.name, ignoreCase = true) },
-                onBackClick = { navController.popBackStack() },
-                onDeadlineClick = { deadline ->
-                    navController.navigate(Screen.Details.createRoute(deadline.id))
-                }
-            )
-        }
-
-        composable(Screen.Profile.route) {
-            ProfileScreen(modifier = modifier)
-        }
         composable(
             route = Screen.Details.route,
             arguments = listOf(
@@ -153,8 +123,6 @@ fun AppNavigation(
             val currentDeadline by deadlineFlow.collectAsStateWithLifecycle(initialValue = null)
             val activeDeadline = currentDeadline
                 ?: deadlines.find { it.id == deadlineId }
-                ?: SampleDeadlines.sampleDeadlines.find { it.id == deadlineId }
-                ?: SampleDeadlines.sampleDeadlines.first()
 
             DeadlineDetailsScreen(
                 modifier = modifier,
@@ -196,13 +164,11 @@ fun AppNavigation(
             val currentDeadline by deadlineFlow.collectAsStateWithLifecycle(initialValue = null)
             val deadlineToEdit = currentDeadline
                 ?: deadlines.find { it.id == deadlineId }
-                ?: SampleDeadlines.sampleDeadlines.find { it.id == deadlineId }
 
             if (deadlineToEdit != null) {
                 AddDeadlineScreen(
                     modifier = modifier,
                     existingDeadline = deadlineToEdit,
-                    categories = categories,
                     onBackClick = {
                         navController.popBackStack()
                     },
@@ -213,4 +179,4 @@ fun AppNavigation(
             }
         }
     }
-}
+}

@@ -1,6 +1,7 @@
 package com.vinish.nextup.navigation
 
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.FormatListBulleted
 import androidx.compose.material.icons.outlined.AddCircleOutline
 import androidx.compose.material.icons.outlined.CalendarMonth
 import androidx.compose.material.icons.outlined.Category
@@ -21,6 +22,12 @@ sealed class Screen(
         Icons.Outlined.Home
     )
 
+    data object AllTasks : Screen(
+        "all",
+        "All",
+        Icons.AutoMirrored.Outlined.FormatListBulleted
+    )
+
     data object Calendar : Screen(
         "calendar",
         "Calendar",
@@ -38,7 +45,7 @@ sealed class Screen(
 
     data object Categories : Screen(
         "categories",
-        "Categories",
+        "Category",
         Icons.Outlined.Category
     )
 
@@ -75,8 +82,8 @@ sealed class Screen(
 
 val bottomNavItems = listOf(
     Screen.Home,
-    Screen.Calendar,
-    Screen.Add,
+    Screen.AllTasks,
     Screen.Categories,
+    Screen.Calendar,
     Screen.Profile
 )
