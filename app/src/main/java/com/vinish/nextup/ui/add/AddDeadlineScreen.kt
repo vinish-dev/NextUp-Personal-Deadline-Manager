@@ -5,9 +5,12 @@ import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imeNestedScroll
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -18,13 +21,17 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import kotlinx.coroutines.delay
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -48,6 +55,9 @@ import com.vinish.nextup.ui.add.components.SubtaskSection
 import java.time.LocalDate
 import java.time.LocalTime
 
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun AddDeadlineScreen(
     modifier: Modifier = Modifier,
@@ -80,6 +90,15 @@ fun AddDeadlineScreen(
 
     var titleError by remember { mutableStateOf(false) }
 
+    val focusRequester = remember { FocusRequester() }
+    val keyboardController = LocalSoftwareKeyboardController.current
+
+    LaunchedEffect(Unit) {
+        delay(250)
+        focusRequester.requestFocus()
+        keyboardController?.show()
+    }
+
     Scaffold(
         modifier = modifier.fillMaxSize(),
         containerColor = MaterialTheme.colorScheme.background,
@@ -90,11 +109,15 @@ fun AddDeadlineScreen(
             )
         }
     ) { paddingValues ->
+        val scrollState = rememberScrollState()
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .verticalScroll(rememberScrollState())
+                .consumeWindowInsets(paddingValues)
+                .imePadding()
+                .imeNestedScroll()
+                .verticalScroll(scrollState)
                 .padding(horizontal = 20.dp, vertical = 12.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
@@ -109,7 +132,8 @@ fun AddDeadlineScreen(
                 placeholder = "e.g. Car Insurance Renewal",
                 singleLine = true,
                 isError = titleError,
-                errorMessage = "Title is required"
+                errorMessage = "Title is required",
+                focusRequester = focusRequester
             )
 
             // 2. Description (Optional)

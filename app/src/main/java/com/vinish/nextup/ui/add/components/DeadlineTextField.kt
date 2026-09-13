@@ -24,6 +24,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import com.vinish.nextup.ui.theme.BorderLight
 import com.vinish.nextup.ui.theme.PriorityHighText
 import com.vinish.nextup.ui.theme.SurfaceWhite
@@ -43,7 +45,8 @@ fun DeadlineTextField(
     isError: Boolean = false,
     errorMessage: String? = null,
     keyboardOptions: KeyboardOptions = KeyboardOptions.Default,
-    keyboardActions: KeyboardActions = KeyboardActions.Default
+    keyboardActions: KeyboardActions = KeyboardActions.Default,
+    focusRequester: FocusRequester? = null
 ) {
     Column(modifier = modifier.fillMaxWidth()) {
         Text(
@@ -76,10 +79,16 @@ fun DeadlineTextField(
                 )
             }
 
+            val textModifier = if (focusRequester != null) {
+                Modifier.fillMaxWidth().focusRequester(focusRequester)
+            } else {
+                Modifier.fillMaxWidth()
+            }
+
             BasicTextField(
                 value = value,
                 onValueChange = onValueChange,
-                modifier = Modifier.fillMaxWidth(),
+                modifier = textModifier,
                 textStyle = TextStyle(
                     fontSize = 15.sp,
                     color = TextPrimary,
