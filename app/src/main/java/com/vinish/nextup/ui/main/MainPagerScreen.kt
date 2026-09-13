@@ -41,6 +41,7 @@ fun MainPagerScreen(
     val deadlines by viewModel.deadlines.collectAsStateWithLifecycle()
     val showCompletedInCategories by viewModel.showCompletedInCategories.collectAsStateWithLifecycle()
     val useSampleData by viewModel.useSampleData.collectAsStateWithLifecycle()
+    val appTheme by viewModel.appTheme.collectAsStateWithLifecycle()
 
     val pagerState = rememberPagerState(initialPage = initialPage) { 5 }
     val coroutineScope = rememberCoroutineScope()
@@ -116,6 +117,9 @@ fun MainPagerScreen(
                     onDeadlineClick = { deadline ->
                         navController.navigate(Screen.Details.createRoute(deadline.id))
                     },
+                    onToggleComplete = { deadline ->
+                        viewModel.toggleCompleted(deadline)
+                    },
                     onAddDeadlineClick = {
                         navController.navigate(Screen.Add.createRoute())
                     },
@@ -176,6 +180,9 @@ fun MainPagerScreen(
                     onDeadlineClick = { deadline ->
                         navController.navigate(Screen.Details.createRoute(deadline.id))
                     },
+                    onToggleComplete = { deadline ->
+                        viewModel.toggleCompleted(deadline)
+                    },
                     onAddDeadlineClick = { selectedDate ->
                         navController.navigate(Screen.Add.createRoute(selectedDate))
                     }
@@ -192,6 +199,10 @@ fun MainPagerScreen(
                     useSampleData = useSampleData,
                     onUseSampleDataChange = { enabled ->
                         viewModel.setUseSampleData(enabled)
+                    },
+                    appTheme = appTheme,
+                    onThemeChange = { theme ->
+                        viewModel.setAppTheme(theme)
                     }
                 )
             }

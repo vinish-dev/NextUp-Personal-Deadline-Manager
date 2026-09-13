@@ -14,6 +14,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -44,8 +45,6 @@ import com.vinish.nextup.ui.add.components.PrioritySelector
 import com.vinish.nextup.ui.add.components.RecurrenceSelector
 import com.vinish.nextup.ui.add.components.ReminderSelector
 import com.vinish.nextup.ui.add.components.SubtaskSection
-import com.vinish.nextup.ui.theme.BackgroundLight
-import com.vinish.nextup.ui.theme.PrimaryBlue
 import java.time.LocalDate
 import java.time.LocalTime
 
@@ -83,7 +82,7 @@ fun AddDeadlineScreen(
 
     Scaffold(
         modifier = modifier.fillMaxSize(),
-        containerColor = BackgroundLight,
+        containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             AddTopBar(
                 title = if (isEditMode) "Edit Deadline" else "Add Deadline",
@@ -219,7 +218,7 @@ fun AddDeadlineScreen(
                     .height(54.dp),
                 shape = RoundedCornerShape(16.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = PrimaryBlue,
+                    containerColor = MaterialTheme.colorScheme.primary,
                     contentColor = Color.White
                 )
             ) {

@@ -52,10 +52,10 @@ enum class OverviewType(
         title = "All Tasks",
         subtitle = "All deadlines",
         icon = Icons.Outlined.Task,
-        backgroundColor = Color(0xFFE8F3FC), // Light blue wash
-        iconTint = Color(0xFF4F6EF7),        // Primary brand blue
-        titleColor = Color(0xFF1E3A8A),      // Deep contrast blue
-        subtitleColor = Color(0xFF3B82F6)    // Medium blue
+        backgroundColor = Color(0xFFE8F5E9), // Light green wash
+        iconTint = Color(0xFF2EB872),        // Nature green
+        titleColor = Color(0xFF166534),      // Deep contrast green
+        subtitleColor = Color(0xFF2EB872)    // Medium green
     ),
 
     THIS_WEEK(

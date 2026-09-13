@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -23,7 +24,6 @@ import com.vinish.nextup.ui.details.components.DeadlineHeroCard
 import com.vinish.nextup.ui.details.components.DeadlineInfoCard
 import com.vinish.nextup.ui.details.components.DeadlineSubtasksCard
 import com.vinish.nextup.ui.details.components.DetailsTopBar
-import com.vinish.nextup.ui.theme.BackgroundLight
 
 @Composable
 fun DeadlineDetailsScreen(
@@ -42,7 +42,7 @@ fun DeadlineDetailsScreen(
 
     Scaffold(
         modifier = modifier.fillMaxSize(),
-        containerColor = BackgroundLight,
+        containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             DetailsTopBar(
                 onBackClick = onBackClick,

@@ -28,7 +28,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.vinish.nextup.ui.theme.PrimaryBlue
 import com.vinish.nextup.ui.theme.SurfaceWhite
 import com.vinish.nextup.ui.theme.TextSecondary
 
@@ -38,9 +37,10 @@ fun NextUpBottomNavigation(
     currentRoute: String? = "home",
     onItemClick: (String) -> Unit = {}
 ) {
+    val primaryColor = androidx.compose.material3.MaterialTheme.colorScheme.primary
     val navItemStyle = NavigationBarItemDefaults.colors(
-        selectedIconColor = PrimaryBlue,
-        selectedTextColor = PrimaryBlue,
+        selectedIconColor = primaryColor,
+        selectedTextColor = primaryColor,
         unselectedIconColor = TextSecondary,
         unselectedTextColor = TextSecondary,
         indicatorColor = SurfaceWhite

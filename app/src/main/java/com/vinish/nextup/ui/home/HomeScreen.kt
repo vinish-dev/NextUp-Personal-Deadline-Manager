@@ -14,6 +14,7 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
@@ -30,8 +31,6 @@ import com.vinish.nextup.ui.home.components.OverviewSection
 import com.vinish.nextup.ui.home.model.OverviewItem
 import com.vinish.nextup.ui.home.components.HomeEmptyState
 import com.vinish.nextup.ui.home.model.OverviewType
-import com.vinish.nextup.ui.theme.BackgroundLight
-import com.vinish.nextup.ui.theme.PrimaryBlue
 
 import com.vinish.nextup.model.isOverdue
 import java.time.DayOfWeek
@@ -44,6 +43,7 @@ fun HomeScreen(
     modifier: Modifier = Modifier,
     deadlines: List<Deadline> = emptyList(),
     onDeadlineClick: ((Deadline) -> Unit)? = null,
+    onToggleComplete: ((Deadline) -> Unit)? = null,
     onAddDeadlineClick: (() -> Unit)? = null,
     onAvatarClick: (() -> Unit)? = null,
     onOverviewClick: ((OverviewType) -> Unit)? = null
@@ -98,12 +98,12 @@ fun HomeScreen(
     Box(
         modifier = modifier
             .fillMaxSize()
-            .background(BackgroundLight)
+            .background(MaterialTheme.colorScheme.background)
     ) {
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
-            contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 20.dp, bottom = 88.dp)
+            contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 20.dp, bottom = 88.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             item {
                 GreetingSection(
@@ -114,7 +114,6 @@ fun HomeScreen(
 
             item {
                 OverviewSection(
-                    modifier = Modifier.padding(vertical = 8.dp),
                     overviewItems = listOf(
                         OverviewItem(OverviewType.OVERDUE, overdueCount),
                         OverviewItem(OverviewType.TODAY, todayCount),
@@ -130,7 +129,8 @@ fun HomeScreen(
                     DeadlineSection(
                         title = "Overdue",
                         deadlines = overdueDeadlines,
-                        onDeadlineClick = onDeadlineClick
+                        onDeadlineClick = onDeadlineClick,
+                        onToggleComplete = onToggleComplete
                     )
                 }
             }
@@ -140,7 +140,8 @@ fun HomeScreen(
                     DeadlineSection(
                         title = "Today",
                         deadlines = todayDeadlines,
-                        onDeadlineClick = onDeadlineClick
+                        onDeadlineClick = onDeadlineClick,
+                        onToggleComplete = onToggleComplete
                     )
                 }
             }
@@ -151,7 +152,8 @@ fun HomeScreen(
                         title = "Tomorrow",
                         deadlines = tomorrowDeadlines,
                         showSeeAll = false,
-                        onDeadlineClick = onDeadlineClick
+                        onDeadlineClick = onDeadlineClick,
+                        onToggleComplete = onToggleComplete
                     )
                 }
             }
@@ -161,7 +163,8 @@ fun HomeScreen(
                     DeadlineSection(
                         title = "This Week",
                         deadlines = thisWeekDeadlines,
-                        onDeadlineClick = onDeadlineClick
+                        onDeadlineClick = onDeadlineClick,
+                        onToggleComplete = onToggleComplete
                     )
                 }
             }
@@ -171,7 +174,8 @@ fun HomeScreen(
                     DeadlineSection(
                         title = "Later",
                         deadlines = laterDeadlines,
-                        onDeadlineClick = onDeadlineClick
+                        onDeadlineClick = onDeadlineClick,
+                        onToggleComplete = onToggleComplete
                     )
                 }
             }
@@ -189,7 +193,7 @@ fun HomeScreen(
             FloatingActionButton(
                 onClick = onAddDeadlineClick,
                 shape = CircleShape,
-                containerColor = PrimaryBlue,
+                containerColor = MaterialTheme.colorScheme.primary,
                 contentColor = Color.White,
                 elevation = FloatingActionButtonDefaults.elevation(
                     defaultElevation = 6.dp,

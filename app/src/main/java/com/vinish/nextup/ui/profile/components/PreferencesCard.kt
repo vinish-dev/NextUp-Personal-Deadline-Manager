@@ -16,6 +16,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowRight
 import androidx.compose.material.icons.outlined.Notifications
+import androidx.compose.material.icons.outlined.Style
 import androidx.compose.material.icons.outlined.Storage
 import androidx.compose.material.icons.outlined.TaskAlt
 import androidx.compose.material.icons.rounded.Settings
@@ -38,7 +39,6 @@ import androidx.compose.ui.unit.sp
 import com.vinish.nextup.ui.theme.BorderLight
 import com.vinish.nextup.ui.theme.BorderMedium
 import com.vinish.nextup.ui.theme.BorderStoke
-import com.vinish.nextup.ui.theme.PrimaryBlue
 import com.vinish.nextup.ui.theme.SurfaceSubtle
 import com.vinish.nextup.ui.theme.SurfaceWhite
 import com.vinish.nextup.ui.theme.TextPrimary
@@ -52,8 +52,12 @@ fun PreferencesCard(
     onShowCompletedDeadlinesChange: ((Boolean) -> Unit)? = null,
     useSampleData: Boolean = false,
     onUseSampleDataChange: ((Boolean) -> Unit)? = null,
+    appTheme: String = "green",
+    onThemeChange: ((String) -> Unit)? = null,
     onRemindersClick: () -> Unit = {}
 ) {
+    val primaryColor = androidx.compose.material3.MaterialTheme.colorScheme.primary
+
     Card(
         modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(20.dp),
@@ -161,6 +165,64 @@ fun PreferencesCard(
             HorizontalDivider(thickness = 1.dp, color = BorderLight)
             Spacer(modifier = Modifier.height(12.dp))
 
+            // App Theme Item
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(12.dp))
+                    .clickable(enabled = onThemeChange != null) {
+                        val next = if (appTheme == "green") "blue" else "green"
+                        onThemeChange?.invoke(next)
+                    }
+                    .padding(vertical = 4.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(38.dp)
+                        .clip(RoundedCornerShape(10.dp))
+                        .background(SurfaceSubtle),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Outlined.Style,
+                        contentDescription = null,
+                        tint = primaryColor,
+                        modifier = Modifier.size(20.dp)
+                    )
+                }
+
+                Spacer(modifier = Modifier.width(14.dp))
+
+                Column(
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Text(
+                        text = "Theme",
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = TextPrimary
+                    )
+                    Spacer(modifier = Modifier.height(2.dp))
+                    Text(
+                        text = if (appTheme == "green") "Sage Green (Nature)" else "Classic Blue",
+                        fontSize = 12.sp,
+                        color = TextSecondary
+                    )
+                }
+
+                Icon(
+                    imageVector = Icons.AutoMirrored.Rounded.KeyboardArrowRight,
+                    contentDescription = null,
+                    tint = TextTertiary,
+                    modifier = Modifier.size(18.dp)
+                )
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
+            HorizontalDivider(thickness = 1.dp, color = BorderLight)
+            Spacer(modifier = Modifier.height(12.dp))
+
             // Show Completed Deadlines Item
             Row(
                 modifier = Modifier
@@ -213,7 +275,7 @@ fun PreferencesCard(
                     onCheckedChange = onShowCompletedDeadlinesChange,
                     colors = SwitchDefaults.colors(
                         checkedThumbColor = SurfaceWhite,
-                        checkedTrackColor = PrimaryBlue,
+                        checkedTrackColor = primaryColor,
                         uncheckedThumbColor = Color(0xFF94A3B8),
                         uncheckedTrackColor = SurfaceSubtle,
                         uncheckedBorderColor = BorderMedium
@@ -277,7 +339,7 @@ fun PreferencesCard(
                     onCheckedChange = onUseSampleDataChange,
                     colors = SwitchDefaults.colors(
                         checkedThumbColor = SurfaceWhite,
-                        checkedTrackColor = PrimaryBlue,
+                        checkedTrackColor = primaryColor,
                         uncheckedThumbColor = Color(0xFF94A3B8),
                         uncheckedTrackColor = SurfaceSubtle,
                         uncheckedBorderColor = BorderMedium

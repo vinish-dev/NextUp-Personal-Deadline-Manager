@@ -7,10 +7,14 @@ import androidx.navigation.compose.rememberNavController
 import com.vinish.nextup.navigation.AppNavigation
 import com.vinish.nextup.navigation.Screen
 
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.vinish.nextup.ui.DeadlineViewModel
+
 @Composable
 fun App(
     modifier: Modifier = Modifier,
-    initialDeadlineId: Long? = null
+    initialDeadlineId: Long? = null,
+    viewModel: DeadlineViewModel = viewModel()
 ) {
     val navController = rememberNavController()
 
@@ -22,7 +26,8 @@ fun App(
 
     AppNavigation(
         navController = navController,
-        modifier = modifier
+        modifier = modifier,
+        viewModel = viewModel
     )
 }
 

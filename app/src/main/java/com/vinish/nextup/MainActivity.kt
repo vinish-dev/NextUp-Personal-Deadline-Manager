@@ -15,11 +15,16 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.core.content.ContextCompat
+import androidx.activity.viewModels
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.vinish.nextup.notification.NotificationHelper
+import com.vinish.nextup.ui.DeadlineViewModel
+import com.vinish.nextup.ui.theme.AppTheme
 import com.vinish.nextup.ui.theme.NextUpTheme
 
 class MainActivity : ComponentActivity() {
 
+    private val viewModel: DeadlineViewModel by viewModels()
     private var targetDeadlineId by mutableStateOf<Long?>(null)
 
     private val requestNotificationPermissionLauncher =
@@ -44,8 +49,10 @@ class MainActivity : ComponentActivity() {
             )
         )
         setContent {
-            NextUpTheme {
-                App(initialDeadlineId = targetDeadlineId)
+            val themeName by viewModel.appTheme.collectAsStateWithLifecycle()
+            val currentTheme = if (themeName == "blue") AppTheme.BLUE else AppTheme.GREEN
+            NextUpTheme(appTheme = currentTheme) {
+                App(initialDeadlineId = targetDeadlineId, viewModel = viewModel)
             }
         }
     }

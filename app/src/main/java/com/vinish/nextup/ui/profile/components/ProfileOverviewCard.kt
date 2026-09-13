@@ -37,8 +37,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.vinish.nextup.ui.theme.BorderLight
 import com.vinish.nextup.ui.theme.BorderStoke
-import com.vinish.nextup.ui.theme.PrimaryBlue
-import com.vinish.nextup.ui.theme.PrimaryBlueLight
 import com.vinish.nextup.ui.theme.SurfaceSubtle
 import com.vinish.nextup.ui.theme.SurfaceWhite
 import com.vinish.nextup.ui.theme.TextPrimary
@@ -70,108 +68,28 @@ fun ProfileOverviewCard(
     Card(
         modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(20.dp),
-        colors = CardDefaults.cardColors(containerColor = SurfaceWhite),
+        colors = CardDefaults.cardColors(
+            containerColor = androidx.compose.material3.MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.7f)
+        ),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
-        border = BorderStroke(1.dp, BorderStoke)
+        border = BorderStroke(1.dp, androidx.compose.material3.MaterialTheme.colorScheme.primary.copy(alpha = 0.15f))
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(18.dp)
         ) {
-            // Header Row
+            // Stats Row
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // Overview bar chart icon
-                /*Box(
-                    modifier = Modifier
-                        .size(42.dp)
-                        .clip(RoundedCornerShape(12.dp))
-                        .background(PrimaryBlueLight),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        imageVector = Icons.Rounded.BarChart,
-                        contentDescription = null,
-                        tint = PrimaryBlue,
-                        modifier = Modifier.size(24.dp)
-                    )
-                }
-
-                Spacer(modifier = Modifier.width(12.dp))
-*/
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = "Overview",
-                        fontSize = 17.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = TextPrimary
-                    )
-
-                }
-
-                Spacer(modifier = Modifier.width(8.dp))
-
-                // Timeframe Pill Button
-                /*Box(
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(20.dp))
-                        .background(SurfaceSubtle)
-                        .clickable(onClick = onTimeframeClick)
-                        .padding(horizontal = 10.dp, vertical = 6.dp)
-                ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(2.dp)
-                    ) {
-                        Text(
-                            text = selectedTimeframe,
-                            fontSize = 12.sp,
-                            fontWeight = FontWeight.Medium,
-                            color = TextSecondary
-                        )
-                        Icon(
-                            imageVector = Icons.Rounded.KeyboardArrowDown,
-                            contentDescription = null,
-                            tint = TextSecondary,
-                            modifier = Modifier.size(16.dp)
-                        )
-                    }
-                }*/
-            }
-
-            Spacer(modifier = Modifier.height(20.dp))
-
-            // Stats 3-column Row
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                StatColumn(
-                    icon = Icons.Outlined.Description,
-                    iconBg = Color(0xFFEBF3FE),
-                    iconTint = PrimaryBlue,
-                    count = totalDeadlines,
-                    label = "Total Deadlines",
-                    modifier = Modifier.weight(1f)
-                )
-
-                // Divider
-                Box(
-                    modifier = Modifier
-                        .width(1.dp)
-                        .height(44.dp)
-                        .background(BorderLight.copy(alpha = 0.6f))
-                )
-
                 StatColumn(
                     icon = Icons.Rounded.Check,
-                    iconBg = Color(0xFFE8F8EE),
-                    iconTint = Color(0xFF10B981),
+                    iconBg = SurfaceWhite,
+                    iconTint = androidx.compose.material3.MaterialTheme.colorScheme.primary,
                     count = completedDeadlines,
-                    label = "Completed",
+                    label = "tasks completed",
                     modifier = Modifier.weight(1f)
                 )
 
@@ -180,15 +98,15 @@ fun ProfileOverviewCard(
                     modifier = Modifier
                         .width(1.dp)
                         .height(44.dp)
-                        .background(BorderLight.copy(alpha = 0.6f))
+                        .background(androidx.compose.material3.MaterialTheme.colorScheme.primary.copy(alpha = 0.2f))
                 )
 
                 StatColumn(
-                    icon = Icons.Outlined.Schedule,
-                    iconBg = Color(0xFFFFF4E5),
-                    iconTint = Color(0xFFF59E0B),
-                    count = pendingDeadlines,
-                    label = "Pending",
+                    icon = Icons.Rounded.BarChart,
+                    iconBg = SurfaceWhite,
+                    iconTint = androidx.compose.material3.MaterialTheme.colorScheme.primary,
+                    count = totalDeadlines,
+                    label = "total tasks",
                     modifier = Modifier.weight(1f)
                 )
             }
@@ -199,35 +117,6 @@ fun ProfileOverviewCard(
 //            Row(
 //                modifier = Modifier.fillMaxWidth(),
 //                verticalAlignment = Alignment.CenterVertically
-//            ) {
-//                Text(
-//                    text = "Completion Rate",
-//                    fontSize = 13.sp,
-//                    fontWeight = FontWeight.Medium,
-//                    color = TextPrimary
-//                )
-//
-//                Spacer(modifier = Modifier.width(12.dp))
-//
-//                LinearProgressIndicator(
-//                    progress = { completionRatio },
-//                    modifier = Modifier
-//                        .weight(1f)
-//                        .height(8.dp)
-//                        .clip(RoundedCornerShape(4.dp)),
-//                    color = PrimaryBlue,
-//                    trackColor = Color(0xFFE2E8F0)
-//                )
-//
-//                Spacer(modifier = Modifier.width(12.dp))
-//
-//                Text(
-//                    text = "$completionPercentage%",
-//                    fontSize = 13.sp,
-//                    fontWeight = FontWeight.Bold,
-//                    color = TextPrimary
-//                )
-//            }
         }
     }
 }

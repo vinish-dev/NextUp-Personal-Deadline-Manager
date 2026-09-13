@@ -11,8 +11,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
-import com.vinish.nextup.ui.theme.PrimaryBlue
-import com.vinish.nextup.ui.theme.PrimaryBlueLight
 
 @Composable
 fun SectionHeader(
@@ -40,7 +38,7 @@ fun SectionHeader(
                 Text(
                     text = actionText,
                     fontWeight = FontWeight.Medium,
-                    color = PrimaryBlue
+                    color = MaterialTheme.colorScheme.primary
                 )
             }
         }

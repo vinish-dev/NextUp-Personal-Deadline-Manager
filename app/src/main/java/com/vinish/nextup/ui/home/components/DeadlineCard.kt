@@ -166,39 +166,33 @@ fun DeadlineCard(
                 )
             }
 
-            Spacer(modifier = Modifier.width(10.dp))
+            Spacer(modifier = Modifier.width(12.dp))
 
-            // Priority Badge & Completion Indicator
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                if (!isDone) {
-                    PriorityTag(priority = deadline.priority)
-                    if (onToggleComplete != null) {
-                        Spacer(modifier = Modifier.width(10.dp))
-                        Box(
-                            modifier = Modifier
-                                .size(24.dp)
-                                .clip(CircleShape)
-                                .border(1.5.dp, BorderMedium, CircleShape)
-                                .clickable(onClick = onToggleComplete)
-                        )
-                    }
-                } else {
-                    PriorityTag(
-                        priority = deadline.priority,
-                        modifier = Modifier.alpha(0.6f)
-                    )
-                    Spacer(modifier = Modifier.width(10.dp))
-                    Box(
-                        modifier = Modifier
-                            .size(24.dp)
-                            .clip(CircleShape)
-                            .background(CheckboxChecked)
-                            .then(
-                                if (onToggleComplete != null) Modifier.clickable(onClick = onToggleComplete)
-                                else Modifier
-                            ),
-                        contentAlignment = Alignment.Center
-                    ) {
+            // Tap to toggle completion
+            Box(
+                modifier = Modifier
+                    .size(36.dp)
+                    .clip(CircleShape)
+                    .then(
+                        if (onToggleComplete != null) Modifier.clickable(onClick = onToggleComplete)
+                        else Modifier
+                    ),
+                contentAlignment = Alignment.Center
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(24.dp)
+                        .clip(CircleShape)
+                        .then(
+                            if (isDone) {
+                                Modifier.background(androidx.compose.material3.MaterialTheme.colorScheme.primary)
+                            } else {
+                                Modifier.border(2.dp, BorderMedium, CircleShape)
+                            }
+                        ),
+                    contentAlignment = Alignment.Center
+                ) {
+                    if (isDone) {
                         Icon(
                             imageVector = Icons.Filled.Check,
                             contentDescription = "Mark incomplete",

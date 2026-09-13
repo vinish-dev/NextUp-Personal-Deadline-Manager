@@ -13,6 +13,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -24,7 +25,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.vinish.nextup.ui.theme.BorderLight
-import com.vinish.nextup.ui.theme.PrimaryBlue
 import com.vinish.nextup.ui.theme.PriorityHighText
 import com.vinish.nextup.ui.theme.SurfaceWhite
 import com.vinish.nextup.ui.theme.TextPrimary
@@ -88,7 +88,7 @@ fun DeadlineTextField(
                 singleLine = singleLine,
                 minLines = minLines,
                 maxLines = maxLines,
-                cursorBrush = SolidColor(PrimaryBlue),
+                cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
                 keyboardOptions = keyboardOptions,
                 keyboardActions = keyboardActions
             )

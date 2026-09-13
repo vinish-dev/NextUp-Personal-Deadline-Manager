@@ -26,6 +26,7 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
@@ -47,8 +48,6 @@ import androidx.compose.ui.unit.sp
 import com.vinish.nextup.model.Subtask
 import com.vinish.nextup.ui.theme.BorderLight
 import com.vinish.nextup.ui.theme.BorderStoke
-import com.vinish.nextup.ui.theme.PrimaryBlue
-import com.vinish.nextup.ui.theme.PrimaryBlueLight
 import com.vinish.nextup.ui.theme.SurfaceWhite
 import com.vinish.nextup.ui.theme.TextPrimary
 import com.vinish.nextup.ui.theme.TextSecondary
@@ -96,7 +95,7 @@ fun DeadlineSubtasksCard(
                         text = "$completedCount of $totalCount completed",
                         fontSize = 13.sp,
                         fontWeight = FontWeight.SemiBold,
-                        color = if (completedCount == totalCount) PrimaryBlue else TextSecondary
+                        color = if (completedCount == totalCount) MaterialTheme.colorScheme.primary else TextSecondary
                     )
                 }
             }
@@ -109,8 +108,8 @@ fun DeadlineSubtasksCard(
                         .fillMaxWidth()
                         .height(6.dp)
                         .clip(RoundedCornerShape(3.dp)),
-                    color = PrimaryBlue,
-                    trackColor = PrimaryBlueLight
+                    color = MaterialTheme.colorScheme.primary,
+                    trackColor = MaterialTheme.colorScheme.primaryContainer
                 )
             }
 
@@ -137,9 +136,9 @@ fun DeadlineSubtasksCard(
                         ) {
                             Box(
                                 modifier = Modifier
-                                    .size(24.dp)
-                                    .clip(CircleShape)
-                                    .background(if (subtask.isCompleted) PrimaryBlue else Color.Transparent),
+                                .size(24.dp)
+                                .clip(CircleShape)
+                                .background(if (subtask.isCompleted) MaterialTheme.colorScheme.primary else Color.Transparent),
                                 contentAlignment = Alignment.Center
                             ) {
                                 if (subtask.isCompleted) {
@@ -194,7 +193,7 @@ fun DeadlineSubtasksCard(
                     singleLine = true,
                     shape = RoundedCornerShape(12.dp),
                     colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = PrimaryBlue,
+                        focusedBorderColor = MaterialTheme.colorScheme.primary,
                         unfocusedBorderColor = BorderLight,
                         focusedContainerColor = SurfaceWhite,
                         unfocusedContainerColor = SurfaceWhite
@@ -223,7 +222,7 @@ fun DeadlineSubtasksCard(
                     modifier = Modifier
                         .size(48.dp)
                         .clip(RoundedCornerShape(12.dp))
-                        .background(PrimaryBlue)
+                        .background(MaterialTheme.colorScheme.primary)
                 ) {
                     Icon(
                         imageVector = Icons.Filled.Add,

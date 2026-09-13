@@ -27,6 +27,7 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.outlined.Circle
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Switch
@@ -48,7 +49,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.vinish.nextup.model.Subtask
 import com.vinish.nextup.ui.theme.BorderLight
-import com.vinish.nextup.ui.theme.PrimaryBlue
 import com.vinish.nextup.ui.theme.SurfaceWhite
 import com.vinish.nextup.ui.theme.TextPrimary
 import com.vinish.nextup.ui.theme.TextSecondary
@@ -88,7 +88,7 @@ fun SubtaskSection(
                 onCheckedChange = onSubtasksEnabledChange,
                 colors = SwitchDefaults.colors(
                     checkedThumbColor = SurfaceWhite,
-                    checkedTrackColor = PrimaryBlue,
+                    checkedTrackColor = MaterialTheme.colorScheme.primary,
                     uncheckedThumbColor = SurfaceWhite,
                     uncheckedTrackColor = BorderLight
                 )
@@ -125,7 +125,7 @@ fun SubtaskSection(
                         singleLine = true,
                         shape = RoundedCornerShape(12.dp),
                         colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = PrimaryBlue,
+                            focusedBorderColor = MaterialTheme.colorScheme.primary,
                             unfocusedBorderColor = BorderLight,
                             focusedContainerColor = SurfaceWhite,
                             unfocusedContainerColor = SurfaceWhite
@@ -154,7 +154,7 @@ fun SubtaskSection(
                         modifier = Modifier
                             .size(48.dp)
                             .clip(RoundedCornerShape(12.dp))
-                            .background(PrimaryBlue)
+                            .background(MaterialTheme.colorScheme.primary)
                     ) {
                         Icon(
                             imageVector = Icons.Filled.Add,
@@ -179,7 +179,7 @@ fun SubtaskSection(
                         Icon(
                             imageVector = Icons.Outlined.Circle,
                             contentDescription = null,
-                            tint = PrimaryBlue,
+                            tint = MaterialTheme.colorScheme.primary,
                             modifier = Modifier.size(16.dp)
                         )
 

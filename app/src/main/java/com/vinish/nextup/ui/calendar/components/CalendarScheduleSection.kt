@@ -22,6 +22,7 @@ fun CalendarScheduleSection(
     deadlines: List<Deadline>,
     modifier: Modifier = Modifier,
     onDeadlineClick: ((Deadline) -> Unit)? = null,
+    onToggleComplete: ((Deadline) -> Unit)? = null,
     onSeeAllClick: (() -> Unit)? = null
 ) {
     val today = remember { LocalDate.now() }
@@ -61,7 +62,8 @@ fun CalendarScheduleSection(
             deadlines.forEach { deadline ->
                 DeadlineCard(
                     deadline = deadline,
-                    onClick = onDeadlineClick?.let { { it(deadline) } }
+                    onClick = onDeadlineClick?.let { { it(deadline) } },
+                    onToggleComplete = onToggleComplete?.let { { it(deadline) } }
                 )
             }
         }

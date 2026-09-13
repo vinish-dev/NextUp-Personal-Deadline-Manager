@@ -30,7 +30,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.vinish.nextup.ui.theme.BorderStoke
-import com.vinish.nextup.ui.theme.PrimaryBlue
 import com.vinish.nextup.ui.theme.SurfaceWhite
 import com.vinish.nextup.ui.theme.TextPrimary
 import com.vinish.nextup.ui.theme.TextSecondary
@@ -40,7 +39,7 @@ import com.vinish.nextup.ui.theme.TextTertiary
 fun UserProfileCard(
     modifier: Modifier = Modifier,
     userName: String = "Vinish",
-    subtitle: String? = "Personal account",
+    subtitle: String? = "Keep going 🍃",
     tagline: String = "",
     onCardClick: () -> Unit = {}
 ) {
@@ -64,14 +63,14 @@ fun UserProfileCard(
                 modifier = Modifier
                     .size(52.dp)
                     .clip(CircleShape)
-                    .background(Color(0xFFE0EDFF)),
+                    .background(androidx.compose.material3.MaterialTheme.colorScheme.primaryContainer),
                 contentAlignment = Alignment.Center
             ) {
                 Text(
                     text = userName.take(1).uppercase(),
                     fontSize = 22.sp,
                     fontWeight = FontWeight.Bold,
-                    color = PrimaryBlue
+                    color = androidx.compose.material3.MaterialTheme.colorScheme.onPrimaryContainer
                 )
             }
 

@@ -19,6 +19,7 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
@@ -34,8 +35,6 @@ import com.vinish.nextup.model.Deadline
 import com.vinish.nextup.ui.components.SectionHeader
 import com.vinish.nextup.ui.home.components.DeadlineCard
 import com.vinish.nextup.ui.home.components.HomeEmptyState
-import com.vinish.nextup.ui.theme.BackgroundLight
-import com.vinish.nextup.ui.theme.PrimaryBlue
 import com.vinish.nextup.ui.theme.TextPrimary
 import com.vinish.nextup.ui.theme.TextSecondary
 
@@ -65,7 +64,7 @@ fun AllTasksScreen(
     Box(
         modifier = modifier
             .fillMaxSize()
-            .background(BackgroundLight)
+            .background(MaterialTheme.colorScheme.background)
     ) {
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
@@ -87,8 +86,7 @@ fun AllTasksScreen(
                     )
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
-                        text = if (deadlines.isEmpty()) "No tasks created yet"
-                        else "$pendingCount pending  •  $completedCount completed",
+                        text ="View and manage all your deadlines",
                         fontSize = 14.sp,
                         fontWeight = FontWeight.Normal,
                         color = TextSecondary
@@ -147,7 +145,7 @@ fun AllTasksScreen(
             FloatingActionButton(
                 onClick = onAddDeadlineClick,
                 shape = CircleShape,
-                containerColor = PrimaryBlue,
+                containerColor = androidx.compose.material3.MaterialTheme.colorScheme.primary,
                 contentColor = Color.White,
                 elevation = FloatingActionButtonDefaults.elevation(
                     defaultElevation = 6.dp,

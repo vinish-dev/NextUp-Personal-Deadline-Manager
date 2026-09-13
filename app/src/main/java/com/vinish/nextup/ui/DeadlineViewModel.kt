@@ -62,6 +62,16 @@ class DeadlineViewModel(application: Application) : AndroidViewModel(application
         prefs.edit().putBoolean("show_completed_in_categories", enabled).apply()
     }
 
+    private val _appTheme = MutableStateFlow(
+        prefs.getString("app_theme", "green") ?: "green"
+    )
+    val appTheme: StateFlow<String> = _appTheme.asStateFlow()
+
+    fun setAppTheme(theme: String) {
+        _appTheme.value = theme
+        prefs.edit().putString("app_theme", theme).apply()
+    }
+
     fun setUseSampleData(enabled: Boolean) {
         _useSampleData.value = enabled
         prefs.edit().putBoolean("use_sample_data", enabled).apply()

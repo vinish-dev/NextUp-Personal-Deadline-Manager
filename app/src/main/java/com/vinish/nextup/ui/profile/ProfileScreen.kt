@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
@@ -19,7 +20,6 @@ import com.vinish.nextup.ui.profile.components.PreferencesCard
 import com.vinish.nextup.ui.profile.components.ProfileHeader
 import com.vinish.nextup.ui.profile.components.ProfileOverviewCard
 import com.vinish.nextup.ui.profile.components.UserProfileCard
-import com.vinish.nextup.ui.theme.BackgroundLight
 import android.content.Intent
 import android.net.Uri
 import android.os.Build
@@ -36,6 +36,8 @@ fun ProfileScreen(
     onShowCompletedDeadlinesChange: ((Boolean) -> Unit)? = null,
     useSampleData: Boolean = false,
     onUseSampleDataChange: ((Boolean) -> Unit)? = null,
+    appTheme: String = "green",
+    onThemeChange: ((String) -> Unit)? = null,
     onMoreClick: () -> Unit = {},
     onUserCardClick: () -> Unit = {},
     onPriorityClick: ((Priority) -> Unit)? = null,
@@ -58,7 +60,7 @@ fun ProfileScreen(
     LazyColumn(
         modifier = modifier
             .fillMaxSize()
-            .background(BackgroundLight),
+            .background(MaterialTheme.colorScheme.background),
         contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 20.dp, bottom = 24.dp),
         verticalArrangement = Arrangement.spacedBy(14.dp)
     ) {
@@ -106,6 +108,8 @@ fun ProfileScreen(
                 onShowCompletedDeadlinesChange = onShowCompletedDeadlinesChange,
                 useSampleData = useSampleData,
                 onUseSampleDataChange = onUseSampleDataChange,
+                appTheme = appTheme,
+                onThemeChange = onThemeChange,
                 onRemindersClick = {
                     try {
                         val intent = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {

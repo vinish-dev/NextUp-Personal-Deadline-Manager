@@ -14,6 +14,7 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.FloatingActionButtonDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
@@ -30,8 +31,6 @@ import com.vinish.nextup.model.Deadline
 import com.vinish.nextup.ui.calendar.components.CalendarHeader
 import com.vinish.nextup.ui.calendar.components.CalendarMonthView
 import com.vinish.nextup.ui.calendar.components.CalendarScheduleSection
-import com.vinish.nextup.ui.theme.BackgroundLight
-import com.vinish.nextup.ui.theme.PrimaryBlue
 import java.time.LocalDate
 import java.time.YearMonth
 
@@ -40,6 +39,7 @@ fun CalendarScreen(
     modifier: Modifier = Modifier,
     deadlines: List<Deadline> = emptyList(),
     onDeadlineClick: ((Deadline) -> Unit)? = null,
+    onToggleComplete: ((Deadline) -> Unit)? = null,
     onAddDeadlineClick: (LocalDate) -> Unit = {}
 ) {
     var selectedDate by remember { mutableStateOf(LocalDate.now()) }
@@ -56,14 +56,14 @@ fun CalendarScreen(
     Box(
         modifier = modifier
             .fillMaxSize()
-            .background(BackgroundLight)
+            .background(MaterialTheme.colorScheme.background)
     ) {
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
-            contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 88.dp)
+            contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 20.dp, bottom = 88.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // Month-Year in the middle with left/right arrows on the extreme ends
+            // Month Header & Navigation
             item {
                 CalendarHeader(
                     currentMonth = currentMonth,
@@ -102,16 +102,17 @@ fun CalendarScreen(
                 CalendarScheduleSection(
                     selectedDate = selectedDate,
                     deadlines = selectedDayDeadlines,
-                    onDeadlineClick = onDeadlineClick
+                    onDeadlineClick = onDeadlineClick,
+                    onToggleComplete = onToggleComplete
                 )
             }
         }
 
-        // Blue round plus button on the bottom right above the nav bar
+        // Round plus button on the bottom right above the nav bar
         FloatingActionButton(
             onClick = { onAddDeadlineClick(selectedDate) },
             shape = CircleShape,
-            containerColor = PrimaryBlue,
+            containerColor = androidx.compose.material3.MaterialTheme.colorScheme.primary,
             contentColor = Color.White,
             elevation = FloatingActionButtonDefaults.elevation(
                 defaultElevation = 6.dp,

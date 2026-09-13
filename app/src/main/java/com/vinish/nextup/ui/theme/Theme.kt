@@ -14,7 +14,13 @@ import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
 
 
-val LightColorScheme = lightColorScheme(
+enum class AppTheme(val id: String, val displayName: String) {
+    GREEN("green", "Sage Green"),
+    BLUE("blue", "Classic Blue")
+}
+
+// Existing Classic Blue Color Scheme (Preserved)
+val BlueColorScheme = lightColorScheme(
     primary = PrimaryBlue,
     onPrimary = SurfaceWhite,
     primaryContainer = PrimaryBlueLight,
@@ -36,8 +42,37 @@ val LightColorScheme = lightColorScheme(
     onError = SurfaceWhite,
     onErrorContainer = PriorityHighText
 )
+
+// New Green Nature Color Scheme (From design)
+val GreenColorScheme = lightColorScheme(
+    primary = PrimaryGreen,
+    onPrimary = SurfaceWhite,
+    primaryContainer = PrimaryGreenLight,
+    onPrimaryContainer = PrimaryGreenDark,
+
+    background = BackgroundGreenLight,
+    onBackground = TextPrimary,
+
+    surface = SurfaceWhite,
+    onSurface = TextPrimary,
+    surfaceVariant = PrimaryGreenSubtle,
+    onSurfaceVariant = TextSecondary,
+
+    outline = BorderLight,
+    outlineVariant = BorderMedium,
+
+    error = PriorityHighText,
+    errorContainer = PriorityHighBg,
+    onError = SurfaceWhite,
+    onErrorContainer = PriorityHighText
+)
+
+// Default color scheme
+val LightColorScheme = GreenColorScheme
+
 @Composable
 fun NextUpTheme(
+    appTheme: AppTheme = AppTheme.GREEN,
     darkTheme: Boolean = isSystemInDarkTheme(),
     // Dynamic color is available on Android 12+
     dynamicColor: Boolean = false,
@@ -48,9 +83,8 @@ fun NextUpTheme(
             val context = LocalContext.current
             if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
         }
-
-        darkTheme -> LightColorScheme
-        else -> LightColorScheme
+        appTheme == AppTheme.BLUE -> BlueColorScheme
+        else -> GreenColorScheme
     }
 
     val view = LocalView.current

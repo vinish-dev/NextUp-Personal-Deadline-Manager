@@ -17,6 +17,7 @@ import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -29,7 +30,6 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.vinish.nextup.ui.theme.BorderLight
-import com.vinish.nextup.ui.theme.PrimaryBlue
 import com.vinish.nextup.ui.theme.PriorityLowBg
 import com.vinish.nextup.ui.theme.PriorityLowText
 import com.vinish.nextup.ui.theme.SurfaceWhite
@@ -87,7 +87,7 @@ fun DeadlineBottomBar(
                     .weight(0.6f),
                 shape = RoundedCornerShape(14.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = if (isCompleted) PriorityLowBg else PrimaryBlue,
+                    containerColor = if (isCompleted) PriorityLowBg else MaterialTheme.colorScheme.primary,
                     contentColor = if (isCompleted) PriorityLowText else Color.White
                 )
             ) {
