@@ -2,7 +2,6 @@ package com.vinish.nextup.ui.details.components
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -16,13 +15,11 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -31,40 +28,19 @@ import com.vinish.nextup.model.Category
 import com.vinish.nextup.model.Deadline
 import com.vinish.nextup.model.Priority
 import com.vinish.nextup.ui.add.components.displayName
-import com.vinish.nextup.ui.home.components.PriorityTag
-import com.vinish.nextup.ui.theme.AlertBannerBg
-import com.vinish.nextup.ui.theme.AlertBannerText
 import com.vinish.nextup.ui.theme.BorderStoke
-import com.vinish.nextup.ui.theme.PriorityHighBg
-import com.vinish.nextup.ui.theme.PriorityHighText
-import com.vinish.nextup.ui.theme.PriorityLowBg
-import com.vinish.nextup.ui.theme.PriorityLowText
 import com.vinish.nextup.ui.theme.SurfaceWhite
 import com.vinish.nextup.ui.theme.TextPrimary
 import com.vinish.nextup.ui.theme.TextSecondary
-import com.vinish.nextup.model.isOverdue
 import com.vinish.nextup.model.toSentenceCase
 import com.vinish.nextup.model.toTitleCase
 import java.time.LocalDate
-import java.time.LocalTime
 
 @Composable
 fun DeadlineHeroCard(
     deadline: Deadline,
     modifier: Modifier = Modifier
 ) {
-    val today = LocalDate.now()
-    val nowTime = LocalTime.now()
-    val isOverdue = deadline.isOverdue(today, nowTime)
-    val isToday = deadline.dueDate.isEqual(today) && !deadline.isCompleted && !isOverdue
-
-    val (statusText, statusBg, statusColor) = when {
-        deadline.isCompleted -> Triple("Completed", PriorityLowBg, PriorityLowText)
-        isOverdue -> Triple("Overdue", PriorityHighBg, PriorityHighText)
-        isToday -> Triple("Due Today", AlertBannerBg, AlertBannerText)
-        else -> Triple("In Progress", MaterialTheme.colorScheme.primaryContainer, MaterialTheme.colorScheme.primary)
-    }
-
     Card(
         modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(20.dp),
@@ -115,7 +91,7 @@ fun DeadlineHeroCard(
 
             Spacer(modifier = Modifier.height(18.dp))
 
-            // Information hierarchy: Title -> Description -> Status / Priority
+            // Information hierarchy: Title -> Description
             // Title
             Text(
                 text = deadline.title.toTitleCase(),
@@ -134,33 +110,6 @@ fun DeadlineHeroCard(
                     color = TextSecondary,
                     lineHeight = 22.sp
                 )
-            }
-
-            Spacer(modifier = Modifier.height(18.dp))
-
-            // Status / Priority row
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(10.dp)
-            ) {
-                // Status Badge
-                Box(
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(8.dp))
-                        .background(statusBg)
-                        .padding(horizontal = 10.dp, vertical = 6.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        text = statusText,
-                        fontSize = 13.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = statusColor
-                    )
-                }
-
-                // Priority Badge
-                PriorityTag(priority = deadline.priority)
             }
         }
     }
