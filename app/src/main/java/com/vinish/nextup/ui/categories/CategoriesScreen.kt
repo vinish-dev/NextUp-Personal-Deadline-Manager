@@ -112,27 +112,12 @@ fun CategoriesScreen(
         }
 
         if (onAddDeadlineClick != null) {
-            FloatingActionButton(
+            com.vinish.nextup.ui.components.AddDeadlineFab(
                 onClick = onAddDeadlineClick,
-                shape = CircleShape,
-                containerColor = androidx.compose.material3.MaterialTheme.colorScheme.primary,
-                contentColor = Color.White,
-                elevation = FloatingActionButtonDefaults.elevation(
-                    defaultElevation = 6.dp,
-                    pressedElevation = 8.dp
-                ),
                 modifier = Modifier
                     .align(Alignment.BottomEnd)
                     .padding(end = 20.dp, bottom = 20.dp)
-                    .size(56.dp)
-            ) {
-                Icon(
-                    imageVector = Icons.Filled.Add,
-                    contentDescription = "Add Deadline",
-                    tint = Color.White,
-                    modifier = Modifier.size(28.dp)
-                )
-            }
+            )
         }
     }
 }

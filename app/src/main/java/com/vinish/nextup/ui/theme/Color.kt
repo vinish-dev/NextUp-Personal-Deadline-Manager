@@ -15,6 +15,7 @@ val PrimaryGreenHover = Color(0xFF249D57)
 val PrimaryGreenLight = Color(0xFFE8F5E9)
 val PrimaryGreenDark = Color(0xFF166534)
 val PrimaryGreenSubtle = Color(0xFFF0FDF4)
+val FabGreen = Color(0xFF56AB7E)
 val BackgroundGreenLight = Color(0xFFF8FAF8)
 
 // --- Neutrals & Backgrounds ---

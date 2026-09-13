@@ -28,6 +28,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.vinish.nextup.ui.theme.PrimaryGreen
+import com.vinish.nextup.ui.theme.PrimaryGreenLight
 import com.vinish.nextup.ui.theme.SurfaceWhite
 import com.vinish.nextup.ui.theme.TextSecondary
 
@@ -35,20 +37,32 @@ import com.vinish.nextup.ui.theme.TextSecondary
 fun NextUpBottomNavigation(
     modifier: Modifier = Modifier,
     currentRoute: String? = "home",
+    appTheme: String? = null,
     onItemClick: (String) -> Unit = {}
 ) {
+    val isGreenTheme = appTheme?.equals("green", ignoreCase = true)
+        ?: (androidx.compose.material3.MaterialTheme.colorScheme.primary == PrimaryGreen)
+
     val primaryColor = androidx.compose.material3.MaterialTheme.colorScheme.primary
+    val backgroundColor = if (isGreenTheme) {
+        androidx.compose.material3.MaterialTheme.colorScheme.background
+    } else {
+        SurfaceWhite
+    }
+    val tonalElevation = if (isGreenTheme) 0.dp else 8.dp
+    val indicatorColor = if (isGreenTheme) PrimaryGreenLight else SurfaceWhite
+
     val navItemStyle = NavigationBarItemDefaults.colors(
         selectedIconColor = primaryColor,
         selectedTextColor = primaryColor,
         unselectedIconColor = TextSecondary,
         unselectedTextColor = TextSecondary,
-        indicatorColor = SurfaceWhite
+        indicatorColor = indicatorColor
     )
     NavigationBar(
         modifier = modifier,
-        containerColor = SurfaceWhite,
-        tonalElevation = 8.dp
+        containerColor = backgroundColor,
+        tonalElevation = tonalElevation
     ) {
         NavigationBarItem(
             selected = currentRoute == "home",

@@ -69,6 +69,7 @@ fun MainPagerScreen(
             }
             NextUpBottomNavigation(
                 currentRoute = currentRoute,
+                appTheme = appTheme,
                 onItemClick = { route ->
                     when (route) {
                         Screen.Home.route -> {
