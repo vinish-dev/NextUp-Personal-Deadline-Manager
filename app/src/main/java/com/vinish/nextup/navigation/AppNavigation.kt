@@ -39,16 +39,7 @@ fun AppNavigation(
             )
         }
 
-        composable(Screen.Profile.route) {
-            MainPagerScreen(
-                navController = navController,
-                viewModel = viewModel,
-                modifier = modifier,
-                initialPage = 3
-            )
-        }
-
-        composable(Screen.Categories.route) {
+        composable(Screen.AllTasks.route) {
             MainPagerScreen(
                 navController = navController,
                 viewModel = viewModel,
@@ -57,12 +48,30 @@ fun AppNavigation(
             )
         }
 
-        composable(Screen.Calendar.route) {
+        composable(Screen.Categories.route) {
             MainPagerScreen(
                 navController = navController,
                 viewModel = viewModel,
                 modifier = modifier,
                 initialPage = 2
+            )
+        }
+
+        composable(Screen.Calendar.route) {
+            MainPagerScreen(
+                navController = navController,
+                viewModel = viewModel,
+                modifier = modifier,
+                initialPage = 3
+            )
+        }
+
+        composable(Screen.Profile.route) {
+            MainPagerScreen(
+                navController = navController,
+                viewModel = viewModel,
+                modifier = modifier,
+                initialPage = 4
             )
         }
 

@@ -16,6 +16,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import com.vinish.nextup.navigation.Screen
 import com.vinish.nextup.ui.DeadlineViewModel
+import com.vinish.nextup.ui.all.AllTasksScreen
 import com.vinish.nextup.ui.calendar.CalendarScreen
 import com.vinish.nextup.ui.categories.CategoriesScreen
 import com.vinish.nextup.ui.components.NextUpBottomNavigation
@@ -25,10 +26,10 @@ import com.vinish.nextup.ui.profile.ProfileScreen
 import kotlinx.coroutines.launch
 
 /**
- * Main pager screen supporting horizontal swipe between the 4 main tabs:
- * Home (0) → All (1) → Calendar (2) → Profile (3)
+ * Main pager screen supporting horizontal swipe between the 5 main tabs:
+ * Home (0) → All (1) → Category (2) → Calendar (3) → Profile (4)
  *
- * The '+' action is excluded from swipe as it represents an action, not a tab destination.
+ * The '+' action is a floating action button on screens, not a swipeable page.
  */
 @Composable
 fun MainPagerScreen(
@@ -41,7 +42,7 @@ fun MainPagerScreen(
     val showCompletedInCategories by viewModel.showCompletedInCategories.collectAsStateWithLifecycle()
     val useSampleData by viewModel.useSampleData.collectAsStateWithLifecycle()
 
-    val pagerState = rememberPagerState(initialPage = initialPage) { 4 }
+    val pagerState = rememberPagerState(initialPage = initialPage) { 5 }
     val coroutineScope = rememberCoroutineScope()
 
     // Back gesture returns to Home (page 0) when on secondary tabs
@@ -59,9 +60,10 @@ fun MainPagerScreen(
         bottomBar = {
             val currentRoute = when (pagerState.currentPage) {
                 0 -> Screen.Home.route
-                1 -> Screen.Categories.route
-                2 -> Screen.Calendar.route
-                3 -> Screen.Profile.route
+                1 -> Screen.AllTasks.route
+                2 -> Screen.Categories.route
+                3 -> Screen.Calendar.route
+                4 -> Screen.Profile.route
                 else -> Screen.Home.route
             }
             NextUpBottomNavigation(
@@ -73,19 +75,24 @@ fun MainPagerScreen(
                                 pagerState.animateScrollToPage(0)
                             }
                         }
-                        Screen.Categories.route -> {
+                        Screen.AllTasks.route -> {
                             coroutineScope.launch {
                                 pagerState.animateScrollToPage(1)
                             }
                         }
-                        Screen.Calendar.route -> {
+                        Screen.Categories.route -> {
                             coroutineScope.launch {
                                 pagerState.animateScrollToPage(2)
                             }
                         }
-                        Screen.Profile.route -> {
+                        Screen.Calendar.route -> {
                             coroutineScope.launch {
                                 pagerState.animateScrollToPage(3)
+                            }
+                        }
+                        Screen.Profile.route -> {
+                            coroutineScope.launch {
+                                pagerState.animateScrollToPage(4)
                             }
                         }
                     }
@@ -114,7 +121,7 @@ fun MainPagerScreen(
                     },
                     onAvatarClick = {
                         coroutineScope.launch {
-                            pagerState.animateScrollToPage(3)
+                            pagerState.animateScrollToPage(4)
                         }
                     },
                     onOverviewClick = { type ->
@@ -126,8 +133,23 @@ fun MainPagerScreen(
                     }
                 )
 
-                // Page 1: Categories (All)
-                1 -> CategoriesScreen(
+                // Page 1: All Tasks
+                1 -> AllTasksScreen(
+                    modifier = Modifier.fillMaxSize(),
+                    deadlines = deadlines,
+                    onDeadlineClick = { deadline ->
+                        navController.navigate(Screen.Details.createRoute(deadline.id))
+                    },
+                    onToggleComplete = { deadline ->
+                        viewModel.toggleCompleted(deadline)
+                    },
+                    onAddDeadlineClick = {
+                        navController.navigate(Screen.Add.createRoute())
+                    }
+                )
+
+                // Page 2: Category
+                2 -> CategoriesScreen(
                     modifier = Modifier.fillMaxSize(),
                     deadlines = deadlines,
                     showCompletedDeadlines = showCompletedInCategories,
@@ -147,8 +169,8 @@ fun MainPagerScreen(
                     }
                 ) 
 
-                // Page 2: Calendar
-                2 -> CalendarScreen(
+                // Page 3: Calendar
+                3 -> CalendarScreen(
                     modifier = Modifier.fillMaxSize(),
                     deadlines = deadlines,
                     onDeadlineClick = { deadline ->
@@ -159,8 +181,8 @@ fun MainPagerScreen(
                     }
                 )
 
-                // Page 3: Profile
-                3 -> ProfileScreen(
+                // Page 4: Profile
+                4 -> ProfileScreen(
                     modifier = Modifier.fillMaxSize(),
                     deadlines = deadlines,
                     showCompletedDeadlines = showCompletedInCategories,

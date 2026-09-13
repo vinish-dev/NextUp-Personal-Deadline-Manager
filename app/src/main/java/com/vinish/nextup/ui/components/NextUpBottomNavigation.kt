@@ -5,14 +5,13 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.automirrored.filled.FormatListBulleted
+import androidx.compose.material.icons.automirrored.outlined.FormatListBulleted
 import androidx.compose.material.icons.filled.CalendarMonth
-import androidx.compose.material.icons.filled.CalendarToday
 import androidx.compose.material.icons.filled.Category
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.outlined.CalendarMonth
-import androidx.compose.material.icons.outlined.CalendarToday
 import androidx.compose.material.icons.outlined.Category
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.Person
@@ -71,17 +70,36 @@ fun NextUpBottomNavigation(
         )
 
         NavigationBarItem(
-            selected = currentRoute == "categories",
-            onClick = { onItemClick("categories") },
+            selected = currentRoute == "all",
+            onClick = { onItemClick("all") },
             icon = {
                 Icon(
-                    imageVector = if (currentRoute == "categories") Icons.Filled.Category else Icons.Outlined.Category,
+                    imageVector = if (currentRoute == "all") Icons.AutoMirrored.Filled.FormatListBulleted else Icons.AutoMirrored.Outlined.FormatListBulleted,
                     contentDescription = "All"
                 )
             },
             label = {
                 Text(
                     text = "All",
+                    fontSize = 12.sp,
+                    fontWeight = if (currentRoute == "all") FontWeight.Bold else FontWeight.Normal
+                )
+            },
+            colors = navItemStyle
+        )
+
+        NavigationBarItem(
+            selected = currentRoute == "categories",
+            onClick = { onItemClick("categories") },
+            icon = {
+                Icon(
+                    imageVector = if (currentRoute == "categories") Icons.Filled.Category else Icons.Outlined.Category,
+                    contentDescription = "Category"
+                )
+            },
+            label = {
+                Text(
+                    text = "Category",
                     fontSize = 12.sp,
                     fontWeight = if (currentRoute == "categories") FontWeight.Bold else FontWeight.Normal
                 )
