@@ -89,36 +89,6 @@ fun NextUpBottomNavigation(
             colors = navItemStyle
         )
 
-        NavigationBarItem(
-            selected = currentRoute == "add" || currentRoute?.startsWith("add?") == true,
-            onClick = { onItemClick("add") },
-            icon = {
-                Box(
-                    modifier = Modifier
-                        .size(40.dp)
-                        .clip(CircleShape)
-                        .background(PrimaryBlue),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        imageVector = Icons.Filled.Add,
-                        contentDescription = "Add",
-                        tint = Color.White,
-                        modifier = Modifier.size(24.dp)
-                    )
-                }
-            },
-            label = {
-                Text(
-                    text = "Add",
-                    fontSize = 12.sp,
-                    color = TextSecondary
-                )
-            },
-            colors = NavigationBarItemDefaults.colors(
-                indicatorColor = SurfaceWhite
-            )
-        )
 
         NavigationBarItem(
             selected = currentRoute == "calendar",

@@ -7,7 +7,9 @@ import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -43,24 +45,25 @@ fun MainPagerScreen(
     val coroutineScope = rememberCoroutineScope()
 
     // Back gesture returns to Home (page 0) when on secondary tabs
-    BackHandler(enabled = pagerState.currentPage != 0) {
+    val isNotHome by remember {
+        derivedStateOf { pagerState.currentPage != 0 }
+    }
+    BackHandler(enabled = isNotHome) {
         coroutineScope.launch {
             pagerState.animateScrollToPage(0)
         }
     }
 
-    // Map pager index to corresponding bottom navigation route
-    val currentRoute = when (pagerState.currentPage) {
-        0 -> Screen.Home.route
-        1 -> Screen.Categories.route
-        2 -> Screen.Calendar.route
-        3 -> Screen.Profile.route
-        else -> Screen.Home.route
-    }
-
     Scaffold(
         modifier = modifier.fillMaxSize(),
         bottomBar = {
+            val currentRoute = when (pagerState.currentPage) {
+                0 -> Screen.Home.route
+                1 -> Screen.Categories.route
+                2 -> Screen.Calendar.route
+                3 -> Screen.Profile.route
+                else -> Screen.Home.route
+            }
             NextUpBottomNavigation(
                 currentRoute = currentRoute,
                 onItemClick = { route ->
@@ -85,9 +88,6 @@ fun MainPagerScreen(
                                 pagerState.animateScrollToPage(3)
                             }
                         }
-                        "add" -> {
-                            navController.navigate(Screen.Add.createRoute())
-                        }
                     }
                 }
             )
@@ -95,6 +95,8 @@ fun MainPagerScreen(
     ) { innerPadding ->
         HorizontalPager(
             state = pagerState,
+            beyondViewportPageCount = 3,
+            key = { page -> page },
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
@@ -139,6 +141,9 @@ fun MainPagerScreen(
                     },
                     onToggleComplete = { deadline ->
                         viewModel.toggleCompleted(deadline)
+                    },
+                    onAddDeadlineClick = {
+                        navController.navigate(Screen.Add.createRoute())
                     }
                 ) 
 

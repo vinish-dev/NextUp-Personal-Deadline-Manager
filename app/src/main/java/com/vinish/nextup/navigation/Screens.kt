@@ -76,7 +76,6 @@ sealed class Screen(
 val bottomNavItems = listOf(
     Screen.Home,
     Screen.Categories,
-    Screen.Add,
     Screen.Calendar,
     Screen.Profile
 )
