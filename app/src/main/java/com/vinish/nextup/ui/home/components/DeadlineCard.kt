@@ -3,7 +3,9 @@ package com.vinish.nextup.ui.home.components
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -89,12 +91,14 @@ fun formatDueDate(dueDate: LocalDate, dueTime: LocalTime?): DueDateInfo {
     )
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun DeadlineCard(
     deadline: Deadline,
     modifier: Modifier = Modifier,
     onClick: (() -> Unit)? = null,
-    onToggleComplete: (() -> Unit)? = null
+    onToggleComplete: (() -> Unit)? = null,
+    onEdit: (() -> Unit)? = null
 ) {
     val dueDateInfo = formatDueDate(deadline.dueDate, deadline.dueTime)
     val isDone = deadline.isCompleted
@@ -103,9 +107,18 @@ fun DeadlineCard(
         modifier = modifier
             .fillMaxWidth()
             .then(if (isDone) Modifier.alpha(0.72f) else Modifier)
+            .clip(RoundedCornerShape(20.dp))
             .then(
-                if (onClick != null) Modifier.clickable(onClick = onClick)
-                else Modifier
+                if (!isDone && onEdit != null) {
+                    Modifier.combinedClickable(
+                        onClick = { onClick?.invoke() },
+                        onLongClick = { onEdit.invoke() }
+                    )
+                } else if (onClick != null) {
+                    Modifier.clickable(onClick = onClick)
+                } else {
+                    Modifier
+                }
             ),
         shape = RoundedCornerShape(20.dp),
         colors = CardDefaults.cardColors(

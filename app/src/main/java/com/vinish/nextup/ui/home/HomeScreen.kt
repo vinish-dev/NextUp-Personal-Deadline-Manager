@@ -46,7 +46,8 @@ fun HomeScreen(
     onToggleComplete: ((Deadline) -> Unit)? = null,
     onAddDeadlineClick: (() -> Unit)? = null,
     onAvatarClick: (() -> Unit)? = null,
-    onOverviewClick: ((OverviewType) -> Unit)? = null
+    onOverviewClick: ((OverviewType) -> Unit)? = null,
+    onEditDeadline: ((Deadline) -> Unit)? = null
 ) {
     val today = remember { LocalDate.now() }
     val nowTime = remember { LocalTime.now() }
@@ -130,7 +131,8 @@ fun HomeScreen(
                         title = "Overdue",
                         deadlines = overdueDeadlines,
                         onDeadlineClick = onDeadlineClick,
-                        onToggleComplete = onToggleComplete
+                        onToggleComplete = onToggleComplete,
+                        onEditClick = onEditDeadline
                     )
                 }
             }
@@ -141,7 +143,8 @@ fun HomeScreen(
                         title = "Today",
                         deadlines = todayDeadlines,
                         onDeadlineClick = onDeadlineClick,
-                        onToggleComplete = onToggleComplete
+                        onToggleComplete = onToggleComplete,
+                        onEditClick = onEditDeadline
                     )
                 }
             }
@@ -153,7 +156,8 @@ fun HomeScreen(
                         deadlines = tomorrowDeadlines,
                         showSeeAll = false,
                         onDeadlineClick = onDeadlineClick,
-                        onToggleComplete = onToggleComplete
+                        onToggleComplete = onToggleComplete,
+                        onEditClick = onEditDeadline
                     )
                 }
             }
@@ -164,7 +168,8 @@ fun HomeScreen(
                         title = "This Week",
                         deadlines = thisWeekDeadlines,
                         onDeadlineClick = onDeadlineClick,
-                        onToggleComplete = onToggleComplete
+                        onToggleComplete = onToggleComplete,
+                        onEditClick = onEditDeadline
                     )
                 }
             }
@@ -175,7 +180,8 @@ fun HomeScreen(
                         title = "Later",
                         deadlines = laterDeadlines,
                         onDeadlineClick = onDeadlineClick,
-                        onToggleComplete = onToggleComplete
+                        onToggleComplete = onToggleComplete,
+                        onEditClick = onEditDeadline
                     )
                 }
             }

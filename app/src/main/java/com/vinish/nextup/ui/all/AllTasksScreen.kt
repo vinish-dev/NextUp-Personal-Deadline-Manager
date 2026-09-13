@@ -44,7 +44,8 @@ fun AllTasksScreen(
     deadlines: List<Deadline> = emptyList(),
     onDeadlineClick: ((Deadline) -> Unit)? = null,
     onToggleComplete: ((Deadline) -> Unit)? = null,
-    onAddDeadlineClick: (() -> Unit)? = null
+    onAddDeadlineClick: (() -> Unit)? = null,
+    onEditDeadline: ((Deadline) -> Unit)? = null
 ) {
     val pendingDeadlines = remember(deadlines) {
         deadlines
@@ -86,7 +87,7 @@ fun AllTasksScreen(
                     )
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
-                        text ="View and manage all your deadlines",
+                        text = "View and manage all your deadlines",
                         fontSize = 14.sp,
                         fontWeight = FontWeight.Normal,
                         color = TextSecondary
@@ -96,7 +97,10 @@ fun AllTasksScreen(
 
             if (deadlines.isEmpty()) {
                 item {
+                    Spacer(modifier = Modifier.height(24.dp))
                     HomeEmptyState(
+                        title = "No Tasks Found",
+                        subtitle = "Create your first deadline to get started tracking your work.",
                         onAddDeadlineClick = onAddDeadlineClick
                     )
                 }
@@ -114,7 +118,8 @@ fun AllTasksScreen(
                         DeadlineCard(
                             deadline = deadline,
                             onClick = { onDeadlineClick?.invoke(deadline) },
-                            onToggleComplete = { onToggleComplete?.invoke(deadline) }
+                            onToggleComplete = { onToggleComplete?.invoke(deadline) },
+                            onEdit = { onEditDeadline?.invoke(deadline) }
                         )
                     }
                 }

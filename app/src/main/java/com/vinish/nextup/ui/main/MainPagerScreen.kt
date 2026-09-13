@@ -134,6 +134,9 @@ fun MainPagerScreen(
                                 pagerState.animateScrollToPage(1)
                             }
                         }
+                    },
+                    onEditDeadline = { deadline ->
+                        navController.navigate(Screen.Edit.createRoute(deadline.id))
                     }
                 )
 
@@ -149,6 +152,9 @@ fun MainPagerScreen(
                     },
                     onAddDeadlineClick = {
                         navController.navigate(Screen.Add.createRoute())
+                    },
+                    onEditDeadline = { deadline ->
+                        navController.navigate(Screen.Edit.createRoute(deadline.id))
                     }
                 )
 
@@ -185,6 +191,9 @@ fun MainPagerScreen(
                     },
                     onAddDeadlineClick = { selectedDate ->
                         navController.navigate(Screen.Add.createRoute(selectedDate))
+                    },
+                    onEditDeadline = { deadline ->
+                        navController.navigate(Screen.Edit.createRoute(deadline.id))
                     }
                 )
 

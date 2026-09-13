@@ -28,7 +28,8 @@ fun DeadlineSection(
     showSeeAll: Boolean = true,
     onSeeAllClick: () -> Unit = {},
     onDeadlineClick: ((Deadline) -> Unit)? = null,
-    onToggleComplete: ((Deadline) -> Unit)? = null
+    onToggleComplete: ((Deadline) -> Unit)? = null,
+    onEditClick: ((Deadline) -> Unit)? = null
 ) {
     if (deadlines.isEmpty()) return
 
@@ -54,7 +55,8 @@ fun DeadlineSection(
             DeadlineCard(
                 deadline = deadline,
                 onClick = onDeadlineClick?.let { { it(deadline) } },
-                onToggleComplete = onToggleComplete?.let { { it(deadline) } }
+                onToggleComplete = onToggleComplete?.let { { it(deadline) } },
+                onEdit = onEditClick?.let { { it(deadline) } }
             )
         }
     }

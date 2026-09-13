@@ -40,6 +40,7 @@ import com.vinish.nextup.ui.theme.TextPrimary
 fun DetailsTopBar(
     onBackClick: () -> Unit,
     modifier: Modifier = Modifier,
+    isCompleted: Boolean = false,
     onEditClick: () -> Unit = {},
     onDeleteClick: () -> Unit = {},
     onShareClick: () -> Unit = {}
@@ -90,24 +91,26 @@ fun DetailsTopBar(
                 onDismissRequest = { menuExpanded = false },
                 modifier = Modifier.background(SurfaceWhite)
             ) {
-                DropdownMenuItem(
-                    text = {
-                        Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(
-                                imageVector = Icons.Outlined.Edit,
-                                contentDescription = null,
-                                tint = TextPrimary,
-                                modifier = Modifier.size(20.dp)
-                            )
-                            Spacer(modifier = Modifier.width(12.dp))
-                            Text(text = "Edit Deadline", color = TextPrimary, fontSize = 14.sp)
+                if (!isCompleted) {
+                    DropdownMenuItem(
+                        text = {
+                            Row(verticalAlignment = Alignment.CenterVertically) {
+                                Icon(
+                                    imageVector = Icons.Outlined.Edit,
+                                    contentDescription = null,
+                                    tint = TextPrimary,
+                                    modifier = Modifier.size(20.dp)
+                                )
+                                Spacer(modifier = Modifier.width(12.dp))
+                                Text(text = "Edit Deadline", color = TextPrimary, fontSize = 14.sp)
+                            }
+                        },
+                        onClick = {
+                            menuExpanded = false
+                            onEditClick()
                         }
-                    },
-                    onClick = {
-                        menuExpanded = false
-                        onEditClick()
-                    }
-                )
+                    )
+                }
 
                 DropdownMenuItem(
                     text = {

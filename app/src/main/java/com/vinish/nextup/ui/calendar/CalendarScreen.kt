@@ -40,7 +40,8 @@ fun CalendarScreen(
     deadlines: List<Deadline> = emptyList(),
     onDeadlineClick: ((Deadline) -> Unit)? = null,
     onToggleComplete: ((Deadline) -> Unit)? = null,
-    onAddDeadlineClick: (LocalDate) -> Unit = {}
+    onAddDeadlineClick: (LocalDate) -> Unit = {},
+    onEditDeadline: ((Deadline) -> Unit)? = null
 ) {
     var selectedDate by remember { mutableStateOf(LocalDate.now()) }
     var currentMonth by remember { mutableStateOf(YearMonth.from(selectedDate)) }
@@ -103,7 +104,8 @@ fun CalendarScreen(
                     selectedDate = selectedDate,
                     deadlines = selectedDayDeadlines,
                     onDeadlineClick = onDeadlineClick,
-                    onToggleComplete = onToggleComplete
+                    onToggleComplete = onToggleComplete,
+                    onEditClick = onEditDeadline
                 )
             }
         }

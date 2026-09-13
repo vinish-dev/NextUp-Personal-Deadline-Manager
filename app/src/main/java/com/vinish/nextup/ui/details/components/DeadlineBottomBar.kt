@@ -35,12 +35,17 @@ import com.vinish.nextup.ui.theme.PriorityLowText
 import com.vinish.nextup.ui.theme.SurfaceWhite
 import com.vinish.nextup.ui.theme.TextPrimary
 
+import androidx.compose.material.icons.outlined.Delete
+import com.vinish.nextup.ui.theme.PriorityHighBg
+import com.vinish.nextup.ui.theme.PriorityHighText
+
 @Composable
 fun DeadlineBottomBar(
     isCompleted: Boolean,
     onToggleCompleted: () -> Unit,
     onEditClick: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onDeleteClick: () -> Unit = {}
 ) {
     Surface(
         modifier = modifier.fillMaxWidth(),
@@ -54,29 +59,58 @@ fun DeadlineBottomBar(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            // Edit Button (Secondary)
-            OutlinedButton(
-                onClick = onEditClick,
-                modifier = Modifier
-                    .height(52.dp)
-                    .weight(0.4f),
-                shape = RoundedCornerShape(14.dp),
-                border = BorderStroke(1.dp, BorderLight),
-                colors = ButtonDefaults.outlinedButtonColors(
-                    contentColor = TextPrimary
-                )
-            ) {
-                Icon(
-                    imageVector = Icons.Outlined.Edit,
-                    contentDescription = "Edit",
-                    modifier = Modifier.size(18.dp)
-                )
-                Spacer(modifier = Modifier.width(6.dp))
-                Text(
-                    text = "Edit",
-                    fontSize = 15.sp,
-                    fontWeight = FontWeight.SemiBold
-                )
+            if (!isCompleted) {
+                // Edit Button (Secondary - only for active/pending deadlines)
+                OutlinedButton(
+                    onClick = onEditClick,
+                    modifier = Modifier
+                        .height(52.dp)
+                        .weight(0.4f),
+                    shape = RoundedCornerShape(14.dp),
+                    border = BorderStroke(1.dp, BorderLight),
+                    colors = ButtonDefaults.outlinedButtonColors(
+                        contentColor = TextPrimary
+                    )
+                ) {
+                    Icon(
+                        imageVector = Icons.Outlined.Edit,
+                        contentDescription = "Edit",
+                        modifier = Modifier.size(18.dp)
+                    )
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text(
+                        text = "Edit",
+                        fontSize = 15.sp,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                }
+            } else {
+                // Delete Button (Danger - prominent on completed deadlines)
+                Button(
+                    onClick = onDeleteClick,
+                    modifier = Modifier
+                        .height(52.dp)
+                        .weight(0.45f),
+                    shape = RoundedCornerShape(14.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = PriorityHighBg,
+                        contentColor = PriorityHighText
+                    )
+                ) {
+                    Icon(
+                        imageVector = Icons.Outlined.Delete,
+                        contentDescription = "Delete",
+                        modifier = Modifier.size(18.dp),
+                        tint = PriorityHighText
+                    )
+                    Spacer(modifier = Modifier.width(6.dp))
+                    Text(
+                        text = "Delete",
+                        fontSize = 15.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = PriorityHighText
+                    )
+                }
             }
 
             // Mark as Completed / Completed Toggle Button (Primary)
@@ -84,7 +118,7 @@ fun DeadlineBottomBar(
                 onClick = onToggleCompleted,
                 modifier = Modifier
                     .height(52.dp)
-                    .weight(0.6f),
+                    .weight(if (!isCompleted) 0.6f else 0.55f),
                 shape = RoundedCornerShape(14.dp),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = if (isCompleted) PriorityLowBg else MaterialTheme.colorScheme.primary,
