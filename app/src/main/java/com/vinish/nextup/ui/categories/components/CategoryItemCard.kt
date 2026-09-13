@@ -91,29 +91,31 @@ fun CategoryItemCard(
 
     val handleHeaderClick = onClick ?: onToggleExpand
 
-    Card(
-        modifier = modifier
-            .fillMaxWidth()
-            .animateContentSize(),
-        shape = RoundedCornerShape(20.dp),
-        colors = CardDefaults.cardColors(containerColor = SurfaceWhite),
-        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
-        border = BorderStroke(width = 1.dp, color = BorderStoke)
-    ) {
-        Column(modifier = Modifier.fillMaxWidth()) {
-            // Category Header Row
+    // Compact Card for categories with 0 deadlines
+    if (totalCount == 0) {
+        Card(
+            modifier = modifier
+                .fillMaxWidth()
+                .then(
+                    if (onClick != null) Modifier.clickable(onClick = onClick)
+                    else Modifier
+                ),
+            shape = RoundedCornerShape(16.dp),
+            colors = CardDefaults.cardColors(containerColor = SurfaceWhite),
+            elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+            border = BorderStroke(width = 1.dp, color = BorderStoke)
+        ) {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clickable(onClick = handleHeaderClick)
-                    .padding(16.dp),
+                    .padding(horizontal = 16.dp, vertical = 14.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 // Category Icon Badge
                 Box(
                     modifier = Modifier
-                        .size(52.dp)
-                        .clip(RoundedCornerShape(14.dp))
+                        .size(38.dp)
+                        .clip(RoundedCornerShape(10.dp))
                         .background(category.iconBackground),
                     contentAlignment = Alignment.Center
                 ) {
@@ -121,73 +123,177 @@ fun CategoryItemCard(
                         imageVector = category.icon,
                         contentDescription = category.displayName(),
                         tint = category.iconTint,
-                        modifier = Modifier.size(26.dp)
+                        modifier = Modifier.size(20.dp)
                     )
                 }
 
-                Spacer(modifier = Modifier.width(16.dp))
+                Spacer(modifier = Modifier.width(14.dp))
 
-                Column(modifier = Modifier.weight(1f)) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically
+                Text(
+                    text = category.displayName(),
+                    fontSize = 15.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = TextPrimary,
+                    modifier = Modifier.weight(1f)
+                )
+
+                Text(
+                    text = "0",
+                    fontSize = 15.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = TextSecondary
+                )
+            }
+        }
+        return
+    }
+
+    Card(
+        modifier = modifier
+            .fillMaxWidth()
+            .animateContentSize(),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = SurfaceWhite),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
+        border = BorderStroke(width = 1.dp, color = BorderStoke)
+    ) {
+        Column(modifier = Modifier.fillMaxWidth()) {
+            if (!isExpanded) {
+                // Compact Single-Row Header when collapsed
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable(onClick = handleHeaderClick)
+                        .padding(horizontal = 16.dp, vertical = 14.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(38.dp)
+                            .clip(RoundedCornerShape(10.dp))
+                            .background(category.iconBackground),
+                        contentAlignment = Alignment.Center
                     ) {
-                        Text(
-                            text = category.displayName(),
-                            fontSize = 16.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = TextPrimary,
-                            modifier = Modifier.weight(1f)
-                        )
-
                         Icon(
-                            imageVector = Icons.Filled.KeyboardArrowDown,
-                            contentDescription = if (isExpanded) "Collapse category" else "Expand category",
-                            tint = TextSecondary.copy(alpha = 0.8f),
-                            modifier = Modifier
-                                .size(22.dp)
-                                .rotate(arrowRotation)
+                            imageVector = category.icon,
+                            contentDescription = category.displayName(),
+                            tint = category.iconTint,
+                            modifier = Modifier.size(20.dp)
                         )
                     }
 
-                    Spacer(modifier = Modifier.height(3.dp))
+                    Spacer(modifier = Modifier.width(14.dp))
 
                     Text(
-                        text = subtitleText,
-                        fontSize = 13.sp,
-                        color = TextSecondary
+                        text = category.displayName(),
+                        fontSize = 15.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = TextPrimary,
+                        modifier = Modifier.weight(1f)
                     )
 
-                    Spacer(modifier = Modifier.height(10.dp))
+                    Text(
+                        text = totalCount.toString(),
+                        fontSize = 15.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = TextPrimary
+                    )
 
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically
+                    Spacer(modifier = Modifier.width(6.dp))
+
+                    Icon(
+                        imageVector = Icons.Filled.KeyboardArrowDown,
+                        contentDescription = "Expand category",
+                        tint = TextSecondary.copy(alpha = 0.8f),
+                        modifier = Modifier.size(20.dp)
+                    )
+                }
+            } else {
+                // Detailed Expanded Header with Progress Bar & Metrics
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable(onClick = handleHeaderClick)
+                        .padding(16.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(48.dp)
+                            .clip(RoundedCornerShape(12.dp))
+                            .background(category.iconBackground),
+                        contentAlignment = Alignment.Center
                     ) {
-                        LinearProgressIndicator(
-                            progress = { progress },
-                            modifier = Modifier
-                                .weight(1f)
-                                .height(6.dp)
-                                .clip(CircleShape),
-                            color = category.iconTint,
-                            trackColor = SurfaceSubtle
-                        )
-
-                        Spacer(modifier = Modifier.width(10.dp))
-
-                        Text(
-                            text = "$percentage%",
-                            fontSize = 12.sp,
-                            fontWeight = FontWeight.Medium,
-                            color = TextSecondary
+                        Icon(
+                            imageVector = category.icon,
+                            contentDescription = category.displayName(),
+                            tint = category.iconTint,
+                            modifier = Modifier.size(24.dp)
                         )
                     }
-                }
-            }
 
-            // Expanded Tasks Section
-            if (isExpanded) {
+                    Spacer(modifier = Modifier.width(16.dp))
+
+                    Column(modifier = Modifier.weight(1f)) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = category.displayName(),
+                                fontSize = 16.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = TextPrimary,
+                                modifier = Modifier.weight(1f)
+                            )
+
+                            Icon(
+                                imageVector = Icons.Filled.KeyboardArrowDown,
+                                contentDescription = "Collapse category",
+                                tint = TextSecondary.copy(alpha = 0.8f),
+                                modifier = Modifier
+                                    .size(22.dp)
+                                    .rotate(arrowRotation)
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.height(3.dp))
+
+                        Text(
+                            text = subtitleText,
+                            fontSize = 13.sp,
+                            color = TextSecondary
+                        )
+
+                        Spacer(modifier = Modifier.height(10.dp))
+
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            LinearProgressIndicator(
+                                progress = { progress },
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .height(6.dp)
+                                    .clip(CircleShape),
+                                color = category.iconTint,
+                                trackColor = SurfaceSubtle
+                            )
+
+                            Spacer(modifier = Modifier.width(10.dp))
+
+                            Text(
+                                text = "$percentage%",
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.Medium,
+                                color = TextSecondary
+                            )
+                        }
+                    }
+                }
+
+                // Expanded Tasks Section
                 val pendingDeadlines = remember(deadlines) { deadlines.filter { !it.isCompleted } }
                 val completedDeadlines = remember(deadlines) { deadlines.filter { it.isCompleted } }
 
@@ -371,6 +477,11 @@ private fun CategoryItemCardPreview() {
             completedCount = 1,
             deadlines = sampleTasks,
             isExpanded = true
+        )
+        CategoryItemCard(
+            category = Category.WORK,
+            totalCount = 0,
+            completedCount = 0
         )
     }
 }
