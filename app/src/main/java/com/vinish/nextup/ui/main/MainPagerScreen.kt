@@ -95,7 +95,7 @@ fun MainPagerScreen(
     ) { innerPadding ->
         HorizontalPager(
             state = pagerState,
-            beyondViewportPageCount = 3,
+            beyondViewportPageCount = 1,
             key = { page -> page },
             modifier = Modifier
                 .fillMaxSize()
