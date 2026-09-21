@@ -15,12 +15,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
+
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.vinish.nextup.ui.theme.TextPrimary
+
 import com.vinish.nextup.ui.theme.TextSecondary
 import java.util.Calendar
 
@@ -53,10 +53,10 @@ fun GreetingSection(
             Text(
 //                text = "$greeting, $name",
                 text = "NextUp",
-                style = MaterialTheme.typography.headlineSmall,
-                fontWeight = FontWeight.Bold,
+                style = MaterialTheme.typography.headlineMedium,
+                fontWeight = FontWeight.ExtraBold,
                 letterSpacing = 1.5.sp,
-                color = TextPrimary
+                color = MaterialTheme.colorScheme.primary
             )
             Text(
                 text = subtitle,

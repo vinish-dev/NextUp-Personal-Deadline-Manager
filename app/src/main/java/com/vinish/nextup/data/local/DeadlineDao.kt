@@ -19,6 +19,12 @@ interface DeadlineDao {
     @Query("SELECT * FROM deadlines WHERE id = :id")
     suspend fun getDeadlineByIdOnce(id: Long): DeadlineEntity?
 
+    @Query("SELECT * FROM deadlines WHERE isCompleted = 0")
+    suspend fun getActiveDeadlines(): List<DeadlineEntity>
+
+    @Query("SELECT * FROM deadlines ORDER BY isCompleted ASC, dueDate ASC, dueTime ASC")
+    suspend fun getAllDeadlinesSync(): List<DeadlineEntity>
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertDeadline(deadline: DeadlineEntity): Long
 

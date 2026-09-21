@@ -50,6 +50,27 @@
                 <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
             </intent-filter>
         </receiver>
+        <activity
+            android:name=".ui.quickadd.QuickAddActivity"
+            android:exported="false"
+            android:theme="@style/Theme.NextUp.TransparentDialog"
+            android:windowSoftInputMode="adjustResize|stateVisible"
+            android:excludeFromRecents="true" />
+
+        <receiver
+            android:name=".widget.NextUpWidgetProvider"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/nextup_widget_info" />
+        </receiver>
+
+        <service
+            android:name=".widget.NextUpWidgetService"
+            android:permission="android.permission.BIND_REMOTEVIEWS" />
     </application>
 
 </manifest>

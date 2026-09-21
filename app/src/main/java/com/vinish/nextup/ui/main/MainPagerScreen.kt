@@ -42,6 +42,7 @@ fun MainPagerScreen(
     val showCompletedInCategories by viewModel.showCompletedInCategories.collectAsStateWithLifecycle()
     val useSampleData by viewModel.useSampleData.collectAsStateWithLifecycle()
     val appTheme by viewModel.appTheme.collectAsStateWithLifecycle()
+    val defaultReminderTime by viewModel.defaultReminderTime.collectAsStateWithLifecycle()
 
     val pagerState = rememberPagerState(initialPage = initialPage) { 5 }
     val coroutineScope = rememberCoroutineScope()
@@ -213,6 +214,10 @@ fun MainPagerScreen(
                     appTheme = appTheme,
                     onThemeChange = { theme ->
                         viewModel.setAppTheme(theme)
+                    },
+                    defaultReminderTime = defaultReminderTime,
+                    onDefaultReminderTimeChange = { time ->
+                        viewModel.setDefaultReminderTime(time)
                     }
                 )
             }

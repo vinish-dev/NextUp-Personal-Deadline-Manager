@@ -1,5 +1,9 @@
 package com.vinish.nextup.ui.profile
 
+import android.content.Intent
+import android.net.Uri
+import android.os.Build
+import android.provider.Settings
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
@@ -9,23 +13,18 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.vinish.nextup.model.Category
 import com.vinish.nextup.model.Deadline
 import com.vinish.nextup.model.Priority
-import com.vinish.nextup.ui.profile.components.MotivationCard
-import com.vinish.nextup.ui.profile.components.PendingPrioritiesCard
 import com.vinish.nextup.ui.profile.components.PreferencesCard
 import com.vinish.nextup.ui.profile.components.ProfileHeader
 import com.vinish.nextup.ui.profile.components.ProfileOverviewCard
 import com.vinish.nextup.ui.profile.components.UserProfileCard
-import android.content.Intent
-import android.net.Uri
-import android.os.Build
-import android.provider.Settings
-import androidx.compose.ui.platform.LocalContext
 import java.time.LocalDate
+import java.time.LocalTime
 
 @Composable
 fun ProfileScreen(
@@ -38,6 +37,8 @@ fun ProfileScreen(
     onUseSampleDataChange: ((Boolean) -> Unit)? = null,
     appTheme: String = "green",
     onThemeChange: ((String) -> Unit)? = null,
+    defaultReminderTime: LocalTime = LocalTime.of(7, 0),
+    onDefaultReminderTimeChange: ((LocalTime) -> Unit)? = null,
     onMoreClick: () -> Unit = {},
     onUserCardClick: () -> Unit = {},
     onPriorityClick: ((Priority) -> Unit)? = null,
@@ -110,6 +111,8 @@ fun ProfileScreen(
                 onUseSampleDataChange = onUseSampleDataChange,
                 appTheme = appTheme,
                 onThemeChange = onThemeChange,
+                defaultReminderTime = defaultReminderTime,
+                onDefaultReminderTimeChange = onDefaultReminderTimeChange,
                 onRemindersClick = {
                     try {
                         val intent = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {

@@ -9,8 +9,10 @@ import com.vinish.nextup.data.DeadlineRepository
 import com.vinish.nextup.data.local.AppDatabase
 import com.vinish.nextup.data.sample.SampleDeadlines
 import com.vinish.nextup.model.Deadline
+import com.vinish.nextup.model.Reminder
 import com.vinish.nextup.model.Subtask
 import com.vinish.nextup.notification.DeadlineNotificationScheduler
+import com.vinish.nextup.widget.NextUpWidgetProvider
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -21,6 +23,8 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import java.time.LocalTime
+import androidx.core.content.edit
 
 class DeadlineViewModel(application: Application) : AndroidViewModel(application) {
 
@@ -32,6 +36,30 @@ class DeadlineViewModel(application: Application) : AndroidViewModel(application
             ?: DeadlineNotificationScheduler(application)
 
     private val prefs = application.getSharedPreferences("nextup_preferences", Context.MODE_PRIVATE)
+
+    private val _defaultReminderTime = MutableStateFlow(
+        try {
+            LocalTime.parse(prefs.getString("default_reminder_time", "07:00") ?: "07:00")
+        } catch (_: Exception) {
+            LocalTime.of(7, 0)
+        }
+    )
+    val defaultReminderTime: StateFlow<LocalTime> = _defaultReminderTime.asStateFlow()
+
+    fun setDefaultReminderTime(time: LocalTime) {
+        _defaultReminderTime.value = time
+        prefs.edit { putString("default_reminder_time", time.toString()) }
+        viewModelScope.launch {
+            try {
+                val currentDeadlines = if (_useSampleData.value) _sampleDeadlines.value else repository.allDeadlines.first()
+                currentDeadlines.forEach { deadline ->
+                    if (!deadline.isCompleted && deadline.dueTime == null && deadline.reminder != null && deadline.reminder != Reminder.NONE) {
+                        notificationScheduler.schedule(deadline)
+                    }
+                }
+            } catch (_: Exception) {}
+        }
+    }
 
     private val _useSampleData = MutableStateFlow(
         prefs.getBoolean("use_sample_data", false)
@@ -59,7 +87,7 @@ class DeadlineViewModel(application: Application) : AndroidViewModel(application
 
     fun setShowCompletedInCategories(enabled: Boolean) {
         _showCompletedInCategories.value = enabled
-        prefs.edit().putBoolean("show_completed_in_categories", enabled).apply()
+        prefs.edit { putBoolean("show_completed_in_categories", enabled) }
     }
 
     private val _appTheme = MutableStateFlow(
@@ -69,12 +97,12 @@ class DeadlineViewModel(application: Application) : AndroidViewModel(application
 
     fun setAppTheme(theme: String) {
         _appTheme.value = theme
-        prefs.edit().putString("app_theme", theme).apply()
+        prefs.edit { putString("app_theme", theme) }
     }
 
     fun setUseSampleData(enabled: Boolean) {
         _useSampleData.value = enabled
-        prefs.edit().putBoolean("use_sample_data", enabled).apply()
+        prefs.edit { putBoolean("use_sample_data", enabled) }
         if (!enabled) {
             // Re-sync all real deadline alarms when switching back to Real Room Data
             viewModelScope.launch {
@@ -127,6 +155,7 @@ class DeadlineViewModel(application: Application) : AndroidViewModel(application
                     deadline
                 }
                 notificationScheduler.schedule(saved)
+                NextUpWidgetProvider.updateAllWidgets(getApplication())
                 onSaved?.invoke()
             }
         }
@@ -140,6 +169,7 @@ class DeadlineViewModel(application: Application) : AndroidViewModel(application
         } else {
             viewModelScope.launch {
                 repository.deleteDeadlineById(id)
+                NextUpWidgetProvider.updateAllWidgets(getApplication())
                 onDeleted?.invoke()
             }
         }
@@ -160,6 +190,7 @@ class DeadlineViewModel(application: Application) : AndroidViewModel(application
         } else {
             viewModelScope.launch {
                 repository.updateCompletionStatus(deadline.id, willBeCompleted)
+                NextUpWidgetProvider.updateAllWidgets(getApplication())
             }
         }
     }
