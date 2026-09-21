@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">NextUp</string>
+    <string name="widget_name">NextUp Minimal</string>
+    <string name="widget_description">Compact section headings with quick task add</string>
 </resources>

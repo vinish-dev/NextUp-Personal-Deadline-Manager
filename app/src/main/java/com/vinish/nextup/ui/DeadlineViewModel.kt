@@ -11,6 +11,7 @@ import com.vinish.nextup.data.sample.SampleDeadlines
 import com.vinish.nextup.model.Deadline
 import com.vinish.nextup.model.Subtask
 import com.vinish.nextup.notification.DeadlineNotificationScheduler
+import com.vinish.nextup.widget.NextUpWidgetProvider
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -127,6 +128,7 @@ class DeadlineViewModel(application: Application) : AndroidViewModel(application
                     deadline
                 }
                 notificationScheduler.schedule(saved)
+                NextUpWidgetProvider.updateAllWidgets(getApplication())
                 onSaved?.invoke()
             }
         }
@@ -140,6 +142,7 @@ class DeadlineViewModel(application: Application) : AndroidViewModel(application
         } else {
             viewModelScope.launch {
                 repository.deleteDeadlineById(id)
+                NextUpWidgetProvider.updateAllWidgets(getApplication())
                 onDeleted?.invoke()
             }
         }
@@ -160,6 +163,7 @@ class DeadlineViewModel(application: Application) : AndroidViewModel(application
         } else {
             viewModelScope.launch {
                 repository.updateCompletionStatus(deadline.id, willBeCompleted)
+                NextUpWidgetProvider.updateAllWidgets(getApplication())
             }
         }
     }
