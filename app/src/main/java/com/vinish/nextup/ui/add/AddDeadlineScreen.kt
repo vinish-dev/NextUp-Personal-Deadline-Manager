@@ -48,7 +48,6 @@ import com.vinish.nextup.ui.add.components.AddTopBar
 import com.vinish.nextup.ui.add.components.CategorySelector
 import com.vinish.nextup.ui.add.components.DateTimeSelector
 import com.vinish.nextup.ui.add.components.DeadlineTextField
-import com.vinish.nextup.ui.add.components.PrioritySelector
 import com.vinish.nextup.ui.add.components.RecurrenceSelector
 import com.vinish.nextup.ui.add.components.ReminderSelector
 import com.vinish.nextup.ui.add.components.SubtaskSection
@@ -77,8 +76,8 @@ fun AddDeadlineScreen(
         mutableStateOf(existingDeadline?.dueDate ?: (initialDate ?: LocalDate.now()))
     }
     var dueTime by remember(existingDeadline) { mutableStateOf<LocalTime?>(existingDeadline?.dueTime) }
-    var reminder by remember(existingDeadline) { mutableStateOf(existingDeadline?.reminder ?: Reminder.NONE) }
-    var priority by remember(existingDeadline) { mutableStateOf(existingDeadline?.priority ?: Priority.MEDIUM) }
+    var reminder by remember(existingDeadline) { mutableStateOf(existingDeadline?.reminder ?: Reminder.AT_TIME) }
+    val priority = existingDeadline?.priority ?: Priority.MEDIUM
     var recurrence by remember(existingDeadline) { mutableStateOf(existingDeadline?.recurrence ?: Recurrence.NONE) }
 
     var isSubtasksEnabled by remember(existingDeadline) {
@@ -168,13 +167,7 @@ fun AddDeadlineScreen(
                 onReminderSelected = { reminder = it }
             )
 
-            // 6. Priority
-            PrioritySelector(
-                selectedPriority = priority,
-                onPrioritySelected = { priority = it }
-            )
-
-            // 7. Repeat
+            // 6. Repeat
             RecurrenceSelector(
                 selectedRecurrence = recurrence,
                 onRecurrenceSelected = { recurrence = it }
@@ -203,7 +196,7 @@ fun AddDeadlineScreen(
                     } else {
                         val formattedTitle = title.trim().toTitleCase()
                         val formattedDescription = description.trim().ifEmpty { null }?.toSentenceCase()
-                        val deadlineToSave = if (isEditMode && existingDeadline != null) {
+                        val deadlineToSave = if (existingDeadline != null) {
                             existingDeadline.copy(
                                 title = formattedTitle,
                                 description = formattedDescription,
