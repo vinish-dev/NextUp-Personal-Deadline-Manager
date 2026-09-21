@@ -105,6 +105,7 @@ class QuickAddActivity : ComponentActivity() {
     private fun saveDeadlineAndFinish(title: String, section: String) {
         val today = LocalDate.now()
         val dueDate = when (section) {
+            NextUpWidgetProvider.SECTION_OVERDUE -> today.minusDays(1)
             NextUpWidgetProvider.SECTION_TODAY -> today
             NextUpWidgetProvider.SECTION_TOMORROW -> today.plusDays(1)
             NextUpWidgetProvider.SECTION_THIS_WEEK -> {
@@ -151,6 +152,7 @@ fun QuickAddDialogScreen(
     val keyboardController = LocalSoftwareKeyboardController.current
 
     val sections = listOf(
+        NextUpWidgetProvider.SECTION_OVERDUE,
         NextUpWidgetProvider.SECTION_TODAY,
         NextUpWidgetProvider.SECTION_TOMORROW,
         NextUpWidgetProvider.SECTION_THIS_WEEK,
@@ -296,11 +298,16 @@ fun QuickAddDialogScreen(
                     )
 
                     Box {
+                        val isSectionOverdue = selectedSection == NextUpWidgetProvider.SECTION_OVERDUE
                         Row(
                             modifier = Modifier
                                 .clip(RoundedCornerShape(10.dp))
-                                .background(Color(0xFFF0FDF4))
-                                .border(1.dp, Color(0xFFDCFCE7), RoundedCornerShape(10.dp))
+                                .background(if (isSectionOverdue) Color(0xFFFFEBEE) else Color(0xFFF0FDF4))
+                                .border(
+                                    1.dp,
+                                    if (isSectionOverdue) Color(0xFFFFCDD2) else Color(0xFFDCFCE7),
+                                    RoundedCornerShape(10.dp)
+                                )
                                 .clickable { isDropdownExpanded = true }
                                 .padding(horizontal = 12.dp, vertical = 8.dp),
                             verticalAlignment = Alignment.CenterVertically
@@ -309,13 +316,13 @@ fun QuickAddDialogScreen(
                                 text = selectedSection,
                                 fontSize = 13.sp,
                                 fontWeight = FontWeight.Bold,
-                                color = Color(0xFF166534)
+                                color = if (isSectionOverdue) Color(0xFFE53935) else Color(0xFF166534)
                             )
                             Spacer(modifier = Modifier.width(4.dp))
                             Icon(
                                 imageVector = Icons.Filled.ArrowDropDown,
                                 contentDescription = "Select section",
-                                tint = Color(0xFF166534),
+                                tint = if (isSectionOverdue) Color(0xFFE53935) else Color(0xFF166534),
                                 modifier = Modifier.size(18.dp)
                             )
                         }
@@ -325,12 +332,19 @@ fun QuickAddDialogScreen(
                             onDismissRequest = { isDropdownExpanded = false }
                         ) {
                             sections.forEach { sectionName ->
+                                val isOverdueOption = sectionName == NextUpWidgetProvider.SECTION_OVERDUE
+                                val isSelected = sectionName == selectedSection
                                 DropdownMenuItem(
                                     text = {
                                         Text(
                                             text = sectionName,
-                                            fontWeight = if (sectionName == selectedSection) FontWeight.Bold else FontWeight.Normal,
-                                            color = if (sectionName == selectedSection) FabGreen else TextPrimary
+                                            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+                                            color = when {
+                                                isSelected && isOverdueOption -> Color(0xFFE53935)
+                                                isSelected -> FabGreen
+                                                isOverdueOption -> Color(0xFFE53935)
+                                                else -> TextPrimary
+                                            }
                                         )
                                     },
                                     onClick = {

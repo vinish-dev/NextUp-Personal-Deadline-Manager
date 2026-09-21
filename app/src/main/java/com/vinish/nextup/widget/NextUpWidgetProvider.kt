@@ -63,6 +63,7 @@ class NextUpWidgetProvider : AppWidgetProvider() {
     }
 
     companion object {
+        const val SECTION_OVERDUE = "Overdue"
         const val SECTION_TODAY = "Today"
         const val SECTION_TOMORROW = "Tomorrow"
         const val SECTION_THIS_WEEK = "This Week"

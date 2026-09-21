@@ -13,6 +13,7 @@ import com.vinish.nextup.data.local.AppDatabase
 import kotlinx.coroutines.runBlocking
 import java.time.DayOfWeek
 import java.time.LocalDate
+import java.time.LocalTime
 import java.time.temporal.TemporalAdjusters
 
 class NextUpWidgetService : RemoteViewsService() {
@@ -22,8 +23,8 @@ class NextUpWidgetService : RemoteViewsService() {
 }
 
 sealed class WidgetItem {
-    data class SectionHeader(val section: String, val count: Int) : WidgetItem()
-    data class TaskItem(val id: Long, val title: String, val isCompleted: Boolean, val section: String) : WidgetItem()
+    data class SectionHeader(val section: String, val count: Int, val isOverdue: Boolean = false) : WidgetItem()
+    data class TaskItem(val id: Long, val title: String, val isCompleted: Boolean, val section: String, val isOverdue: Boolean = false) : WidgetItem()
 }
 
 class NextUpWidgetFactory(private val context: Context) : RemoteViewsService.RemoteViewsFactory {
@@ -43,15 +44,29 @@ class NextUpWidgetFactory(private val context: Context) : RemoteViewsService.Rem
         }
 
         val today = LocalDate.now()
+        val nowTime = LocalTime.now()
         val tomorrow = today.plusDays(1)
         val endOfWeek = today.with(TemporalAdjusters.nextOrSame(DayOfWeek.SUNDAY))
 
-        val todayTasks = allDeadlines.filter { it.dueDate.isEqual(today) }
+        fun isOverdue(dueDate: LocalDate, dueTime: LocalTime?): Boolean {
+            return dueDate.isBefore(today) || (dueDate.isEqual(today) && dueTime != null && dueTime.isBefore(nowTime))
+        }
+
+        val overdueTasks = allDeadlines.filter { isOverdue(it.dueDate, it.dueTime) }
+        val todayTasks = allDeadlines.filter { it.dueDate.isEqual(today) && !isOverdue(it.dueDate, it.dueTime) }
         val tomorrowTasks = allDeadlines.filter { it.dueDate.isEqual(tomorrow) }
         val thisWeekTasks = allDeadlines.filter {
             it.dueDate.isAfter(tomorrow) && !it.dueDate.isAfter(endOfWeek)
         }
         val somedayTasks = allDeadlines.filter { it.dueDate.isAfter(endOfWeek) }
+
+        // Section 0: Overdue (shown when there are overdue tasks)
+        if (overdueTasks.isNotEmpty()) {
+            items.add(WidgetItem.SectionHeader(NextUpWidgetProvider.SECTION_OVERDUE, overdueTasks.count { !it.isCompleted }, isOverdue = true))
+            overdueTasks.forEach {
+                items.add(WidgetItem.TaskItem(it.id, it.title, it.isCompleted, NextUpWidgetProvider.SECTION_OVERDUE, isOverdue = true))
+            }
+        }
 
         // Section 1: Today
         items.add(WidgetItem.SectionHeader(NextUpWidgetProvider.SECTION_TODAY, todayTasks.count { !it.isCompleted }))
@@ -92,6 +107,18 @@ class NextUpWidgetFactory(private val context: Context) : RemoteViewsService.Rem
                 RemoteViews(context.packageName, R.layout.widget_item_section_header).apply {
                     setTextViewText(R.id.tv_section_title, item.section)
                     setTextViewText(R.id.tv_section_count, item.count.toString())
+
+                    if (item.isOverdue) {
+                        setTextColor(R.id.tv_section_title, Color.parseColor("#E53935"))
+                        setInt(R.id.tv_section_count, "setBackgroundResource", R.drawable.widget_badge_overdue_bg)
+                        setTextColor(R.id.tv_section_count, Color.parseColor("#E53935"))
+                        setTextColor(R.id.tv_section_add, Color.parseColor("#E53935"))
+                    } else {
+                        setTextColor(R.id.tv_section_title, Color.parseColor("#1E2430"))
+                        setInt(R.id.tv_section_count, "setBackgroundResource", R.drawable.widget_badge_bg)
+                        setTextColor(R.id.tv_section_count, Color.parseColor("#166534"))
+                        setTextColor(R.id.tv_section_add, Color.parseColor("#56AB7E"))
+                    }
 
                     // Tapping section header opens Quick Add with that section
                     val fillInIntent = Intent().apply {
