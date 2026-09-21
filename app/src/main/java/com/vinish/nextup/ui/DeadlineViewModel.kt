@@ -24,6 +24,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import java.time.LocalTime
+import androidx.core.content.edit
 
 class DeadlineViewModel(application: Application) : AndroidViewModel(application) {
 
@@ -47,7 +48,7 @@ class DeadlineViewModel(application: Application) : AndroidViewModel(application
 
     fun setDefaultReminderTime(time: LocalTime) {
         _defaultReminderTime.value = time
-        prefs.edit().putString("default_reminder_time", time.toString()).apply()
+        prefs.edit { putString("default_reminder_time", time.toString()) }
         viewModelScope.launch {
             try {
                 val currentDeadlines = if (_useSampleData.value) _sampleDeadlines.value else repository.allDeadlines.first()
@@ -86,7 +87,7 @@ class DeadlineViewModel(application: Application) : AndroidViewModel(application
 
     fun setShowCompletedInCategories(enabled: Boolean) {
         _showCompletedInCategories.value = enabled
-        prefs.edit().putBoolean("show_completed_in_categories", enabled).apply()
+        prefs.edit { putBoolean("show_completed_in_categories", enabled) }
     }
 
     private val _appTheme = MutableStateFlow(
@@ -96,12 +97,12 @@ class DeadlineViewModel(application: Application) : AndroidViewModel(application
 
     fun setAppTheme(theme: String) {
         _appTheme.value = theme
-        prefs.edit().putString("app_theme", theme).apply()
+        prefs.edit { putString("app_theme", theme) }
     }
 
     fun setUseSampleData(enabled: Boolean) {
         _useSampleData.value = enabled
-        prefs.edit().putBoolean("use_sample_data", enabled).apply()
+        prefs.edit { putBoolean("use_sample_data", enabled) }
         if (!enabled) {
             // Re-sync all real deadline alarms when switching back to Real Room Data
             viewModelScope.launch {

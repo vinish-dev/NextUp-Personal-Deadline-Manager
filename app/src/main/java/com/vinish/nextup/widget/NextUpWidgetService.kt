@@ -15,6 +15,7 @@ import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.LocalTime
 import java.time.temporal.TemporalAdjusters
+import androidx.core.graphics.toColorInt
 
 class NextUpWidgetService : RemoteViewsService() {
     override fun onGetViewFactory(intent: Intent): RemoteViewsFactory {
@@ -109,15 +110,15 @@ class NextUpWidgetFactory(private val context: Context) : RemoteViewsService.Rem
                     setTextViewText(R.id.tv_section_count, item.count.toString())
 
                     if (item.isOverdue) {
-                        setTextColor(R.id.tv_section_title, Color.parseColor("#E53935"))
+                        setTextColor(R.id.tv_section_title, "#E53935".toColorInt())
                         setInt(R.id.tv_section_count, "setBackgroundResource", R.drawable.widget_badge_overdue_bg)
-                        setTextColor(R.id.tv_section_count, Color.parseColor("#E53935"))
-                        setTextColor(R.id.tv_section_add, Color.parseColor("#E53935"))
+                        setTextColor(R.id.tv_section_count, "#E53935".toColorInt())
+                        setTextColor(R.id.tv_section_add, "#E53935".toColorInt())
                     } else {
-                        setTextColor(R.id.tv_section_title, Color.parseColor("#1E2430"))
+                        setTextColor(R.id.tv_section_title, "#1E2430".toColorInt())
                         setInt(R.id.tv_section_count, "setBackgroundResource", R.drawable.widget_badge_bg)
-                        setTextColor(R.id.tv_section_count, Color.parseColor("#166534"))
-                        setTextColor(R.id.tv_section_add, Color.parseColor("#56AB7E"))
+                        setTextColor(R.id.tv_section_count, "#166534".toColorInt())
+                        setTextColor(R.id.tv_section_add, "#56AB7E".toColorInt())
                     }
 
                     // Tapping section header opens Quick Add with that section

@@ -43,7 +43,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -76,6 +75,7 @@ import kotlinx.coroutines.launch
 import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.temporal.TemporalAdjusters
+import kotlin.time.Duration.Companion.milliseconds
 
 class QuickAddActivity : ComponentActivity() {
 
@@ -160,7 +160,7 @@ fun QuickAddDialogScreen(
     )
 
     LaunchedEffect(Unit) {
-        delay(200)
+        delay(200.milliseconds)
         focusRequester.requestFocus()
         keyboardController?.show()
     }

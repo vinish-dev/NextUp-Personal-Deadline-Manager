@@ -55,6 +55,7 @@ import java.time.LocalDate
 import java.time.LocalTime
 
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import kotlin.time.Duration.Companion.milliseconds
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -93,7 +94,7 @@ fun AddDeadlineScreen(
     val keyboardController = LocalSoftwareKeyboardController.current
 
     LaunchedEffect(Unit) {
-        delay(250)
+        delay(250.milliseconds)
         focusRequester.requestFocus()
         keyboardController?.show()
     }
