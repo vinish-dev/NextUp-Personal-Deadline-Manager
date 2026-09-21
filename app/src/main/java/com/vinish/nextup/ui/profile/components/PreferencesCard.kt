@@ -15,6 +15,8 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowRight
+import android.app.TimePickerDialog
+import androidx.compose.material.icons.outlined.AccessTime
 import androidx.compose.material.icons.outlined.Notifications
 import androidx.compose.material.icons.outlined.Style
 import androidx.compose.material.icons.outlined.Storage
@@ -28,6 +30,11 @@ import androidx.compose.material3.Switch
 import androidx.compose.material3.SwitchDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
+import androidx.compose.ui.platform.LocalContext
+import java.time.LocalTime
+import java.time.format.DateTimeFormatter
+import java.util.Locale
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -54,6 +61,8 @@ fun PreferencesCard(
     onUseSampleDataChange: ((Boolean) -> Unit)? = null,
     appTheme: String = "green",
     onThemeChange: ((String) -> Unit)? = null,
+    defaultReminderTime: LocalTime = LocalTime.of(7, 0),
+    onDefaultReminderTimeChange: ((LocalTime) -> Unit)? = null,
     onRemindersClick: () -> Unit = {}
 ) {
     val primaryColor = androidx.compose.material3.MaterialTheme.colorScheme.primary
@@ -159,6 +168,82 @@ fun PreferencesCard(
                     tint = TextTertiary,
                     modifier = Modifier.size(18.dp)
                 )
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
+            HorizontalDivider(thickness = 1.dp, color = BorderLight)
+            Spacer(modifier = Modifier.height(12.dp))
+
+            // Default Reminder Time Item
+            val context = LocalContext.current
+            val timeFormatter = remember { DateTimeFormatter.ofPattern("h:mm a", Locale.ENGLISH) }
+            val formattedTime = remember(defaultReminderTime) { defaultReminderTime.format(timeFormatter) }
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clip(RoundedCornerShape(12.dp))
+                    .clickable(enabled = onDefaultReminderTimeChange != null) {
+                        TimePickerDialog(
+                            context,
+                            { _, hourOfDay, minute ->
+                                onDefaultReminderTimeChange?.invoke(LocalTime.of(hourOfDay, minute))
+                            },
+                            defaultReminderTime.hour,
+                            defaultReminderTime.minute,
+                            false
+                        ).show()
+                    }
+                    .padding(vertical = 4.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(38.dp)
+                        .clip(RoundedCornerShape(10.dp))
+                        .background(SurfaceSubtle),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Outlined.AccessTime,
+                        contentDescription = null,
+                        tint = TextPrimary,
+                        modifier = Modifier.size(20.dp)
+                    )
+                }
+
+                Spacer(modifier = Modifier.width(14.dp))
+
+                Column(
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Text(
+                        text = "Default Reminder Time",
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = TextPrimary
+                    )
+                    Spacer(modifier = Modifier.height(2.dp))
+                    Text(
+                        text = "For all-day and morning tasks",
+                        fontSize = 12.sp,
+                        color = TextSecondary
+                    )
+                }
+
+                Box(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(8.dp))
+                        .background(SurfaceSubtle)
+                        .padding(horizontal = 10.dp, vertical = 6.dp)
+                ) {
+                    Text(
+                        text = formattedTime,
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = primaryColor
+                    )
+                }
             }
 
             Spacer(modifier = Modifier.height(12.dp))

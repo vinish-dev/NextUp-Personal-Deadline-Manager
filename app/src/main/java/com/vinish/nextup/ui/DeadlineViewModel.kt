@@ -9,6 +9,7 @@ import com.vinish.nextup.data.DeadlineRepository
 import com.vinish.nextup.data.local.AppDatabase
 import com.vinish.nextup.data.sample.SampleDeadlines
 import com.vinish.nextup.model.Deadline
+import com.vinish.nextup.model.Reminder
 import com.vinish.nextup.model.Subtask
 import com.vinish.nextup.notification.DeadlineNotificationScheduler
 import com.vinish.nextup.widget.NextUpWidgetProvider
@@ -22,6 +23,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import java.time.LocalTime
 
 class DeadlineViewModel(application: Application) : AndroidViewModel(application) {
 
@@ -33,6 +35,30 @@ class DeadlineViewModel(application: Application) : AndroidViewModel(application
             ?: DeadlineNotificationScheduler(application)
 
     private val prefs = application.getSharedPreferences("nextup_preferences", Context.MODE_PRIVATE)
+
+    private val _defaultReminderTime = MutableStateFlow(
+        try {
+            LocalTime.parse(prefs.getString("default_reminder_time", "07:00") ?: "07:00")
+        } catch (_: Exception) {
+            LocalTime.of(7, 0)
+        }
+    )
+    val defaultReminderTime: StateFlow<LocalTime> = _defaultReminderTime.asStateFlow()
+
+    fun setDefaultReminderTime(time: LocalTime) {
+        _defaultReminderTime.value = time
+        prefs.edit().putString("default_reminder_time", time.toString()).apply()
+        viewModelScope.launch {
+            try {
+                val currentDeadlines = if (_useSampleData.value) _sampleDeadlines.value else repository.allDeadlines.first()
+                currentDeadlines.forEach { deadline ->
+                    if (!deadline.isCompleted && deadline.dueTime == null && deadline.reminder != null && deadline.reminder != Reminder.NONE) {
+                        notificationScheduler.schedule(deadline)
+                    }
+                }
+            } catch (_: Exception) {}
+        }
+    }
 
     private val _useSampleData = MutableStateFlow(
         prefs.getBoolean("use_sample_data", false)

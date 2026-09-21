@@ -26,6 +26,7 @@ import android.os.Build
 import android.provider.Settings
 import androidx.compose.ui.platform.LocalContext
 import java.time.LocalDate
+import java.time.LocalTime
 
 @Composable
 fun ProfileScreen(
@@ -38,6 +39,8 @@ fun ProfileScreen(
     onUseSampleDataChange: ((Boolean) -> Unit)? = null,
     appTheme: String = "green",
     onThemeChange: ((String) -> Unit)? = null,
+    defaultReminderTime: LocalTime = LocalTime.of(7, 0),
+    onDefaultReminderTimeChange: ((LocalTime) -> Unit)? = null,
     onMoreClick: () -> Unit = {},
     onUserCardClick: () -> Unit = {},
     onPriorityClick: ((Priority) -> Unit)? = null,
@@ -110,6 +113,8 @@ fun ProfileScreen(
                 onUseSampleDataChange = onUseSampleDataChange,
                 appTheme = appTheme,
                 onThemeChange = onThemeChange,
+                defaultReminderTime = defaultReminderTime,
+                onDefaultReminderTimeChange = onDefaultReminderTimeChange,
                 onRemindersClick = {
                     try {
                         val intent = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {

@@ -124,10 +124,18 @@ class DeadlineNotificationScheduler(private val context: Context) {
     }
 
     private fun calculateTriggerTimeMillis(deadline: Deadline): Long? {
+        val prefs = context.getSharedPreferences("nextup_preferences", Context.MODE_PRIVATE)
+        val defaultReminderTime = try {
+            LocalTime.parse(prefs.getString("default_reminder_time", "07:00") ?: "07:00")
+        } catch (_: Exception) {
+            LocalTime.of(7, 0)
+        }
+
         val targetTime = deadline.dueTime ?: if (deadline.dueDate == java.time.LocalDate.now()) {
-            LocalTime.now().plusHours(1)
+            val nowTime = LocalTime.now()
+            if (nowTime.isBefore(defaultReminderTime)) defaultReminderTime else nowTime.plusHours(1)
         } else {
-            LocalTime.of(9, 0)
+            defaultReminderTime
         }
         val dueDateTime = LocalDateTime.of(deadline.dueDate, targetTime)
 
