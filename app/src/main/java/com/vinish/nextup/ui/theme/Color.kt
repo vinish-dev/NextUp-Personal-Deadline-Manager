@@ -4,10 +4,19 @@ package com.vinish.nextup.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-// --- Core Brand / Primary ---
+// --- Core Brand / Primary (Classic Blue - preserved) ---
 val PrimaryBlue = Color(0xFF1E6BFF)
 val PrimaryBlueHover = Color(0xFF1557D6)
 val PrimaryBlueLight = Color(0xFFEAF1FF)
+
+// --- Core Brand / Primary (Green Nature Theme - new) ---
+val PrimaryGreen = Color(0xFF2EB872)
+val PrimaryGreenHover = Color(0xFF249D57)
+val PrimaryGreenLight = Color(0xFFE8F5E9)
+val PrimaryGreenDark = Color(0xFF166534)
+val PrimaryGreenSubtle = Color(0xFFF0FDF4)
+val FabGreen = Color(0xFF09A248)
+val BackgroundGreenLight = Color(0xFFF8FAF8)
 
 // --- Neutrals & Backgrounds ---
 val BackgroundLight = Color(0xFFF7F9FC)
@@ -52,10 +61,10 @@ val CategoryTravel = Color(0xFF06B6D4)        // Cyan
 val CategoryOther = Color(0xFF64748B)         // Slate Blue
 
 // --- Progress & Checkboxes ---
-val CheckboxChecked = Color(0xFF1E6BFF)
+val CheckboxChecked = PrimaryGreen
 val CheckboxBorder = Color(0xFFCBD5E1)
 val ProgressBarTrack = Color(0xFFE2E8F0)
-val ProgressBarIndicator = Color(0xFF1E6BFF)
+val ProgressBarIndicator = PrimaryGreen
 
 // border color
 val BorderStoke = Color(0xFFF5F3F3)

@@ -91,6 +91,17 @@ object SampleDeadlines {
             priority = Priority.MEDIUM,
             reminder = Reminder.ONE_DAY_BEFORE,
             isCompleted = false
+        ),
+        Deadline(
+            id = 8L,
+            title = "Semester Final Exams",
+            description = "Prepare revision notes and syllabus coverage for finals",
+            dueDate = LocalDate.now().plusDays(14),
+            dueTime = LocalTime.of(9, 30),
+            category = Category.EDUCATION,
+            priority = Priority.HIGH,
+            reminder = Reminder.SEVEN_DAYS_BEFORE,
+            isCompleted = false
         )
     )
 
@@ -102,7 +113,16 @@ object SampleDeadlines {
 
     val thisWeekDeadlines: List<Deadline>
         get() = sampleDeadlines.filter {
-            val today = LocalDate.now()
-            it.dueDate.isAfter(today.plusDays(1)) && it.dueDate.isBefore(today.plusDays(8))
+            val today = java.time.LocalDate.now()
+            val tomorrow = today.plusDays(1)
+            val endOfWeek = today.with(java.time.temporal.TemporalAdjusters.nextOrSame(java.time.DayOfWeek.SUNDAY))
+            it.dueDate.isAfter(tomorrow) && !it.dueDate.isAfter(endOfWeek)
+        }
+
+    val laterDeadlines: List<Deadline>
+        get() = sampleDeadlines.filter {
+            val today = java.time.LocalDate.now()
+            val endOfWeek = today.with(java.time.temporal.TemporalAdjusters.nextOrSame(java.time.DayOfWeek.SUNDAY))
+            it.dueDate.isAfter(endOfWeek)
         }
 }

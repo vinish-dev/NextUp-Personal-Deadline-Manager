@@ -4,6 +4,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -21,15 +22,19 @@ fun CalendarScheduleSection(
     deadlines: List<Deadline>,
     modifier: Modifier = Modifier,
     onDeadlineClick: ((Deadline) -> Unit)? = null,
-    onSeeAllClick: (() -> Unit)? = null
+    onToggleComplete: ((Deadline) -> Unit)? = null,
+    onSeeAllClick: (() -> Unit)? = null,
+    onEditClick: ((Deadline) -> Unit)? = null
 ) {
-    val today = LocalDate.now()
-    val tomorrow = today.plusDays(1)
+    val today = remember { LocalDate.now() }
+    val tomorrow = remember(today) { today.plusDays(1) }
 
-    val sectionTitle = when {
-        selectedDate.isEqual(today) -> "Today, ${selectedDate.format(DateTimeFormatter.ofPattern("d MMM", Locale.ENGLISH))}"
-        selectedDate.isEqual(tomorrow) -> "Tomorrow, ${selectedDate.format(DateTimeFormatter.ofPattern("d MMM", Locale.ENGLISH))}"
-        else -> selectedDate.format(DateTimeFormatter.ofPattern("EEEE, d MMM", Locale.ENGLISH))
+    val sectionTitle = remember(selectedDate, today, tomorrow) {
+        when {
+            selectedDate.isEqual(today) -> "Today, ${selectedDate.format(DateTimeFormatter.ofPattern("d MMM", Locale.ENGLISH))}"
+            selectedDate.isEqual(tomorrow) -> "Tomorrow, ${selectedDate.format(DateTimeFormatter.ofPattern("d MMM", Locale.ENGLISH))}"
+            else -> selectedDate.format(DateTimeFormatter.ofPattern("EEEE, d MMM", Locale.ENGLISH))
+        }
     }
 
     val countText = when (deadlines.size) {
@@ -58,7 +63,9 @@ fun CalendarScheduleSection(
             deadlines.forEach { deadline ->
                 DeadlineCard(
                     deadline = deadline,
-                    onClick = onDeadlineClick?.let { { it(deadline) } }
+                    onClick = onDeadlineClick?.let { { it(deadline) } },
+                    onToggleComplete = onToggleComplete?.let { { it(deadline) } },
+                    onEdit = if (!deadline.isCompleted) onEditClick?.let { { it(deadline) } } else null
                 )
             }
         }

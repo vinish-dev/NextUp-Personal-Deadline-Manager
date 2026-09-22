@@ -25,8 +25,6 @@ import androidx.compose.ui.unit.sp
 import com.vinish.nextup.model.Category
 import com.vinish.nextup.model.Deadline
 import com.vinish.nextup.model.Priority
-import com.vinish.nextup.ui.theme.PrimaryBlue
-import com.vinish.nextup.ui.theme.PrimaryBlueLight
 import com.vinish.nextup.ui.theme.TextPrimary
 import com.vinish.nextup.ui.theme.TextTertiary
 import java.time.LocalDate
@@ -41,16 +39,19 @@ fun CalendarDayCell(
     onDateClick: (LocalDate) -> Unit,
     modifier: Modifier = Modifier
 ) {
+    val primaryColor = androidx.compose.material3.MaterialTheme.colorScheme.primary
+    val primaryContainer = androidx.compose.material3.MaterialTheme.colorScheme.primaryContainer
+
     val backgroundColor = when {
-        isSelected -> PrimaryBlue
-        isToday -> PrimaryBlueLight
+        isSelected -> primaryColor
+        isToday -> primaryContainer
         else -> Color.Transparent
     }
 
     val textColor = when {
         isSelected -> Color.White
         !isCurrentMonth -> TextTertiary
-        isToday -> PrimaryBlue
+        isToday -> primaryColor
         else -> TextPrimary
     }
 

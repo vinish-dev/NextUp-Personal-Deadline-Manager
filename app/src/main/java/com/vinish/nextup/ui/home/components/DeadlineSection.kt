@@ -4,6 +4,10 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -12,7 +16,8 @@ import com.vinish.nextup.model.Deadline
 import com.vinish.nextup.ui.components.SectionHeader
 
 /**
- * Reusable section component that displays a header and up to [maxItems] deadline cards.
+ * Reusable section component that displays a header and up to [maxItems] deadline cards,
+ * with expandable view to see all items in the section.
  */
 @Composable
 fun DeadlineSection(
@@ -22,11 +27,15 @@ fun DeadlineSection(
     maxItems: Int = 2,
     showSeeAll: Boolean = true,
     onSeeAllClick: () -> Unit = {},
-    onDeadlineClick: ((Deadline) -> Unit)? = null
+    onDeadlineClick: ((Deadline) -> Unit)? = null,
+    onToggleComplete: ((Deadline) -> Unit)? = null,
+    onEditClick: ((Deadline) -> Unit)? = null
 ) {
     if (deadlines.isEmpty()) return
 
-    val displayDeadlines = deadlines.take(maxItems)
+    var isExpanded by remember { mutableStateOf(false) }
+    val canExpand = deadlines.size > maxItems
+    val displayDeadlines = if (isExpanded) deadlines else deadlines.take(maxItems)
 
     Column(
         modifier = modifier.fillMaxWidth(),
@@ -34,14 +43,20 @@ fun DeadlineSection(
     ) {
         SectionHeader(
             title = title,
-            showViewAll = showSeeAll,
-            onViewAllClick = onSeeAllClick
+            showViewAll = showSeeAll && canExpand,
+            actionText = if (isExpanded) "Show less" else "See all",
+            onViewAllClick = {
+                isExpanded = !isExpanded
+                onSeeAllClick()
+            }
         )
 
         displayDeadlines.forEach { deadline ->
             DeadlineCard(
                 deadline = deadline,
-                onClick = onDeadlineClick?.let { { it(deadline) } }
+                onClick = onDeadlineClick?.let { { it(deadline) } },
+                onToggleComplete = onToggleComplete?.let { { it(deadline) } },
+                onEdit = onEditClick?.let { { it(deadline) } }
             )
         }
     }

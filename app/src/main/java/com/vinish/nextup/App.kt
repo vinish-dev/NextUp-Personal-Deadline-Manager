@@ -1,52 +1,33 @@
 package com.vinish.nextup
 
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
-import androidx.navigation.NavGraph.Companion.findStartDestination
-import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.vinish.nextup.navigation.AppNavigation
 import com.vinish.nextup.navigation.Screen
-import com.vinish.nextup.ui.components.NextUpBottomNavigation
+
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.vinish.nextup.ui.DeadlineViewModel
 
 @Composable
-fun App(modifier: Modifier = Modifier) {
+fun App(
+    modifier: Modifier = Modifier,
+    initialDeadlineId: Long? = null,
+    viewModel: DeadlineViewModel = viewModel()
+) {
     val navController = rememberNavController()
 
-    val navBackStackEntry by navController.currentBackStackEntryAsState()
-    val currentRoute = navBackStackEntry?.destination?.route
-
-    Scaffold(
-        modifier = modifier,
-        bottomBar = {
-            NextUpBottomNavigation(
-                currentRoute = currentRoute,
-                onItemClick = { route ->
-                    if (route == Screen.Home.route) {
-                        navController.navigate(Screen.Home.route) {
-                            popUpTo(navController.graph.findStartDestination().id) {
-                                inclusive = false
-                                saveState = false
-                            }
-                            launchSingleTop = true
-                            restoreState = false
-                        }
-                    } else {
-                        navController.navigate(route) {
-                            popUpTo(navController.graph.findStartDestination().id) {
-                                saveState = true
-                            }
-                            launchSingleTop = true
-                            restoreState = true
-                        }
-                    }
-                }
-            )
+    LaunchedEffect(initialDeadlineId) {
+        if (initialDeadlineId != null && initialDeadlineId > 0) {
+            navController.navigate(Screen.Details.createRoute(initialDeadlineId))
         }
-    ) { innerPadding ->
-        AppNavigation(navController = navController, modifier = Modifier.padding(innerPadding))
     }
+
+    AppNavigation(
+        navController = navController,
+        modifier = modifier,
+        viewModel = viewModel
+    )
 }
+

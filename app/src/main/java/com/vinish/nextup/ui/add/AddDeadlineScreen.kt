@@ -1,27 +1,37 @@
 package com.vinish.nextup.ui.add
 
 import android.util.Log
+import android.widget.Toast
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.imeNestedScroll
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import kotlinx.coroutines.delay
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -32,19 +42,22 @@ import com.vinish.nextup.model.Priority
 import com.vinish.nextup.model.Recurrence
 import com.vinish.nextup.model.Reminder
 import com.vinish.nextup.model.Subtask
+import com.vinish.nextup.model.toSentenceCase
+import com.vinish.nextup.model.toTitleCase
 import com.vinish.nextup.ui.add.components.AddTopBar
 import com.vinish.nextup.ui.add.components.CategorySelector
 import com.vinish.nextup.ui.add.components.DateTimeSelector
 import com.vinish.nextup.ui.add.components.DeadlineTextField
-import com.vinish.nextup.ui.add.components.PrioritySelector
 import com.vinish.nextup.ui.add.components.RecurrenceSelector
 import com.vinish.nextup.ui.add.components.ReminderSelector
 import com.vinish.nextup.ui.add.components.SubtaskSection
-import com.vinish.nextup.ui.theme.BackgroundLight
-import com.vinish.nextup.ui.theme.PrimaryBlue
 import java.time.LocalDate
 import java.time.LocalTime
 
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import kotlin.time.Duration.Companion.milliseconds
+
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun AddDeadlineScreen(
     modifier: Modifier = Modifier,
@@ -55,6 +68,7 @@ fun AddDeadlineScreen(
     onSaveDeadline: ((Deadline) -> Unit)? = null
 ) {
     val isEditMode = existingDeadline != null
+    val context = LocalContext.current
 
     var title by remember(existingDeadline) { mutableStateOf(existingDeadline?.title ?: "") }
     var description by remember(existingDeadline) { mutableStateOf(existingDeadline?.description ?: "") }
@@ -63,8 +77,8 @@ fun AddDeadlineScreen(
         mutableStateOf(existingDeadline?.dueDate ?: (initialDate ?: LocalDate.now()))
     }
     var dueTime by remember(existingDeadline) { mutableStateOf<LocalTime?>(existingDeadline?.dueTime) }
-    var reminder by remember(existingDeadline) { mutableStateOf(existingDeadline?.reminder ?: Reminder.NONE) }
-    var priority by remember(existingDeadline) { mutableStateOf(existingDeadline?.priority ?: Priority.MEDIUM) }
+    var reminder by remember(existingDeadline) { mutableStateOf(existingDeadline?.reminder ?: Reminder.AT_TIME) }
+    val priority = existingDeadline?.priority ?: Priority.MEDIUM
     var recurrence by remember(existingDeadline) { mutableStateOf(existingDeadline?.recurrence ?: Recurrence.NONE) }
 
     var isSubtasksEnabled by remember(existingDeadline) {
@@ -76,22 +90,34 @@ fun AddDeadlineScreen(
 
     var titleError by remember { mutableStateOf(false) }
 
+    val focusRequester = remember { FocusRequester() }
+    val keyboardController = LocalSoftwareKeyboardController.current
+
+    LaunchedEffect(Unit) {
+        delay(250.milliseconds)
+        focusRequester.requestFocus()
+        keyboardController?.show()
+    }
+
     Scaffold(
         modifier = modifier.fillMaxSize(),
-        containerColor = BackgroundLight,
+        containerColor = MaterialTheme.colorScheme.background,
         topBar = {
             AddTopBar(
                 title = if (isEditMode) "Edit Deadline" else "Add Deadline",
-                modifier = Modifier.padding(top = 8.dp, bottom = 4.dp),
                 onBackClick = onBackClick
             )
         }
     ) { paddingValues ->
+        val scrollState = rememberScrollState()
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .verticalScroll(rememberScrollState())
+                .consumeWindowInsets(paddingValues)
+                .imePadding()
+                .imeNestedScroll()
+                .verticalScroll(scrollState)
                 .padding(horizontal = 20.dp, vertical = 12.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
@@ -106,7 +132,8 @@ fun AddDeadlineScreen(
                 placeholder = "e.g. Car Insurance Renewal",
                 singleLine = true,
                 isError = titleError,
-                errorMessage = "Title is required"
+                errorMessage = "Title is required",
+                focusRequester = focusRequester
             )
 
             // 2. Description (Optional)
@@ -141,13 +168,7 @@ fun AddDeadlineScreen(
                 onReminderSelected = { reminder = it }
             )
 
-            // 6. Priority
-            PrioritySelector(
-                selectedPriority = priority,
-                onPrioritySelected = { priority = it }
-            )
-
-            // 7. Repeat
+            // 6. Repeat
             RecurrenceSelector(
                 selectedRecurrence = recurrence,
                 onRecurrenceSelected = { recurrence = it }
@@ -174,10 +195,12 @@ fun AddDeadlineScreen(
                     if (title.isBlank()) {
                         titleError = true
                     } else {
-                        val deadlineToSave = if (isEditMode && existingDeadline != null) {
+                        val formattedTitle = title.trim().toTitleCase()
+                        val formattedDescription = description.trim().ifEmpty { null }?.toSentenceCase()
+                        val deadlineToSave = if (existingDeadline != null) {
                             existingDeadline.copy(
-                                title = title.trim(),
-                                description = description.trim().ifEmpty { null },
+                                title = formattedTitle,
+                                description = formattedDescription,
                                 dueDate = dueDate,
                                 dueTime = dueTime,
                                 category = category,
@@ -188,8 +211,8 @@ fun AddDeadlineScreen(
                             )
                         } else {
                             Deadline(
-                                title = title.trim(),
-                                description = description.trim().ifEmpty { null },
+                                title = formattedTitle,
+                                description = formattedDescription,
                                 dueDate = dueDate,
                                 dueTime = dueTime,
                                 category = category,
@@ -201,6 +224,9 @@ fun AddDeadlineScreen(
                             )
                         }
                         Log.d("AddDeadlineScreen", "Saved deadline: $deadlineToSave")
+                        if (deadlineToSave.reminder != null && deadlineToSave.reminder != Reminder.NONE) {
+                            Toast.makeText(context, "Reminder set", Toast.LENGTH_SHORT).show()
+                        }
                         onSaveDeadline?.invoke(deadlineToSave)
                         onBackClick()
                     }
@@ -210,7 +236,7 @@ fun AddDeadlineScreen(
                     .height(54.dp),
                 shape = RoundedCornerShape(16.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = PrimaryBlue,
+                    containerColor = MaterialTheme.colorScheme.primary,
                     contentColor = Color.White
                 )
             ) {

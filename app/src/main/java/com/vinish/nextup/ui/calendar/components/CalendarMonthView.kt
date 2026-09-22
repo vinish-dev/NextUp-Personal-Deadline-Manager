@@ -12,6 +12,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -34,12 +35,13 @@ fun CalendarMonthView(
     onNextMonthClick: () -> Unit = {},
     onTodayClick: () -> Unit = {}
 ) {
-    val firstOfMonth = currentMonth.atDay(1)
-    val daysInMonth = currentMonth.lengthOfMonth()
-    val leadingDays = firstOfMonth.dayOfWeek.value - 1
-    val totalVisibleDays = leadingDays + daysInMonth
-    val numRows = ceil(totalVisibleDays / 7.0).toInt()
-    val startDate = firstOfMonth.minusDays(leadingDays.toLong())
+    val today = remember { LocalDate.now() }
+    val firstOfMonth = remember(currentMonth) { currentMonth.atDay(1) }
+    val daysInMonth = remember(currentMonth) { currentMonth.lengthOfMonth() }
+    val leadingDays = remember(firstOfMonth) { firstOfMonth.dayOfWeek.value - 1 }
+    val totalVisibleDays = remember(leadingDays, daysInMonth) { leadingDays + daysInMonth }
+    val numRows = remember(totalVisibleDays) { ceil(totalVisibleDays / 7.0).toInt() }
+    val startDate = remember(firstOfMonth, leadingDays) { firstOfMonth.minusDays(leadingDays.toLong()) }
 
     Card(
         modifier = modifier.fillMaxWidth(),
@@ -81,7 +83,7 @@ fun CalendarMonthView(
                             val cellDate = startDate.plusDays(dayIndex.toLong())
                             val isCurrentMonth = cellDate.month == currentMonth.month && cellDate.year == currentMonth.year
                             val isSelected = cellDate.isEqual(selectedDate)
-                            val isToday = cellDate.isEqual(LocalDate.now())
+                            val isToday = cellDate.isEqual(today)
                             val deadlines = deadlinesByDate[cellDate] ?: emptyList()
 
                             CalendarDayCell(

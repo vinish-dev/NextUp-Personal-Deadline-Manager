@@ -27,8 +27,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.vinish.nextup.ui.theme.PrimaryBlue
-import com.vinish.nextup.ui.theme.PrimaryBlueLight
 import com.vinish.nextup.ui.theme.TextPrimary
 import java.time.YearMonth
 import java.time.format.DateTimeFormatter
@@ -85,7 +83,7 @@ fun CalendarHeader(
                     Box(
                         modifier = Modifier
                             .clip(RoundedCornerShape(8.dp))
-                            .background(PrimaryBlueLight)
+                            .background(MaterialTheme.colorScheme.primaryContainer)
                             .clickable(onClick = onTodayClick)
                             .padding(horizontal = 8.dp, vertical = 4.dp),
                         contentAlignment = Alignment.Center
@@ -94,7 +92,7 @@ fun CalendarHeader(
                             text = "Today",
                             fontSize = 11.sp,
                             fontWeight = FontWeight.SemiBold,
-                            color = PrimaryBlue
+                            color = MaterialTheme.colorScheme.primary
                         )
                     }
                 }
