@@ -230,63 +230,31 @@ class DeadlineViewModel(application: Application) : AndroidViewModel(application
     }
 
     // --- Journal Support ---
-    private val _sampleJournalEntries = MutableStateFlow<Map<LocalDate, String>>(emptyMap())
-
-    val datesWithJournal: StateFlow<List<LocalDate>> = combine(
-        repository.getDatesWithJournalEntries(),
-        _useSampleData,
-        _sampleJournalEntries
-    ) { roomDates, useSample, sampleMap ->
-        if (useSample) {
-            sampleMap.filter { it.value.isNotBlank() }.keys.toList()
-        } else {
-            roomDates
-        }
-    }.stateIn(
+    val datesWithJournal: StateFlow<List<LocalDate>> = repository.getDatesWithJournalEntries().stateIn(
         scope = viewModelScope,
         started = SharingStarted.WhileSubscribed(5000),
         initialValue = emptyList()
     )
 
     fun getJournalEntry(date: LocalDate): Flow<JournalEntryEntity?> {
-        return if (_useSampleData.value) {
-            _sampleJournalEntries.map { map ->
-                map[date]?.let { JournalEntryEntity.from(date, it) }
-            }
-        } else {
-            repository.getJournalEntry(date)
-        }
+        return repository.getJournalEntry(date)
+    }
+
+    suspend fun getJournalEntryOnce(date: LocalDate): JournalEntryEntity? {
+        return repository.getJournalEntryOnce(date)
     }
 
     fun saveJournalEntry(date: LocalDate, content: String, onSaved: (() -> Unit)? = null) {
-        if (_useSampleData.value) {
-            val updated = _sampleJournalEntries.value.toMutableMap()
-            if (content.isBlank()) {
-                updated.remove(date)
-            } else {
-                updated[date] = content
-            }
-            _sampleJournalEntries.value = updated
+        viewModelScope.launch {
+            repository.saveJournalEntry(date, content)
             onSaved?.invoke()
-        } else {
-            viewModelScope.launch {
-                repository.saveJournalEntry(date, content)
-                onSaved?.invoke()
-            }
         }
     }
 
     fun deleteJournalEntry(date: LocalDate, onDeleted: (() -> Unit)? = null) {
-        if (_useSampleData.value) {
-            val updated = _sampleJournalEntries.value.toMutableMap()
-            updated.remove(date)
-            _sampleJournalEntries.value = updated
+        viewModelScope.launch {
+            repository.deleteJournalEntry(date)
             onDeleted?.invoke()
-        } else {
-            viewModelScope.launch {
-                repository.deleteJournalEntry(date)
-                onDeleted?.invoke()
-            }
         }
     }
 }

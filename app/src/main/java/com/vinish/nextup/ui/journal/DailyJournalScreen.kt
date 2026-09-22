@@ -46,6 +46,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import kotlinx.coroutines.delay
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -82,31 +83,47 @@ fun DailyJournalScreen(
 ) {
     val context = LocalContext.current
 
-    val journalEntryFlow = remember(date) { viewModel.getJournalEntry(date) }
-    val journalEntry by journalEntryFlow.collectAsStateWithLifecycle(initialValue = null)
-
     var textFieldValue by remember { mutableStateOf(TextFieldValue("")) }
-    var isInitialized by remember { mutableStateOf(false) }
+    var isLoaded by remember { mutableStateOf(false) }
+    var lastSavedText by remember { mutableStateOf("") }
+    var isSaving by remember { mutableStateOf(false) }
     var showDeleteConfirmDialog by remember { mutableStateOf(false) }
     var showInsertBottomSheet by remember { mutableStateOf(false) }
 
     val insertSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
-    // Initialize content once loaded
-    LaunchedEffect(journalEntry) {
-        if (!isInitialized && journalEntry != null) {
-            val initial = journalEntry?.content.orEmpty()
-            textFieldValue = TextFieldValue(
-                text = initial,
-                selection = TextRange(initial.length)
-            )
-            isInitialized = true
+    // Load content once when screen opens
+    LaunchedEffect(date) {
+        val entry = viewModel.getJournalEntryOnce(date)
+        val initial = entry?.content.orEmpty()
+        textFieldValue = TextFieldValue(
+            text = initial,
+            selection = TextRange(initial.length)
+        )
+        lastSavedText = initial
+        isLoaded = true
+    }
+
+    val contentText = textFieldValue.text
+
+    // Auto-save after a delay when content changes since last save
+    LaunchedEffect(contentText, isLoaded) {
+        if (!isLoaded) return@LaunchedEffect
+        if (contentText != lastSavedText) {
+            isSaving = true
+            delay(1200L) // 1.2s debounce delay
+            viewModel.saveJournalEntry(date, contentText)
+            lastSavedText = contentText
+            isSaving = false
         }
     }
 
     // Auto-save on exit
     val saveAndExit = {
-        viewModel.saveJournalEntry(date, textFieldValue.text)
+        if (isLoaded && contentText != lastSavedText) {
+            viewModel.saveJournalEntry(date, contentText)
+            lastSavedText = contentText
+        }
         onBackClick()
     }
 
@@ -149,7 +166,6 @@ fun DailyJournalScreen(
         date.format(DateTimeFormatter.ofPattern("d MMMM yyyy", Locale.ENGLISH))
     }
 
-    val contentText = textFieldValue.text
     val wordCount = remember(contentText) {
         if (contentText.isBlank()) 0 else contentText.trim().split("\\s+".toRegex()).size
     }
@@ -201,16 +217,20 @@ fun DailyJournalScreen(
                 color = SurfaceWhite,
                 shadowElevation = 1.dp
             ) {
-                Row(
+                Box(
                     modifier = Modifier
                         .fillMaxWidth()
                         .statusBarsPadding()
-                        .padding(horizontal = 6.dp, vertical = 8.dp),
-                    verticalAlignment = Alignment.CenterVertically
+                        .height(56.dp)
+                        .padding(horizontal = 4.dp),
+                    contentAlignment = Alignment.Center
                 ) {
+                    // Back button pinned to start
                     IconButton(
                         onClick = saveAndExit,
-                        modifier = Modifier.size(44.dp)
+                        modifier = Modifier
+                            .align(Alignment.CenterStart)
+                            .size(44.dp)
                     ) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,
@@ -219,11 +239,11 @@ fun DailyJournalScreen(
                         )
                     }
 
-                    // Top Header: Day Name + Date
+                    // Truly centered Day Name + Date across the full screen width
                     Column(
                         modifier = Modifier
-                            .weight(1f)
-                            .padding(horizontal = 8.dp),
+                            .align(Alignment.Center)
+                            .padding(horizontal = 84.dp),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         Text(
@@ -231,19 +251,22 @@ fun DailyJournalScreen(
                             fontSize = 18.sp,
                             fontWeight = FontWeight.Bold,
                             color = TextPrimary,
-                            textAlign = TextAlign.Center
+                            textAlign = TextAlign.Center,
+                            maxLines = 1
                         )
                         Text(
                             text = formattedDate,
                             fontSize = 12.sp,
                             fontWeight = FontWeight.Medium,
                             color = TextSecondary,
-                            textAlign = TextAlign.Center
+                            textAlign = TextAlign.Center,
+                            maxLines = 1
                         )
                     }
 
-                    // Action buttons
+                    // Action buttons pinned to end
                     Row(
+                        modifier = Modifier.align(Alignment.CenterEnd),
                         horizontalArrangement = Arrangement.spacedBy(4.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
@@ -262,9 +285,9 @@ fun DailyJournalScreen(
 
                         IconButton(
                             onClick = {
-                                viewModel.saveJournalEntry(date, contentText) {
-                                    Toast.makeText(context, "Journal saved", Toast.LENGTH_SHORT).show()
-                                }
+                                viewModel.saveJournalEntry(date, contentText)
+                                lastSavedText = contentText
+                                onBackClick()
                             },
                             modifier = Modifier
                                 .size(40.dp)
@@ -273,7 +296,7 @@ fun DailyJournalScreen(
                             Icon(
                                 imageVector = Icons.Outlined.Check,
                                 tint = MaterialTheme.colorScheme.primary,
-                                contentDescription = "Save Journal Entry"
+                                contentDescription = "Save and Close"
                             )
                         }
                     }
@@ -365,10 +388,23 @@ fun DailyJournalScreen(
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
+                        val saveStatusText = when {
+                            isSaving -> "Saving..."
+                            contentText != lastSavedText -> "Unsaved changes"
+                            contentText.isBlank() -> "Draft"
+                            else -> "Saved"
+                        }
+                        val saveStatusColor = if (isSaving || contentText != lastSavedText) {
+                            MaterialTheme.colorScheme.primary
+                        } else {
+                            TextTertiary
+                        }
+
                         Text(
-                            text = if (journalEntry != null) "Saved" else "Draft",
+                            text = saveStatusText,
                             fontSize = 11.sp,
-                            color = TextTertiary
+                            fontWeight = if (isSaving || contentText != lastSavedText) FontWeight.Medium else FontWeight.Normal,
+                            color = saveStatusColor
                         )
                         Text(
                             text = "$wordCount words • $charCount characters",
