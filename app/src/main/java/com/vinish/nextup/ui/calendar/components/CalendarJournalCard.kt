@@ -21,6 +21,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -43,7 +44,14 @@ fun CalendarJournalCard(
     onOpenJournal: (LocalDate) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val hasEntry = !journalEntry?.content.isNullOrBlank()
+    val previewText = remember(journalEntry?.content) {
+        journalEntry?.content.orEmpty()
+            .lines()
+            .map { line -> line.trimStart().replace(Regex("^#{1,6}\\s*"), "") }
+            .filter { it.isNotBlank() }
+            .joinToString("\n")
+    }
+    val hasEntry = previewText.isNotBlank()
 
     Card(
         modifier = modifier
@@ -106,7 +114,7 @@ fun CalendarJournalCard(
 
             if (hasEntry) {
                 Text(
-                    text = journalEntry?.content.orEmpty(),
+                    text = previewText,
                     fontSize = 14.sp,
                     lineHeight = 20.sp,
                     color = TextSecondary,
