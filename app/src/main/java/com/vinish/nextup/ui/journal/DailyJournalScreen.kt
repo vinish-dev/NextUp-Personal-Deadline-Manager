@@ -394,8 +394,9 @@ fun DailyJournalScreen(
                     .padding(12.dp)
             ) {
                 val primaryColor = MaterialTheme.colorScheme.primary
-                val headingVisualTransformation = remember(primaryColor) {
+                val headingVisualTransformation = remember(primaryColor, textFieldValue.selection) {
                     MarkdownHeadingVisualTransformation(
+                        selection = textFieldValue.selection,
                         primaryColor = primaryColor,
                         headingColor = TextPrimary
                     )
