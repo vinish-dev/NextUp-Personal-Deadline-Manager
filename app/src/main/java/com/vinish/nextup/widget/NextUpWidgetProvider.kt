@@ -46,6 +46,18 @@ class NextUpWidgetProvider : AppWidgetProvider() {
                 }
                 context.startActivity(quickAddIntent)
             }
+            ACTION_EDIT_TASK -> {
+                val taskId = intent.getLongExtra(EXTRA_TASK_ID, -1L)
+                val section = intent.getStringExtra(EXTRA_SECTION) ?: SECTION_TODAY
+                if (taskId != -1L) {
+                    val editIntent = Intent(context, QuickAddActivity::class.java).apply {
+                        putExtra(QuickAddActivity.EXTRA_TASK_ID, taskId)
+                        putExtra(QuickAddActivity.EXTRA_SECTION, section)
+                        flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+                    }
+                    context.startActivity(editIntent)
+                }
+            }
             else -> {
                 super.onReceive(context, intent)
             }
@@ -71,6 +83,7 @@ class NextUpWidgetProvider : AppWidgetProvider() {
 
         const val ACTION_TOGGLE_TASK = "com.vinish.nextup.ACTION_TOGGLE_TASK"
         const val ACTION_OPEN_QUICK_ADD = "com.vinish.nextup.ACTION_OPEN_QUICK_ADD"
+        const val ACTION_EDIT_TASK = "com.vinish.nextup.ACTION_EDIT_TASK"
         const val EXTRA_TASK_ID = "extra_task_id"
         const val EXTRA_SECTION = "extra_section"
 

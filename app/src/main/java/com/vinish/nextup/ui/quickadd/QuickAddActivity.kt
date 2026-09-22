@@ -28,6 +28,8 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.outlined.Delete
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DropdownMenu
@@ -52,15 +54,18 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.vinish.nextup.NextUpApplication
 import com.vinish.nextup.model.Category
 import com.vinish.nextup.model.Deadline
 import com.vinish.nextup.model.Priority
+import com.vinish.nextup.model.Reminder
 import com.vinish.nextup.model.toTitleCase
 import com.vinish.nextup.ui.theme.BorderLight
 import com.vinish.nextup.ui.theme.FabGreen
@@ -70,10 +75,14 @@ import com.vinish.nextup.ui.theme.TextPrimary
 import com.vinish.nextup.ui.theme.TextSecondary
 import com.vinish.nextup.ui.theme.TextTertiary
 import com.vinish.nextup.widget.NextUpWidgetProvider
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.time.DayOfWeek
 import java.time.LocalDate
+import java.time.LocalTime
 import java.time.temporal.TemporalAdjusters
 import kotlin.time.Duration.Companion.milliseconds
 
@@ -81,30 +90,82 @@ class QuickAddActivity : ComponentActivity() {
 
     companion object {
         const val EXTRA_SECTION = "extra_section"
+        const val EXTRA_TASK_ID = "extra_task_id"
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
-        val initialSection = intent.getStringExtra(EXTRA_SECTION) ?: NextUpWidgetProvider.SECTION_TODAY
+        val taskId = intent.getLongExtra(EXTRA_TASK_ID, -1L)
+        val initialSectionFromIntent = intent.getStringExtra(EXTRA_SECTION)
 
         setContent {
             NextUpTheme {
-                QuickAddDialogScreen(
-                    initialSection = initialSection,
-                    onDismiss = { finish() },
-                    onSave = { title, section ->
-                        saveDeadlineAndFinish(title, section)
+                var existingDeadline by remember { mutableStateOf<Deadline?>(null) }
+                var initialTitle by remember { mutableStateOf("") }
+                var initialSection by remember {
+                    mutableStateOf(initialSectionFromIntent ?: NextUpWidgetProvider.SECTION_TODAY)
+                }
+                var isReady by remember { mutableStateOf(taskId == -1L) }
+
+                LaunchedEffect(taskId) {
+                    if (taskId != -1L) {
+                        val repo = (application as? NextUpApplication)?.repository
+                        val deadline = withContext(Dispatchers.IO) {
+                            repo?.getDeadlineByIdOnce(taskId)
+                        }
+                        if (deadline != null) {
+                            existingDeadline = deadline
+                            initialTitle = deadline.title
+                            initialSection = initialSectionFromIntent ?: getSectionForDeadline(deadline.dueDate, deadline.dueTime)
+                        }
+                        isReady = true
                     }
-                )
+                }
+
+                if (isReady) {
+                    QuickAddDialogScreen(
+                        initialTitle = initialTitle,
+                        initialSection = initialSection,
+                        isEditMode = taskId != -1L && existingDeadline != null,
+                        onDismiss = { finish() },
+                        onSave = { title, section ->
+                            val currentDeadline = existingDeadline
+                            if (currentDeadline != null) {
+                                updateDeadlineAndFinish(currentDeadline, title, section)
+                            } else {
+                                saveDeadlineAndFinish(title, section)
+                            }
+                        },
+                        onDelete = if (existingDeadline != null) {
+                            { deleteDeadlineAndFinish(existingDeadline!!) }
+                        } else null
+                    )
+                }
             }
         }
     }
 
-    private fun saveDeadlineAndFinish(title: String, section: String) {
+    private fun getSectionForDeadline(dueDate: LocalDate, dueTime: LocalTime?): String {
         val today = LocalDate.now()
-        val dueDate = when (section) {
+        val nowTime = LocalTime.now()
+        val tomorrow = today.plusDays(1)
+        val endOfWeek = today.with(TemporalAdjusters.nextOrSame(DayOfWeek.SUNDAY))
+
+        return when {
+            dueDate.isBefore(today) || (dueDate.isEqual(today) && dueTime != null && dueTime.isBefore(nowTime)) ->
+                NextUpWidgetProvider.SECTION_OVERDUE
+            dueDate.isEqual(today) -> NextUpWidgetProvider.SECTION_TODAY
+            dueDate.isEqual(tomorrow) -> NextUpWidgetProvider.SECTION_TOMORROW
+            dueDate.isAfter(tomorrow) && !dueDate.isAfter(endOfWeek) -> NextUpWidgetProvider.SECTION_THIS_WEEK
+            else -> NextUpWidgetProvider.SECTION_SOMEDAY
+        }
+    }
+
+    private fun calculateDueDateForSection(section: String): LocalDate {
+        val today = LocalDate.now()
+        return when (section) {
             NextUpWidgetProvider.SECTION_OVERDUE -> today.minusDays(1)
             NextUpWidgetProvider.SECTION_TODAY -> today
             NextUpWidgetProvider.SECTION_TOMORROW -> today.plusDays(1)
@@ -115,19 +176,26 @@ class QuickAddActivity : ComponentActivity() {
             NextUpWidgetProvider.SECTION_SOMEDAY -> today.plusMonths(1)
             else -> today
         }
+    }
 
+    private fun saveDeadlineAndFinish(title: String, section: String) {
+        val dueDate = calculateDueDateForSection(section)
         val deadline = Deadline(
             title = title.trim().toTitleCase(),
             dueDate = dueDate,
             category = Category.OTHER,
             priority = Priority.MEDIUM,
+            reminder = Reminder.AT_TIME,
             isCompleted = false
         )
 
-        val repository = (application as? NextUpApplication)?.repository
+        val app = application as? NextUpApplication
+        val repository = app?.repository
+        val scheduler = app?.notificationScheduler
         if (repository != null) {
-            kotlinx.coroutines.CoroutineScope(kotlinx.coroutines.Dispatchers.IO).launch {
-                repository.insertDeadline(deadline)
+            CoroutineScope(Dispatchers.IO).launch {
+                val id = repository.insertDeadline(deadline)
+                scheduler?.schedule(deadline.copy(id = id))
                 NextUpWidgetProvider.updateAllWidgets(applicationContext)
             }
         }
@@ -135,18 +203,68 @@ class QuickAddActivity : ComponentActivity() {
         Toast.makeText(this, "Deadline added to $section", Toast.LENGTH_SHORT).show()
         finish()
     }
+
+    private fun updateDeadlineAndFinish(existingDeadline: Deadline, title: String, section: String) {
+        val originalSection = getSectionForDeadline(existingDeadline.dueDate, existingDeadline.dueTime)
+        val targetDueDate = if (section == originalSection) {
+            existingDeadline.dueDate
+        } else {
+            calculateDueDateForSection(section)
+        }
+
+        val updated = existingDeadline.copy(
+            title = title.trim().toTitleCase(),
+            dueDate = targetDueDate
+        )
+
+        val app = application as? NextUpApplication
+        val repository = app?.repository
+        val scheduler = app?.notificationScheduler
+        if (repository != null) {
+            CoroutineScope(Dispatchers.IO).launch {
+                repository.updateDeadline(updated)
+                scheduler?.schedule(updated)
+                NextUpWidgetProvider.updateAllWidgets(applicationContext)
+            }
+        }
+
+        Toast.makeText(this, "Deadline updated", Toast.LENGTH_SHORT).show()
+        finish()
+    }
+
+    private fun deleteDeadlineAndFinish(deadline: Deadline) {
+        val app = application as? NextUpApplication
+        val repository = app?.repository
+        val scheduler = app?.notificationScheduler
+        if (repository != null) {
+            CoroutineScope(Dispatchers.IO).launch {
+                repository.deleteDeadlineById(deadline.id)
+                scheduler?.cancel(deadline.id)
+                NextUpWidgetProvider.updateAllWidgets(applicationContext)
+            }
+        }
+
+        Toast.makeText(this, "Deadline deleted", Toast.LENGTH_SHORT).show()
+        finish()
+    }
 }
 
 @Composable
 fun QuickAddDialogScreen(
+    initialTitle: String = "",
     initialSection: String,
+    isEditMode: Boolean = false,
     onDismiss: () -> Unit,
-    onSave: (String, String) -> Unit
+    onSave: (String, String) -> Unit,
+    onDelete: (() -> Unit)? = null
 ) {
-    var title by remember { mutableStateOf("") }
-    var selectedSection by remember { mutableStateOf(initialSection) }
+    var textFieldValue by remember(initialTitle) {
+        mutableStateOf(TextFieldValue(initialTitle, TextRange(initialTitle.length)))
+    }
+    var selectedSection by remember(initialSection) { mutableStateOf(initialSection) }
     var isDropdownExpanded by remember { mutableStateOf(false) }
     var isError by remember { mutableStateOf(false) }
+    var showDeleteConfirmDialog by remember { mutableStateOf(false) }
 
     val focusRequester = remember { FocusRequester() }
     val keyboardController = LocalSoftwareKeyboardController.current
@@ -163,6 +281,52 @@ fun QuickAddDialogScreen(
         delay(200.milliseconds)
         focusRequester.requestFocus()
         keyboardController?.show()
+    }
+
+    if (showDeleteConfirmDialog) {
+        AlertDialog(
+            onDismissRequest = { showDeleteConfirmDialog = false },
+            title = {
+                Text(
+                    text = "Delete Deadline?",
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 17.sp,
+                    color = TextPrimary
+                )
+            },
+            text = {
+                Text(
+                    text = "Are you sure you want to delete this deadline? This action cannot be undone.",
+                    fontSize = 14.sp,
+                    color = TextSecondary
+                )
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        showDeleteConfirmDialog = false
+                        onDelete?.invoke()
+                    },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color(0xFFDC2626),
+                        contentColor = Color.White
+                    ),
+                    shape = RoundedCornerShape(10.dp)
+                ) {
+                    Text("Delete", fontWeight = FontWeight.Bold)
+                }
+            },
+            dismissButton = {
+                OutlinedButton(
+                    onClick = { showDeleteConfirmDialog = false },
+                    shape = RoundedCornerShape(10.dp)
+                ) {
+                    Text("Cancel", color = TextSecondary)
+                }
+            },
+            containerColor = SurfaceWhite,
+            shape = RoundedCornerShape(16.dp)
+        )
     }
 
     // Outer dismiss overlay
@@ -203,21 +367,39 @@ fun QuickAddDialogScreen(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = "Quick Add Deadline",
+                        text = if (isEditMode) "Edit Deadline" else "Quick Add Deadline",
                         fontSize = 17.sp,
                         fontWeight = FontWeight.Bold,
                         color = TextPrimary
                     )
-                    IconButton(
-                        onClick = onDismiss,
-                        modifier = Modifier.size(28.dp)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Filled.Close,
-                            contentDescription = "Close",
-                            tint = TextSecondary,
-                            modifier = Modifier.size(18.dp)
-                        )
+
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        if (isEditMode && onDelete != null) {
+                            IconButton(
+                                onClick = { showDeleteConfirmDialog = true },
+                                modifier = Modifier.size(32.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Outlined.Delete,
+                                    contentDescription = "Delete deadline",
+                                    tint = Color(0xFFDC2626),
+                                    modifier = Modifier.size(20.dp)
+                                )
+                            }
+                            Spacer(modifier = Modifier.width(4.dp))
+                        }
+
+                        IconButton(
+                            onClick = onDismiss,
+                            modifier = Modifier.size(32.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Filled.Close,
+                                contentDescription = "Close",
+                                tint = TextSecondary,
+                                modifier = Modifier.size(18.dp)
+                            )
+                        }
                     }
                 }
 
@@ -237,7 +419,7 @@ fun QuickAddDialogScreen(
                         .padding(horizontal = 14.dp, vertical = 12.dp),
                     contentAlignment = Alignment.CenterStart
                 ) {
-                    if (title.isEmpty()) {
+                    if (textFieldValue.text.isEmpty()) {
                         Text(
                             text = "What needs to be done?",
                             color = TextTertiary,
@@ -245,10 +427,10 @@ fun QuickAddDialogScreen(
                         )
                     }
                     BasicTextField(
-                        value = title,
+                        value = textFieldValue,
                         onValueChange = {
-                            title = it
-                            if (it.isNotBlank()) isError = false
+                            textFieldValue = it
+                            if (it.text.isNotBlank()) isError = false
                         },
                         singleLine = true,
                         textStyle = TextStyle(
@@ -260,10 +442,10 @@ fun QuickAddDialogScreen(
                         keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
                         keyboardActions = KeyboardActions(
                             onDone = {
-                                if (title.isBlank()) {
+                                if (textFieldValue.text.isBlank()) {
                                     isError = true
                                 } else {
-                                    onSave(title, selectedSection)
+                                    onSave(textFieldValue.text, selectedSection)
                                 }
                             }
                         ),
@@ -380,10 +562,10 @@ fun QuickAddDialogScreen(
 
                     Button(
                         onClick = {
-                            if (title.isBlank()) {
+                            if (textFieldValue.text.isBlank()) {
                                 isError = true
                             } else {
-                                onSave(title, selectedSection)
+                                onSave(textFieldValue.text, selectedSection)
                             }
                         },
                         shape = RoundedCornerShape(12.dp),
@@ -394,7 +576,7 @@ fun QuickAddDialogScreen(
                         modifier = Modifier.height(44.dp)
                     ) {
                         Text(
-                            text = "Add Deadline",
+                            text = if (isEditMode) "Save Changes" else "Add Deadline",
                             fontWeight = FontWeight.Bold
                         )
                     }

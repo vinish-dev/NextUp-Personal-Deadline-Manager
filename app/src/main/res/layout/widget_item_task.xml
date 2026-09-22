@@ -3,6 +3,8 @@
     android:id="@+id/widget_task_item_root"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
+    android:clickable="true"
+    android:focusable="true"
     android:gravity="center_vertical"
     android:orientation="horizontal"
     android:paddingStart="6dp"

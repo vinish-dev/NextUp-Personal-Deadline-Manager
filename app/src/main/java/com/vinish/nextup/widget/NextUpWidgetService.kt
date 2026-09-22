@@ -156,8 +156,14 @@ class NextUpWidgetFactory(private val context: Context) : RemoteViewsService.Rem
                         setTextColor(R.id.tv_task_title, Color.parseColor("#1E2430"))
                     }
 
-                    // Tapping title also toggles task
-                    setOnClickFillInIntent(R.id.tv_task_title, dotIntent)
+                    // Tapping title or row opens edit popup
+                    val editIntent = Intent().apply {
+                        action = NextUpWidgetProvider.ACTION_EDIT_TASK
+                        putExtra(NextUpWidgetProvider.EXTRA_TASK_ID, item.id)
+                        putExtra(NextUpWidgetProvider.EXTRA_SECTION, item.section)
+                    }
+                    setOnClickFillInIntent(R.id.tv_task_title, editIntent)
+                    setOnClickFillInIntent(R.id.widget_task_item_root, editIntent)
                 }
             }
         }
