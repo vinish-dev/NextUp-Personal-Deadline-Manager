@@ -2,7 +2,10 @@ package com.vinish.nextup.ui.journal
 
 import android.widget.Toast
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -15,13 +18,18 @@ import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.outlined.Check
 import androidx.compose.material.icons.outlined.DeleteOutline
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -31,20 +39,22 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -59,8 +69,8 @@ import com.vinish.nextup.ui.theme.TextTertiary
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 import java.util.Locale
-import kotlinx.coroutines.launch
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DailyJournalScreen(
     date: LocalDate,
@@ -69,31 +79,65 @@ fun DailyJournalScreen(
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
-    val coroutineScope = rememberCoroutineScope()
 
     val journalEntryFlow = remember(date) { viewModel.getJournalEntry(date) }
     val journalEntry by journalEntryFlow.collectAsStateWithLifecycle(initialValue = null)
 
-    var content by remember { mutableStateOf("") }
+    var textFieldValue by remember { mutableStateOf(TextFieldValue("")) }
     var isInitialized by remember { mutableStateOf(false) }
     var showDeleteConfirmDialog by remember { mutableStateOf(false) }
+    var showInsertBottomSheet by remember { mutableStateOf(false) }
+
+    val insertSheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
     // Initialize content once loaded
     LaunchedEffect(journalEntry) {
         if (!isInitialized && journalEntry != null) {
-            content = journalEntry?.content.orEmpty()
+            val initial = journalEntry?.content.orEmpty()
+            textFieldValue = TextFieldValue(
+                text = initial,
+                selection = TextRange(initial.length)
+            )
             isInitialized = true
         }
     }
 
     // Auto-save on exit
     val saveAndExit = {
-        viewModel.saveJournalEntry(date, content)
+        viewModel.saveJournalEntry(date, textFieldValue.text)
         onBackClick()
     }
 
     BackHandler {
         saveAndExit()
+    }
+
+    // Insert heading function at cursor position
+    fun insertHeadingTemplate(headingTitle: String) {
+        val currentText = textFieldValue.text
+        val selection = textFieldValue.selection
+
+        val start = selection.start.coerceIn(0, currentText.length)
+        val end = selection.end.coerceIn(0, currentText.length)
+
+        val prefix = currentText.take(start)
+        val suffix = currentText.drop(end)
+
+        val lead = when {
+            prefix.isEmpty() -> ""
+            prefix.endsWith("\n\n") -> ""
+            prefix.endsWith("\n") -> "\n"
+            else -> "\n\n"
+        }
+
+        val headingSnippet = "${lead}## $headingTitle\n\n"
+        val newText = prefix + headingSnippet + suffix
+        val newCursor = start + headingSnippet.length
+
+        textFieldValue = TextFieldValue(
+            text = newText,
+            selection = TextRange(newCursor)
+        )
     }
 
     val dayName = remember(date) {
@@ -103,10 +147,11 @@ fun DailyJournalScreen(
         date.format(DateTimeFormatter.ofPattern("d MMMM yyyy", Locale.ENGLISH))
     }
 
-    val wordCount = remember(content) {
-        if (content.isBlank()) 0 else content.trim().split("\\s+".toRegex()).size
+    val contentText = textFieldValue.text
+    val wordCount = remember(contentText) {
+        if (contentText.isBlank()) 0 else contentText.trim().split("\\s+".toRegex()).size
     }
-    val charCount = remember(content) { content.length }
+    val charCount = remember(contentText) { contentText.length }
 
     if (showDeleteConfirmDialog) {
         AlertDialog(
@@ -118,7 +163,7 @@ fun DailyJournalScreen(
                     onClick = {
                         showDeleteConfirmDialog = false
                         viewModel.deleteJournalEntry(date) {
-                            content = ""
+                            textFieldValue = TextFieldValue("")
                             Toast.makeText(context, "Journal entry deleted", Toast.LENGTH_SHORT).show()
                             onBackClick()
                         }
@@ -131,6 +176,16 @@ fun DailyJournalScreen(
                 TextButton(onClick = { showDeleteConfirmDialog = false }) {
                     Text("Cancel")
                 }
+            }
+        )
+    }
+
+    if (showInsertBottomSheet) {
+        JournalInsertBottomSheet(
+            sheetState = insertSheetState,
+            onDismissRequest = { showInsertBottomSheet = false },
+            onSelectHeading = { template ->
+                insertHeadingTemplate(template.title)
             }
         )
     }
@@ -162,7 +217,7 @@ fun DailyJournalScreen(
                         )
                     }
 
-                    // Top Header: Date + Day Name
+                    // Top Header: Day Name + Date
                     Column(
                         modifier = Modifier
                             .weight(1f)
@@ -190,7 +245,7 @@ fun DailyJournalScreen(
                         horizontalArrangement = Arrangement.spacedBy(4.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        if (content.isNotBlank()) {
+                        if (contentText.isNotBlank()) {
                             IconButton(
                                 onClick = { showDeleteConfirmDialog = true },
                                 modifier = Modifier.size(40.dp)
@@ -205,7 +260,7 @@ fun DailyJournalScreen(
 
                         IconButton(
                             onClick = {
-                                viewModel.saveJournalEntry(date, content) {
+                                viewModel.saveJournalEntry(date, contentText) {
                                     Toast.makeText(context, "Journal saved", Toast.LENGTH_SHORT).show()
                                 }
                             },
@@ -227,26 +282,99 @@ fun DailyJournalScreen(
         bottomBar = {
             Surface(
                 color = SurfaceWhite,
-                tonalElevation = 2.dp
+                tonalElevation = 2.dp,
+                shadowElevation = 4.dp
             ) {
-                Row(
+                Column(
                     modifier = Modifier
                         .fillMaxWidth()
                         .imePadding()
-                        .padding(horizontal = 20.dp, vertical = 10.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text(
-                        text = if (journalEntry != null) "Saved" else "Draft",
-                        fontSize = 12.sp,
-                        color = TextTertiary
-                    )
-                    Text(
-                        text = "$wordCount words • $charCount characters",
-                        fontSize = 12.sp,
-                        color = TextTertiary
-                    )
+                    // Quick Insert Heading Bar
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 12.dp, vertical = 8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        // '+' button opening the full insert menu
+                        Surface(
+                            onClick = { showInsertBottomSheet = true },
+                            shape = RoundedCornerShape(10.dp),
+                            color = MaterialTheme.colorScheme.primaryContainer,
+                            modifier = Modifier.size(36.dp)
+                        ) {
+                            Box(contentAlignment = Alignment.Center) {
+                                Icon(
+                                    imageVector = Icons.Default.Add,
+                                    contentDescription = "Insert heading",
+                                    tint = MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier.size(20.dp)
+                                )
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.width(8.dp))
+
+                        // Scrollable quick heading chips
+                        Row(
+                            modifier = Modifier
+                                .weight(1f)
+                                .horizontalScroll(rememberScrollState()),
+                            horizontalArrangement = Arrangement.spacedBy(6.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            JournalHeadingTemplate.entries.forEach { template ->
+                                Surface(
+                                    onClick = { insertHeadingTemplate(template.title) },
+                                    shape = RoundedCornerShape(8.dp),
+                                    color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                                    border = BorderStroke(1.dp, BorderLight)
+                                ) {
+                                    Row(
+                                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Icon(
+                                            imageVector = template.icon,
+                                            contentDescription = null,
+                                            tint = MaterialTheme.colorScheme.primary,
+                                            modifier = Modifier.size(14.dp)
+                                        )
+                                        Spacer(modifier = Modifier.width(5.dp))
+                                        Text(
+                                            text = template.title,
+                                            fontSize = 12.sp,
+                                            fontWeight = FontWeight.Medium,
+                                            color = TextPrimary
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    HorizontalDivider(color = BorderLight.copy(alpha = 0.5f), thickness = 0.5.dp)
+
+                    // Word count and saved status
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp, vertical = 6.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = if (journalEntry != null) "Saved" else "Draft",
+                            fontSize = 11.sp,
+                            color = TextTertiary
+                        )
+                        Text(
+                            text = "$wordCount words • $charCount characters",
+                            fontSize = 11.sp,
+                            color = TextTertiary
+                        )
+                    }
                 }
             }
         }
@@ -262,14 +390,14 @@ fun DailyJournalScreen(
                     .fillMaxSize()
                     .clip(RoundedCornerShape(16.dp))
                     .background(SurfaceWhite)
-                    .padding(8.dp)
+                    .padding(12.dp)
             ) {
                 TextField(
-                    value = content,
-                    onValueChange = { content = it },
+                    value = textFieldValue,
+                    onValueChange = { textFieldValue = it },
                     placeholder = {
                         Text(
-                            text = "Write about your day...\n\nWhat happened today? Notes, thoughts, reflections, or highlights.",
+                            text = "Write about your day...",
                             color = TextTertiary,
                             fontSize = 16.sp,
                             lineHeight = 24.sp
