@@ -60,6 +60,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.vinish.nextup.ui.DeadlineViewModel
+import com.vinish.nextup.ui.theme.AlertBannerBg
+import com.vinish.nextup.ui.theme.AlertBannerText
 import com.vinish.nextup.ui.theme.BorderLight
 import com.vinish.nextup.ui.theme.PriorityHighText
 import com.vinish.nextup.ui.theme.SurfaceWhite
@@ -252,7 +254,7 @@ fun DailyJournalScreen(
                             ) {
                                 Icon(
                                     imageVector = Icons.Outlined.DeleteOutline,
-                                    tint = TextSecondary,
+                                    tint = AlertBannerText,
                                     contentDescription = "Delete Journal Entry"
                                 )
                             }
@@ -267,7 +269,6 @@ fun DailyJournalScreen(
                             modifier = Modifier
                                 .size(40.dp)
                                 .clip(CircleShape)
-                                .background(MaterialTheme.colorScheme.primaryContainer)
                         ) {
                             Icon(
                                 imageVector = Icons.Outlined.Check,
@@ -392,9 +393,18 @@ fun DailyJournalScreen(
                     .background(SurfaceWhite)
                     .padding(12.dp)
             ) {
+                val primaryColor = MaterialTheme.colorScheme.primary
+                val headingVisualTransformation = remember(primaryColor) {
+                    MarkdownHeadingVisualTransformation(
+                        primaryColor = primaryColor,
+                        headingColor = TextPrimary
+                    )
+                }
+
                 TextField(
                     value = textFieldValue,
                     onValueChange = { textFieldValue = it },
+                    visualTransformation = headingVisualTransformation,
                     placeholder = {
                         Text(
                             text = "Write about your day...",
