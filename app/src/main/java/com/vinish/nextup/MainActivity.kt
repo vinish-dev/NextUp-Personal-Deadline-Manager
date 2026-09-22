@@ -24,8 +24,13 @@ import com.vinish.nextup.ui.theme.NextUpTheme
 
 class MainActivity : ComponentActivity() {
 
+    companion object {
+        const val EXTRA_OPEN_EDIT = "extra_open_edit"
+    }
+
     private val viewModel: DeadlineViewModel by viewModels()
     private var targetDeadlineId by mutableStateOf<Long?>(null)
+    private var openInEditMode by mutableStateOf(false)
 
     private val requestNotificationPermissionLauncher =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { _ ->
@@ -52,7 +57,11 @@ class MainActivity : ComponentActivity() {
             val themeName by viewModel.appTheme.collectAsStateWithLifecycle()
             val currentTheme = if (themeName == "blue") AppTheme.BLUE else AppTheme.GREEN
             NextUpTheme(appTheme = currentTheme) {
-                App(initialDeadlineId = targetDeadlineId, viewModel = viewModel)
+                App(
+                    initialDeadlineId = targetDeadlineId,
+                    openInEditMode = openInEditMode,
+                    viewModel = viewModel
+                )
             }
         }
     }
@@ -67,6 +76,7 @@ class MainActivity : ComponentActivity() {
         val deadlineId = intent?.getLongExtra(NotificationHelper.EXTRA_DEADLINE_ID, -1L) ?: -1L
         if (deadlineId != -1L) {
             targetDeadlineId = deadlineId
+            openInEditMode = intent?.getBooleanExtra(EXTRA_OPEN_EDIT, false) ?: false
         }
     }
 

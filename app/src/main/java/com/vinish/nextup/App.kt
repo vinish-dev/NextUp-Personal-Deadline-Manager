@@ -14,13 +14,18 @@ import com.vinish.nextup.ui.DeadlineViewModel
 fun App(
     modifier: Modifier = Modifier,
     initialDeadlineId: Long? = null,
+    openInEditMode: Boolean = false,
     viewModel: DeadlineViewModel = viewModel()
 ) {
     val navController = rememberNavController()
 
-    LaunchedEffect(initialDeadlineId) {
+    LaunchedEffect(initialDeadlineId, openInEditMode) {
         if (initialDeadlineId != null && initialDeadlineId > 0) {
-            navController.navigate(Screen.Details.createRoute(initialDeadlineId))
+            if (openInEditMode) {
+                navController.navigate(Screen.Edit.createRoute(initialDeadlineId))
+            } else {
+                navController.navigate(Screen.Details.createRoute(initialDeadlineId))
+            }
         }
     }
 

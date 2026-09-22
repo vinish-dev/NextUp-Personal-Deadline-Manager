@@ -1,5 +1,6 @@
 package com.vinish.nextup.ui.quickadd
 
+import android.content.Intent
 import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.ComponentActivity
@@ -29,6 +30,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.outlined.Delete
+import androidx.compose.material.icons.outlined.OpenInNew
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -61,12 +63,14 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.vinish.nextup.MainActivity
 import com.vinish.nextup.NextUpApplication
 import com.vinish.nextup.model.Category
 import com.vinish.nextup.model.Deadline
 import com.vinish.nextup.model.Priority
 import com.vinish.nextup.model.Reminder
 import com.vinish.nextup.model.toTitleCase
+import com.vinish.nextup.notification.NotificationHelper
 import com.vinish.nextup.ui.theme.BorderLight
 import com.vinish.nextup.ui.theme.FabGreen
 import com.vinish.nextup.ui.theme.NextUpTheme
@@ -140,6 +144,17 @@ class QuickAddActivity : ComponentActivity() {
                         },
                         onDelete = if (existingDeadline != null) {
                             { deleteDeadlineAndFinish(existingDeadline!!) }
+                        } else null,
+                        onOpenInApp = if (existingDeadline != null) {
+                            {
+                                val mainIntent = Intent(this@QuickAddActivity, MainActivity::class.java).apply {
+                                    flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
+                                    putExtra(NotificationHelper.EXTRA_DEADLINE_ID, existingDeadline!!.id)
+                                    putExtra(MainActivity.EXTRA_OPEN_EDIT, true)
+                                }
+                                startActivity(mainIntent)
+                                finish()
+                            }
                         } else null
                     )
                 }
@@ -256,7 +271,8 @@ fun QuickAddDialogScreen(
     isEditMode: Boolean = false,
     onDismiss: () -> Unit,
     onSave: (String, String) -> Unit,
-    onDelete: (() -> Unit)? = null
+    onDelete: (() -> Unit)? = null,
+    onOpenInApp: (() -> Unit)? = null
 ) {
     var textFieldValue by remember(initialTitle) {
         mutableStateOf(TextFieldValue(initialTitle, TextRange(initialTitle.length)))
@@ -374,6 +390,21 @@ fun QuickAddDialogScreen(
                     )
 
                     Row(verticalAlignment = Alignment.CenterVertically) {
+                        if (isEditMode && onOpenInApp != null) {
+                            IconButton(
+                                onClick = onOpenInApp,
+                                modifier = Modifier.size(32.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Outlined.OpenInNew,
+                                    contentDescription = "Open in app edit mode",
+                                    tint = TextSecondary,
+                                    modifier = Modifier.size(20.dp)
+                                )
+                            }
+                            Spacer(modifier = Modifier.width(4.dp))
+                        }
+
                         if (isEditMode && onDelete != null) {
                             IconButton(
                                 onClick = { showDeleteConfirmDialog = true },
