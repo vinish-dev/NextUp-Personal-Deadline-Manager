@@ -43,6 +43,7 @@ fun MainPagerScreen(
     val useSampleData by viewModel.useSampleData.collectAsStateWithLifecycle()
     val appTheme by viewModel.appTheme.collectAsStateWithLifecycle()
     val defaultReminderTime by viewModel.defaultReminderTime.collectAsStateWithLifecycle()
+    val datesWithJournal by viewModel.datesWithJournal.collectAsStateWithLifecycle()
 
     val pagerState = rememberPagerState(initialPage = initialPage) { 5 }
     val coroutineScope = rememberCoroutineScope()
@@ -196,7 +197,12 @@ fun MainPagerScreen(
                     },
                     onEditDeadline = { deadline ->
                         navController.navigate(Screen.Edit.createRoute(deadline.id))
-                    }
+                    },
+                    onOpenJournal = { date ->
+                        navController.navigate(Screen.DailyJournal.createRoute(date))
+                    },
+                    datesWithJournal = remember(datesWithJournal) { datesWithJournal.toSet() },
+                    getJournalEntry = { date -> viewModel.getJournalEntry(date) }
                 )
 
                 // Page 4: Profile

@@ -27,8 +27,11 @@ import com.vinish.nextup.model.Deadline
 import com.vinish.nextup.model.Priority
 import com.vinish.nextup.ui.theme.TextPrimary
 import com.vinish.nextup.ui.theme.TextTertiary
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.combinedClickable
 import java.time.LocalDate
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun CalendarDayCell(
     date: LocalDate,
@@ -37,7 +40,9 @@ fun CalendarDayCell(
     isCurrentMonth: Boolean,
     deadlines: List<Deadline>,
     onDateClick: (LocalDate) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    onDateDoubleClick: ((LocalDate) -> Unit)? = null,
+    hasJournalEntry: Boolean = false
 ) {
     val primaryColor = androidx.compose.material3.MaterialTheme.colorScheme.primary
     val primaryContainer = androidx.compose.material3.MaterialTheme.colorScheme.primaryContainer
@@ -55,11 +60,20 @@ fun CalendarDayCell(
         else -> TextPrimary
     }
 
+    val cellClickModifier = if (onDateDoubleClick != null) {
+        Modifier.combinedClickable(
+            onClick = { onDateClick(date) },
+            onDoubleClick = { onDateDoubleClick(date) }
+        )
+    } else {
+        Modifier.clickable { onDateClick(date) }
+    }
+
     Column(
         modifier = modifier
             .aspectRatio(1f)
             .clip(CircleShape)
-            .clickable { onDateClick(date) }
+            .then(cellClickModifier)
             .padding(2.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
@@ -82,13 +96,14 @@ fun CalendarDayCell(
                     color = textColor
                 )
 
-                if (deadlines.isNotEmpty()) {
+                if (deadlines.isNotEmpty() || hasJournalEntry) {
                     Spacer(modifier = Modifier.height(2.dp))
                     Row(
                         horizontalArrangement = Arrangement.spacedBy(2.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        val displayDots = deadlines.take(3)
+                        val maxDeadlineDots = if (hasJournalEntry) 2 else 3
+                        val displayDots = deadlines.take(maxDeadlineDots)
                         displayDots.forEach { deadline ->
                             val dotColor = if (isSelected) {
                                 Color.White.copy(alpha = 0.9f)
@@ -100,6 +115,14 @@ fun CalendarDayCell(
                                     .size(4.dp)
                                     .clip(CircleShape)
                                     .background(dotColor)
+                            )
+                        }
+                        if (hasJournalEntry) {
+                            Box(
+                                modifier = Modifier
+                                    .size(4.dp)
+                                    .clip(CircleShape)
+                                    .background(if (isSelected) Color.White.copy(alpha = 0.9f) else primaryColor)
                             )
                         }
                     }

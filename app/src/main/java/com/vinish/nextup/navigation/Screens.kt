@@ -78,6 +78,14 @@ sealed class Screen(
     ) {
         fun createRoute(deadlineId: Long): String = "edit/$deadlineId"
     }
+
+    data object DailyJournal : Screen(
+        "journal/{date}",
+        "Journal",
+        Icons.Outlined.CalendarMonth
+    ) {
+        fun createRoute(date: java.time.LocalDate): String = "journal/$date"
+    }
 }
 
 val bottomNavItems = listOf(

@@ -4,16 +4,20 @@ import com.vinish.nextup.data.local.CategoryDao
 import com.vinish.nextup.data.local.CategoryEntity
 import com.vinish.nextup.data.local.DeadlineDao
 import com.vinish.nextup.data.local.DeadlineEntity
+import com.vinish.nextup.data.local.JournalDao
+import com.vinish.nextup.data.local.JournalEntryEntity
 import com.vinish.nextup.data.sample.SampleDeadlines
 import com.vinish.nextup.model.Category
 import com.vinish.nextup.model.Deadline
+import java.time.LocalDate
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 
 class DeadlineRepository(
     private val deadlineDao: DeadlineDao,
-    private val categoryDao: CategoryDao? = null
+    private val categoryDao: CategoryDao? = null,
+    private val journalDao: JournalDao? = null
 ) {
 
     val allDeadlines: Flow<List<Deadline>> = deadlineDao.getAllDeadlines().map { list ->
@@ -69,4 +73,39 @@ class DeadlineRepository(
             deadlineDao.insertDeadlines(entities)
         }
     }
+
+    // Journal operations
+    fun getJournalEntry(date: LocalDate): Flow<JournalEntryEntity?> {
+        return journalDao?.getJournalEntry(date.toString()) ?: flowOf(null)
+    }
+
+    suspend fun getJournalEntryOnce(date: LocalDate): JournalEntryEntity? {
+        return journalDao?.getJournalEntryOnce(date.toString())
+    }
+
+    suspend fun saveJournalEntry(date: LocalDate, content: String) {
+        val trimmed = content.trim()
+        if (trimmed.isEmpty()) {
+            journalDao?.deleteJournalEntry(date.toString())
+        } else {
+            journalDao?.insertOrUpdate(JournalEntryEntity.from(date, content))
+        }
+    }
+
+    suspend fun deleteJournalEntry(date: LocalDate) {
+        journalDao?.deleteJournalEntry(date.toString())
+    }
+
+    fun getDatesWithJournalEntries(): Flow<List<LocalDate>> {
+        return journalDao?.getDatesWithJournalEntries()?.map { list ->
+            list.mapNotNull {
+                try {
+                    LocalDate.parse(it)
+                } catch (_: Exception) {
+                    null
+                }
+            }
+        } ?: flowOf(emptyList())
+    }
 }
+

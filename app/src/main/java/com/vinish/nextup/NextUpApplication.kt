@@ -8,7 +8,7 @@ import com.vinish.nextup.notification.NotificationHelper
 
 class NextUpApplication : Application() {
     val database by lazy { AppDatabase.getDatabase(this) }
-    val repository by lazy { DeadlineRepository(database.deadlineDao(), database.categoryDao()) }
+    val repository by lazy { DeadlineRepository(database.deadlineDao(), database.categoryDao(), database.journalDao()) }
     val notificationScheduler by lazy { DeadlineNotificationScheduler(this) }
 
     override fun onCreate() {

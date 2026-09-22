@@ -31,6 +31,11 @@ import com.vinish.nextup.model.Deadline
 import com.vinish.nextup.ui.calendar.components.CalendarHeader
 import com.vinish.nextup.ui.calendar.components.CalendarMonthView
 import com.vinish.nextup.ui.calendar.components.CalendarScheduleSection
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.vinish.nextup.data.local.JournalEntryEntity
+import com.vinish.nextup.ui.calendar.components.CalendarJournalCard
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOf
 import java.time.LocalDate
 import java.time.YearMonth
 
@@ -41,10 +46,16 @@ fun CalendarScreen(
     onDeadlineClick: ((Deadline) -> Unit)? = null,
     onToggleComplete: ((Deadline) -> Unit)? = null,
     onAddDeadlineClick: (LocalDate) -> Unit = {},
-    onEditDeadline: ((Deadline) -> Unit)? = null
+    onEditDeadline: ((Deadline) -> Unit)? = null,
+    onOpenJournal: (LocalDate) -> Unit = {},
+    datesWithJournal: Set<LocalDate> = emptySet(),
+    getJournalEntry: (LocalDate) -> Flow<JournalEntryEntity?> = { flowOf(null) }
 ) {
     var selectedDate by remember { mutableStateOf(LocalDate.now()) }
     var currentMonth by remember { mutableStateOf(YearMonth.from(selectedDate)) }
+
+    val journalEntryFlow = remember(selectedDate) { getJournalEntry(selectedDate) }
+    val selectedJournalEntry by journalEntryFlow.collectAsStateWithLifecycle(initialValue = null)
 
     val deadlinesByDate by remember(deadlines) {
         derivedStateOf { deadlines.groupBy { it.dueDate } }
@@ -94,7 +105,18 @@ fun CalendarScreen(
                         if (YearMonth.from(date) != currentMonth) {
                             currentMonth = YearMonth.from(date)
                         }
-                    }
+                    },
+                    onDateDoubleClick = onOpenJournal,
+                    datesWithJournal = datesWithJournal
+                )
+            }
+
+            // Daily Journal Card for the selected date
+            item {
+                CalendarJournalCard(
+                    date = selectedDate,
+                    journalEntry = selectedJournalEntry,
+                    onOpenJournal = onOpenJournal
                 )
             }
 

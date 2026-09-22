@@ -33,7 +33,9 @@ fun CalendarMonthView(
     showHeader: Boolean = false,
     onPreviousMonthClick: () -> Unit = {},
     onNextMonthClick: () -> Unit = {},
-    onTodayClick: () -> Unit = {}
+    onTodayClick: () -> Unit = {},
+    onDateDoubleClick: ((LocalDate) -> Unit)? = null,
+    datesWithJournal: Set<LocalDate> = emptySet()
 ) {
     val today = remember { LocalDate.now() }
     val firstOfMonth = remember(currentMonth) { currentMonth.atDay(1) }
@@ -93,6 +95,8 @@ fun CalendarMonthView(
                                 isCurrentMonth = isCurrentMonth,
                                 deadlines = deadlines,
                                 onDateClick = onDateClick,
+                                onDateDoubleClick = onDateDoubleClick,
+                                hasJournalEntry = cellDate in datesWithJournal,
                                 modifier = Modifier.weight(1f)
                             )
                         }

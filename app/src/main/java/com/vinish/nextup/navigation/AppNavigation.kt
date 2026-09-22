@@ -15,6 +15,7 @@ import com.vinish.nextup.model.Deadline
 import com.vinish.nextup.ui.DeadlineViewModel
 import com.vinish.nextup.ui.add.AddDeadlineScreen
 import com.vinish.nextup.ui.details.DeadlineDetailsScreen
+import com.vinish.nextup.ui.journal.DailyJournalScreen
 import com.vinish.nextup.ui.main.MainPagerScreen
 import java.time.LocalDate
 
@@ -177,6 +178,30 @@ fun AppNavigation(
                     }
                 )
             }
+        }
+
+        composable(
+            route = Screen.DailyJournal.route,
+            arguments = listOf(
+                navArgument("date") {
+                    type = NavType.StringType
+                }
+            )
+        ) { backStackEntry ->
+            val dateStr = backStackEntry.arguments?.getString("date") ?: return@composable
+            val date = try {
+                LocalDate.parse(dateStr)
+            } catch (_: Exception) {
+                LocalDate.now()
+            }
+            DailyJournalScreen(
+                date = date,
+                viewModel = viewModel,
+                onBackClick = {
+                    navController.popBackStack()
+                },
+                modifier = modifier
+            )
         }
     }
 }
