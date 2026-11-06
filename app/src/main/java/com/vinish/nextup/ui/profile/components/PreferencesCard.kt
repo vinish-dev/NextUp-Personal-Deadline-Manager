@@ -17,6 +17,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowRight
 import android.app.TimePickerDialog
 import androidx.compose.material.icons.outlined.AccessTime
+import androidx.compose.material.icons.outlined.Category
 import androidx.compose.material.icons.outlined.Notifications
 import androidx.compose.material.icons.outlined.Style
 import androidx.compose.material.icons.outlined.Storage
@@ -63,7 +64,8 @@ fun PreferencesCard(
     onThemeChange: ((String) -> Unit)? = null,
     defaultReminderTime: LocalTime = LocalTime.of(7, 0),
     onDefaultReminderTimeChange: ((LocalTime) -> Unit)? = null,
-    onRemindersClick: () -> Unit = {}
+    onRemindersClick: () -> Unit = {},
+    onCategoriesClick: (() -> Unit)? = null
 ) {
     val primaryColor = androidx.compose.material3.MaterialTheme.colorScheme.primary
 
@@ -168,6 +170,62 @@ fun PreferencesCard(
                     tint = TextTertiary,
                     modifier = Modifier.size(18.dp)
                 )
+            }
+
+            if (onCategoriesClick != null) {
+                Spacer(modifier = Modifier.height(12.dp))
+                HorizontalDivider(thickness = 1.dp, color = BorderLight)
+                Spacer(modifier = Modifier.height(12.dp))
+
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(12.dp))
+                        .clickable(onClick = onCategoriesClick)
+                        .padding(vertical = 4.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Box(
+                        modifier = Modifier
+                            .size(38.dp)
+                            .clip(RoundedCornerShape(10.dp))
+                            .background(SurfaceSubtle),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Outlined.Category,
+                            contentDescription = null,
+                            tint = TextPrimary,
+                            modifier = Modifier.size(20.dp)
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.width(14.dp))
+
+                    Column(
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Text(
+                            text = "Manage Categories",
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            color = TextPrimary
+                        )
+                        Spacer(modifier = Modifier.height(2.dp))
+                        Text(
+                            text = "View and customize task categories",
+                            fontSize = 12.sp,
+                            color = TextSecondary
+                        )
+                    }
+
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Rounded.KeyboardArrowRight,
+                        contentDescription = null,
+                        tint = TextTertiary,
+                        modifier = Modifier.size(18.dp)
+                    )
+                }
             }
 
             Spacer(modifier = Modifier.height(12.dp))

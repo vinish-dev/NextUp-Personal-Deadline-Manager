@@ -22,6 +22,7 @@ import com.vinish.nextup.ui.categories.CategoriesScreen
 import com.vinish.nextup.ui.components.NextUpBottomNavigation
 import com.vinish.nextup.ui.home.HomeScreen
 import com.vinish.nextup.ui.home.model.OverviewType
+import com.vinish.nextup.ui.pages.PagesScreen
 import com.vinish.nextup.ui.profile.ProfileScreen
 import kotlinx.coroutines.launch
 
@@ -44,6 +45,7 @@ fun MainPagerScreen(
     val appTheme by viewModel.appTheme.collectAsStateWithLifecycle()
     val defaultReminderTime by viewModel.defaultReminderTime.collectAsStateWithLifecycle()
     val datesWithJournal by viewModel.datesWithJournal.collectAsStateWithLifecycle()
+    val allJournalEntries by viewModel.allJournalEntries.collectAsStateWithLifecycle()
 
     val pagerState = rememberPagerState(initialPage = initialPage) { 5 }
     val coroutineScope = rememberCoroutineScope()
@@ -64,7 +66,7 @@ fun MainPagerScreen(
             val currentRoute = when (pagerState.currentPage) {
                 0 -> Screen.Home.route
                 1 -> Screen.AllTasks.route
-                2 -> Screen.Categories.route
+                2 -> Screen.Pages.route
                 3 -> Screen.Calendar.route
                 4 -> Screen.Profile.route
                 else -> Screen.Home.route
@@ -84,7 +86,7 @@ fun MainPagerScreen(
                                 pagerState.animateScrollToPage(1)
                             }
                         }
-                        Screen.Categories.route -> {
+                        Screen.Pages.route -> {
                             coroutineScope.launch {
                                 pagerState.animateScrollToPage(2)
                             }
@@ -158,27 +160,18 @@ fun MainPagerScreen(
                     },
                     onEditDeadline = { deadline ->
                         navController.navigate(Screen.Edit.createRoute(deadline.id))
+                    },
+                    onManageCategoriesClick = {
+                        navController.navigate(Screen.Categories.route)
                     }
                 )
 
-                // Page 2: Category
-                2 -> CategoriesScreen(
+                // Page 2: Pages
+                2 -> PagesScreen(
                     modifier = Modifier.fillMaxSize(),
-                    deadlines = deadlines,
-                    showCompletedDeadlines = showCompletedInCategories,
-                    onBackClick = {
-                        coroutineScope.launch {
-                            pagerState.animateScrollToPage(0)
-                        }
-                    },
-                    onDeadlineClick = { deadline ->
-                        navController.navigate(Screen.Details.createRoute(deadline.id))
-                    },
-                    onToggleComplete = { deadline ->
-                        viewModel.toggleCompleted(deadline)
-                    },
-                    onAddDeadlineClick = {
-                        navController.navigate(Screen.Add.createRoute())
+                    entries = allJournalEntries,
+                    onOpenJournal = { date ->
+                        navController.navigate(Screen.DailyJournal.createRoute(date))
                     }
                 ) 
 
@@ -224,6 +217,9 @@ fun MainPagerScreen(
                     defaultReminderTime = defaultReminderTime,
                     onDefaultReminderTimeChange = { time ->
                         viewModel.setDefaultReminderTime(time)
+                    },
+                    onCategoriesClick = {
+                        navController.navigate(Screen.Categories.route)
                     }
                 )
             }

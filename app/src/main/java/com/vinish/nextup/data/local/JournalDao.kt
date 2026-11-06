@@ -23,4 +23,7 @@ interface JournalDao {
 
     @Query("SELECT date FROM journal_entries WHERE LENGTH(TRIM(content)) > 0")
     fun getDatesWithJournalEntries(): Flow<List<String>>
+
+    @Query("SELECT * FROM journal_entries WHERE LENGTH(TRIM(content)) > 0 ORDER BY date DESC")
+    fun getAllJournalEntries(): Flow<List<JournalEntryEntity>>
 }

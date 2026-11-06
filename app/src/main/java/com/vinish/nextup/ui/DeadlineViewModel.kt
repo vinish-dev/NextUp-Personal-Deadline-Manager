@@ -236,6 +236,12 @@ class DeadlineViewModel(application: Application) : AndroidViewModel(application
         initialValue = emptyList()
     )
 
+    val allJournalEntries: StateFlow<List<JournalEntryEntity>> = repository.getAllJournalEntries().stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5000),
+        initialValue = emptyList()
+    )
+
     fun getJournalEntry(date: LocalDate): Flow<JournalEntryEntity?> {
         return repository.getJournalEntry(date)
     }

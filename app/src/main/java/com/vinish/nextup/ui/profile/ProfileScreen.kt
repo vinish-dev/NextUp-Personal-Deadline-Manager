@@ -42,7 +42,8 @@ fun ProfileScreen(
     onMoreClick: () -> Unit = {},
     onUserCardClick: () -> Unit = {},
     onPriorityClick: ((Priority) -> Unit)? = null,
-    onRemindersClick: () -> Unit = {}
+    onRemindersClick: () -> Unit = {},
+    onCategoriesClick: (() -> Unit)? = null
 ) {
     val totalDeadlines = deadlines.size
     val completedDeadlines = remember(deadlines) { deadlines.count { it.isCompleted } }
@@ -113,6 +114,7 @@ fun ProfileScreen(
                 onThemeChange = onThemeChange,
                 defaultReminderTime = defaultReminderTime,
                 onDefaultReminderTimeChange = onDefaultReminderTimeChange,
+                onCategoriesClick = onCategoriesClick,
                 onRemindersClick = {
                     try {
                         val intent = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {

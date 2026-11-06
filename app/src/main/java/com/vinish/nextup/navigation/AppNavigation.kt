@@ -1,5 +1,6 @@
 package com.vinish.nextup.navigation
 
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -14,6 +15,7 @@ import androidx.navigation.navArgument
 import com.vinish.nextup.model.Deadline
 import com.vinish.nextup.ui.DeadlineViewModel
 import com.vinish.nextup.ui.add.AddDeadlineScreen
+import com.vinish.nextup.ui.categories.CategoriesScreen
 import com.vinish.nextup.ui.details.DeadlineDetailsScreen
 import com.vinish.nextup.ui.journal.DailyJournalScreen
 import com.vinish.nextup.ui.main.MainPagerScreen
@@ -49,12 +51,31 @@ fun AppNavigation(
             )
         }
 
-        composable(Screen.Categories.route) {
+        composable(Screen.Pages.route) {
             MainPagerScreen(
                 navController = navController,
                 viewModel = viewModel,
                 modifier = modifier,
                 initialPage = 2
+            )
+        }
+
+        composable(Screen.Categories.route) {
+            val showCompletedInCategories by viewModel.showCompletedInCategories.collectAsStateWithLifecycle()
+            CategoriesScreen(
+                modifier = modifier.fillMaxSize(),
+                deadlines = deadlines,
+                showCompletedDeadlines = showCompletedInCategories,
+                onBackClick = { navController.popBackStack() },
+                onDeadlineClick = { deadline ->
+                    navController.navigate(Screen.Details.createRoute(deadline.id))
+                },
+                onToggleComplete = { deadline ->
+                    viewModel.toggleCompleted(deadline)
+                },
+                onAddDeadlineClick = {
+                    navController.navigate(Screen.Add.createRoute())
+                }
             )
         }
 

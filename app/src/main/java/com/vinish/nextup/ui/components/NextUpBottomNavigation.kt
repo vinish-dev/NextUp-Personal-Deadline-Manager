@@ -5,7 +5,9 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Article
 import androidx.compose.material.icons.automirrored.filled.FormatListBulleted
+import androidx.compose.material.icons.automirrored.outlined.Article
 import androidx.compose.material.icons.automirrored.outlined.FormatListBulleted
 import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.Category
@@ -103,19 +105,19 @@ fun NextUpBottomNavigation(
         )
 
         NavigationBarItem(
-            selected = currentRoute == "categories",
-            onClick = { onItemClick("categories") },
+            selected = currentRoute == "pages",
+            onClick = { onItemClick("pages") },
             icon = {
                 Icon(
-                    imageVector = if (currentRoute == "categories") Icons.Filled.Category else Icons.Outlined.Category,
-                    contentDescription = "Category"
+                    imageVector = if (currentRoute == "pages") Icons.AutoMirrored.Filled.Article else Icons.AutoMirrored.Outlined.Article,
+                    contentDescription = "Pages"
                 )
             },
             label = {
                 Text(
-                    text = "Category",
+                    text = "Pages",
                     fontSize = 12.sp,
-                    fontWeight = if (currentRoute == "categories") FontWeight.Bold else FontWeight.Normal
+                    fontWeight = if (currentRoute == "pages") FontWeight.Bold else FontWeight.Normal
                 )
             },
             colors = navItemStyle

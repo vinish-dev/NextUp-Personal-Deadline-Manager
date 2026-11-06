@@ -107,5 +107,9 @@ class DeadlineRepository(
             }
         } ?: flowOf(emptyList())
     }
+
+    fun getAllJournalEntries(): Flow<List<JournalEntryEntity>> {
+        return journalDao?.getAllJournalEntries() ?: flowOf(emptyList())
+    }
 }
 
