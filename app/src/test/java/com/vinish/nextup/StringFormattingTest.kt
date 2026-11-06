@@ -2,7 +2,9 @@ package com.vinish.nextup
 
 import com.vinish.nextup.model.toSentenceCase
 import com.vinish.nextup.model.toTitleCase
+import com.vinish.nextup.ui.quickadd.parseQuickAddInput
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertNull
 import org.junit.Test
 
 class StringFormattingTest {
@@ -31,5 +33,38 @@ class StringFormattingTest {
             "Already Capitalized Sentence.",
             "Already Capitalized Sentence.".toSentenceCase()
         )
+    }
+
+    @Test
+    fun `parseQuickAddInput extracts first line as title and remaining lines as description`() {
+        val input = """
+            Complete DBMS assignment
+            Cover normalization, transaction management and indexing. Refer to Module 3 notes.
+        """.trimIndent()
+        val (title, description) = parseQuickAddInput(input)
+        assertEquals("Complete DBMS assignment", title)
+        assertEquals("Cover normalization, transaction management and indexing. Refer to Module 3 notes.", description)
+    }
+
+    @Test
+    fun `parseQuickAddInput handles single line without description`() {
+        val (title, description) = parseQuickAddInput("Complete DBMS assignment")
+        assertEquals("Complete DBMS assignment", title)
+        assertNull(description)
+    }
+
+    @Test
+    fun `parseQuickAddInput handles single line with trailing newline without description`() {
+        val (title, description) = parseQuickAddInput("Complete DBMS assignment\n")
+        assertEquals("Complete DBMS assignment", title)
+        assertNull(description)
+    }
+
+    @Test
+    fun `parseQuickAddInput handles multiple description lines preserving structure`() {
+        val input = "Meeting with team\n1. Discuss roadmap\n2. Review backlog"
+        val (title, description) = parseQuickAddInput(input)
+        assertEquals("Meeting with team", title)
+        assertEquals("1. Discuss roadmap\n2. Review backlog", description)
     }
 }

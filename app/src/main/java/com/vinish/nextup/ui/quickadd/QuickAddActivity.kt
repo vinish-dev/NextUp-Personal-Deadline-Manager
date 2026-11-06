@@ -59,11 +59,17 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardCapitalization
+import androidx.compose.ui.text.input.OffsetMapping
 import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.text.input.TransformedText
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.PopupProperties
@@ -73,6 +79,7 @@ import com.vinish.nextup.model.Category
 import com.vinish.nextup.model.Deadline
 import com.vinish.nextup.model.Priority
 import com.vinish.nextup.model.Reminder
+import com.vinish.nextup.model.toSentenceCase
 import com.vinish.nextup.model.toTitleCase
 import com.vinish.nextup.notification.NotificationHelper
 import com.vinish.nextup.ui.theme.BorderLight
@@ -94,6 +101,61 @@ import java.time.LocalTime
 import java.time.temporal.TemporalAdjusters
 import kotlin.time.Duration.Companion.milliseconds
 
+fun parseQuickAddInput(rawInput: String): Pair<String, String?> {
+    val lines = rawInput.lines()
+    val title = lines.firstOrNull()?.trim().orEmpty()
+    val description = if (lines.size > 1) {
+        val remaining = lines.drop(1).joinToString("\n").trim()
+        remaining.ifEmpty { null }
+    } else {
+        null
+    }
+    return Pair(title, description)
+}
+
+object QuickAddVisualTransformation : VisualTransformation {
+    override fun filter(text: AnnotatedString): TransformedText {
+        val rawText = text.text
+        val newlineIndex = rawText.indexOf('\n')
+
+        val builder = AnnotatedString.Builder()
+        if (newlineIndex == -1) {
+            builder.append(rawText)
+            builder.addStyle(
+                SpanStyle(
+                    fontWeight = FontWeight.SemiBold,
+                    fontSize = 15.5.sp,
+                    color = TextPrimary
+                ),
+                0,
+                rawText.length
+            )
+        } else {
+            builder.append(rawText)
+            builder.addStyle(
+                SpanStyle(
+                    fontWeight = FontWeight.SemiBold,
+                    fontSize = 15.5.sp,
+                    color = TextPrimary
+                ),
+                0,
+                newlineIndex
+            )
+            builder.addStyle(
+                SpanStyle(
+                    fontWeight = FontWeight.Normal,
+                    fontSize = 13.5.sp,
+                    color = TextSecondary
+                ),
+                newlineIndex + 1,
+                rawText.length
+            )
+        }
+
+        return TransformedText(builder.toAnnotatedString(), OffsetMapping.Identity)
+    }
+}
+
 class QuickAddActivity : ComponentActivity() {
 
     companion object {
@@ -111,7 +173,7 @@ class QuickAddActivity : ComponentActivity() {
         setContent {
             NextUpTheme {
                 var existingDeadline by remember { mutableStateOf<Deadline?>(null) }
-                var initialTitle by remember { mutableStateOf("") }
+                var initialInput by remember { mutableStateOf("") }
                 var initialCategory by remember { mutableStateOf(Category.OTHER) }
                 var initialSection by remember {
                     mutableStateOf(initialSectionFromIntent ?: NextUpWidgetProvider.SECTION_TODAY)
@@ -126,7 +188,11 @@ class QuickAddActivity : ComponentActivity() {
                         }
                         if (deadline != null) {
                             existingDeadline = deadline
-                            initialTitle = deadline.title
+                            initialInput = if (deadline.description.isNullOrBlank()) {
+                                deadline.title
+                            } else {
+                                "${deadline.title}\n${deadline.description}"
+                            }
                             initialCategory = deadline.category
                             initialSection = initialSectionFromIntent ?: getSectionForDeadline(deadline.dueDate, deadline.dueTime)
                         }
@@ -136,17 +202,17 @@ class QuickAddActivity : ComponentActivity() {
 
                 if (isReady) {
                     QuickAddDialogScreen(
-                        initialTitle = initialTitle,
+                        initialInput = initialInput,
                         initialSection = initialSection,
                         initialCategory = initialCategory,
                         isEditMode = taskId != -1L && existingDeadline != null,
                         onDismiss = { finish() },
-                        onSave = { title, section, category ->
+                        onSave = { title, description, section, category ->
                             val currentDeadline = existingDeadline
                             if (currentDeadline != null) {
-                                updateDeadlineAndFinish(currentDeadline, title, section, category)
+                                updateDeadlineAndFinish(currentDeadline, title, description, section, category)
                             } else {
-                                saveDeadlineAndFinish(title, section, category)
+                                saveDeadlineAndFinish(title, description, section, category)
                             }
                         },
                         onDelete = if (existingDeadline != null) {
@@ -200,10 +266,16 @@ class QuickAddActivity : ComponentActivity() {
         }
     }
 
-    private fun saveDeadlineAndFinish(title: String, section: String, category: Category) {
+    private fun saveDeadlineAndFinish(
+        title: String,
+        description: String?,
+        section: String,
+        category: Category
+    ) {
         val dueDate = calculateDueDateForSection(section)
         val deadline = Deadline(
             title = title.trim().toTitleCase(),
+            description = description?.trim()?.ifEmpty { null }?.toSentenceCase(),
             dueDate = dueDate,
             category = category,
             priority = Priority.MEDIUM,
@@ -226,7 +298,13 @@ class QuickAddActivity : ComponentActivity() {
         finish()
     }
 
-    private fun updateDeadlineAndFinish(existingDeadline: Deadline, title: String, section: String, category: Category) {
+    private fun updateDeadlineAndFinish(
+        existingDeadline: Deadline,
+        title: String,
+        description: String?,
+        section: String,
+        category: Category
+    ) {
         val originalSection = getSectionForDeadline(existingDeadline.dueDate, existingDeadline.dueTime)
         val targetDueDate = if (section == originalSection) {
             existingDeadline.dueDate
@@ -236,6 +314,7 @@ class QuickAddActivity : ComponentActivity() {
 
         val updated = existingDeadline.copy(
             title = title.trim().toTitleCase(),
+            description = description?.trim()?.ifEmpty { null }?.toSentenceCase(),
             dueDate = targetDueDate,
             category = category
         )
@@ -274,18 +353,18 @@ class QuickAddActivity : ComponentActivity() {
 
 @Composable
 fun QuickAddDialogScreen(
-    initialTitle: String = "",
+    initialInput: String = "",
     initialSection: String,
     initialCategory: Category = Category.OTHER,
     categories: List<Category> = Category.builtInCategories,
     isEditMode: Boolean = false,
     onDismiss: () -> Unit,
-    onSave: (String, String, Category) -> Unit,
+    onSave: (String, String?, String, Category) -> Unit,
     onDelete: (() -> Unit)? = null,
     onOpenInApp: (() -> Unit)? = null
 ) {
-    var textFieldValue by remember(initialTitle) {
-        mutableStateOf(TextFieldValue(initialTitle, TextRange(initialTitle.length)))
+    var textFieldValue by remember(initialInput) {
+        mutableStateOf(TextFieldValue(initialInput, TextRange(initialInput.length)))
     }
     var selectedSection by remember(initialSection) { mutableStateOf(initialSection) }
     var selectedCategory by remember(initialCategory) { mutableStateOf(initialCategory) }
@@ -454,7 +533,7 @@ fun QuickAddDialogScreen(
 
                 Spacer(modifier = Modifier.height(14.dp))
 
-                // Title Input
+                // Title & Description Multiline Input
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -466,37 +545,47 @@ fun QuickAddDialogScreen(
                             RoundedCornerShape(12.dp)
                         )
                         .padding(horizontal = 14.dp, vertical = 12.dp),
-                    contentAlignment = Alignment.CenterStart
+                    contentAlignment = Alignment.TopStart
                 ) {
                     if (textFieldValue.text.isEmpty()) {
-                        Text(
-                            text = "What needs to be done?",
-                            color = TextTertiary,
-                            fontSize = 15.sp
-                        )
+                        Column {
+                            Text(
+                                text = "What needs to be done?",
+                                color = TextTertiary,
+                                fontSize = 15.sp,
+                                fontWeight = FontWeight.SemiBold
+                            )
+                            Spacer(modifier = Modifier.height(2.dp))
+                            Text(
+                                text = "Add description on next line (optional)",
+                                color = TextTertiary.copy(alpha = 0.7f),
+                                fontSize = 13.5.sp,
+                                fontWeight = FontWeight.Normal
+                            )
+                        }
                     }
                     BasicTextField(
                         value = textFieldValue,
                         onValueChange = {
                             textFieldValue = it
-                            if (it.text.isNotBlank()) isError = false
+                            val (title, _) = parseQuickAddInput(it.text)
+                            if (title.isNotBlank()) isError = false
                         },
-                        singleLine = true,
+                        singleLine = false,
+                        minLines = 2,
+                        maxLines = 6,
+                        visualTransformation = QuickAddVisualTransformation,
                         textStyle = TextStyle(
                             fontSize = 15.sp,
                             color = TextPrimary,
-                            fontWeight = FontWeight.Normal
+                            fontWeight = FontWeight.Normal,
+                            lineHeight = 22.sp
                         ),
                         cursorBrush = SolidColor(FabGreen),
-                        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
-                        keyboardActions = KeyboardActions(
-                            onDone = {
-                                if (textFieldValue.text.isBlank()) {
-                                    isError = true
-                                } else {
-                                    onSave(textFieldValue.text, selectedSection, selectedCategory)
-                                }
-                            }
+                        keyboardOptions = KeyboardOptions(
+                            capitalization = KeyboardCapitalization.Sentences,
+                            autoCorrectEnabled = true,
+                            imeAction = ImeAction.Default
                         ),
                         modifier = Modifier
                             .fillMaxWidth()
@@ -745,10 +834,11 @@ fun QuickAddDialogScreen(
 
                     Button(
                         onClick = {
-                            if (textFieldValue.text.isBlank()) {
+                            val (title, description) = parseQuickAddInput(textFieldValue.text)
+                            if (title.isBlank()) {
                                 isError = true
                             } else {
-                                onSave(textFieldValue.text, selectedSection, selectedCategory)
+                                onSave(title, description, selectedSection, selectedCategory)
                             }
                         },
                         shape = RoundedCornerShape(12.dp),
