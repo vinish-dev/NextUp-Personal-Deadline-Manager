@@ -4,6 +4,7 @@ import android.content.Intent
 import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.background
@@ -18,6 +19,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -28,6 +30,7 @@ import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.OpenInNew
@@ -63,6 +66,7 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.PopupProperties
 import com.vinish.nextup.MainActivity
 import com.vinish.nextup.NextUpApplication
 import com.vinish.nextup.model.Category
@@ -108,6 +112,7 @@ class QuickAddActivity : ComponentActivity() {
             NextUpTheme {
                 var existingDeadline by remember { mutableStateOf<Deadline?>(null) }
                 var initialTitle by remember { mutableStateOf("") }
+                var initialCategory by remember { mutableStateOf(Category.OTHER) }
                 var initialSection by remember {
                     mutableStateOf(initialSectionFromIntent ?: NextUpWidgetProvider.SECTION_TODAY)
                 }
@@ -122,6 +127,7 @@ class QuickAddActivity : ComponentActivity() {
                         if (deadline != null) {
                             existingDeadline = deadline
                             initialTitle = deadline.title
+                            initialCategory = deadline.category
                             initialSection = initialSectionFromIntent ?: getSectionForDeadline(deadline.dueDate, deadline.dueTime)
                         }
                         isReady = true
@@ -132,14 +138,15 @@ class QuickAddActivity : ComponentActivity() {
                     QuickAddDialogScreen(
                         initialTitle = initialTitle,
                         initialSection = initialSection,
+                        initialCategory = initialCategory,
                         isEditMode = taskId != -1L && existingDeadline != null,
                         onDismiss = { finish() },
-                        onSave = { title, section ->
+                        onSave = { title, section, category ->
                             val currentDeadline = existingDeadline
                             if (currentDeadline != null) {
-                                updateDeadlineAndFinish(currentDeadline, title, section)
+                                updateDeadlineAndFinish(currentDeadline, title, section, category)
                             } else {
-                                saveDeadlineAndFinish(title, section)
+                                saveDeadlineAndFinish(title, section, category)
                             }
                         },
                         onDelete = if (existingDeadline != null) {
@@ -193,12 +200,12 @@ class QuickAddActivity : ComponentActivity() {
         }
     }
 
-    private fun saveDeadlineAndFinish(title: String, section: String) {
+    private fun saveDeadlineAndFinish(title: String, section: String, category: Category) {
         val dueDate = calculateDueDateForSection(section)
         val deadline = Deadline(
             title = title.trim().toTitleCase(),
             dueDate = dueDate,
-            category = Category.OTHER,
+            category = category,
             priority = Priority.MEDIUM,
             reminder = Reminder.AT_TIME,
             isCompleted = false
@@ -219,7 +226,7 @@ class QuickAddActivity : ComponentActivity() {
         finish()
     }
 
-    private fun updateDeadlineAndFinish(existingDeadline: Deadline, title: String, section: String) {
+    private fun updateDeadlineAndFinish(existingDeadline: Deadline, title: String, section: String, category: Category) {
         val originalSection = getSectionForDeadline(existingDeadline.dueDate, existingDeadline.dueTime)
         val targetDueDate = if (section == originalSection) {
             existingDeadline.dueDate
@@ -229,7 +236,8 @@ class QuickAddActivity : ComponentActivity() {
 
         val updated = existingDeadline.copy(
             title = title.trim().toTitleCase(),
-            dueDate = targetDueDate
+            dueDate = targetDueDate,
+            category = category
         )
 
         val app = application as? NextUpApplication
@@ -268,9 +276,11 @@ class QuickAddActivity : ComponentActivity() {
 fun QuickAddDialogScreen(
     initialTitle: String = "",
     initialSection: String,
+    initialCategory: Category = Category.OTHER,
+    categories: List<Category> = Category.builtInCategories,
     isEditMode: Boolean = false,
     onDismiss: () -> Unit,
-    onSave: (String, String) -> Unit,
+    onSave: (String, String, Category) -> Unit,
     onDelete: (() -> Unit)? = null,
     onOpenInApp: (() -> Unit)? = null
 ) {
@@ -278,7 +288,9 @@ fun QuickAddDialogScreen(
         mutableStateOf(TextFieldValue(initialTitle, TextRange(initialTitle.length)))
     }
     var selectedSection by remember(initialSection) { mutableStateOf(initialSection) }
-    var isDropdownExpanded by remember { mutableStateOf(false) }
+    var selectedCategory by remember(initialCategory) { mutableStateOf(initialCategory) }
+    var isSectionDropdownExpanded by remember { mutableStateOf(false) }
+    var isCategoryDropdownExpanded by remember { mutableStateOf(false) }
     var isError by remember { mutableStateOf(false) }
     var showDeleteConfirmDialog by remember { mutableStateOf(false) }
 
@@ -293,8 +305,14 @@ fun QuickAddDialogScreen(
         NextUpWidgetProvider.SECTION_SOMEDAY
     )
 
+    // Close any open popup on back press without closing the activity
+    BackHandler(enabled = isCategoryDropdownExpanded || isSectionDropdownExpanded) {
+        isCategoryDropdownExpanded = false
+        isSectionDropdownExpanded = false
+    }
+
+    // Immediately request focus and show software keyboard so layout does not shift after delay
     LaunchedEffect(Unit) {
-        delay(200.milliseconds)
         focusRequester.requestFocus()
         keyboardController?.show()
     }
@@ -476,7 +494,7 @@ fun QuickAddDialogScreen(
                                 if (textFieldValue.text.isBlank()) {
                                     isError = true
                                 } else {
-                                    onSave(textFieldValue.text, selectedSection)
+                                    onSave(textFieldValue.text, selectedSection, selectedCategory)
                                 }
                             }
                         ),
@@ -497,14 +515,127 @@ fun QuickAddDialogScreen(
 
                 Spacer(modifier = Modifier.height(14.dp))
 
-                // Section Selector Row with Dropdown
+                // Category Selector Row
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     Text(
-                        text = "Due section:",
+                        text = "Category:",
+                        fontSize = 14.sp,
+                        color = TextSecondary,
+                        fontWeight = FontWeight.Medium
+                    )
+
+                    Box {
+                        Row(
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(10.dp))
+                                .background(selectedCategory.iconBackground)
+                                .border(
+                                    1.dp,
+                                    selectedCategory.iconTint.copy(alpha = 0.25f),
+                                    RoundedCornerShape(10.dp)
+                                )
+                                .clickable {
+                                    isSectionDropdownExpanded = false
+                                    isCategoryDropdownExpanded = true
+                                }
+                                .padding(horizontal = 10.dp, vertical = 7.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .size(20.dp)
+                                    .clip(RoundedCornerShape(6.dp))
+                                    .background(selectedCategory.iconBackground),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    imageVector = selectedCategory.icon,
+                                    contentDescription = selectedCategory.displayName(),
+                                    tint = selectedCategory.iconTint,
+                                    modifier = Modifier.size(15.dp)
+                                )
+                            }
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Text(
+                                text = selectedCategory.displayName(),
+                                fontSize = 13.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = selectedCategory.iconTint
+                            )
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Icon(
+                                imageVector = Icons.Filled.ArrowDropDown,
+                                contentDescription = "Select category",
+                                tint = selectedCategory.iconTint,
+                                modifier = Modifier.size(18.dp)
+                            )
+                        }
+
+                        DropdownMenu(
+                            expanded = isCategoryDropdownExpanded,
+                            onDismissRequest = { isCategoryDropdownExpanded = false },
+                            properties = PopupProperties(
+                                focusable = false,
+                                dismissOnBackPress = true,
+                                dismissOnClickOutside = true
+                            ),
+                            modifier = Modifier
+                                .background(SurfaceWhite)
+                                .heightIn(max = 240.dp)
+                        ) {
+                            categories.forEach { category ->
+                                val isSelected = category.matches(selectedCategory)
+                                DropdownMenuItem(
+                                    leadingIcon = {
+                                        Box(
+                                            modifier = Modifier
+                                                .size(26.dp)
+                                                .clip(RoundedCornerShape(6.dp))
+                                                .background(category.iconBackground),
+                                            contentAlignment = Alignment.Center
+                                        ) {
+                                            Icon(
+                                                imageVector = category.icon,
+                                                contentDescription = category.displayName(),
+                                                tint = category.iconTint,
+                                                modifier = Modifier.size(16.dp)
+                                            )
+                                        }
+                                    },
+                                    text = {
+                                        Text(
+                                            text = category.displayName(),
+                                            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+                                            color = if (isSelected) category.iconTint else TextPrimary,
+                                            fontSize = 14.sp
+                                        )
+                                    },
+                                    onClick = {
+                                        selectedCategory = category
+                                        isCategoryDropdownExpanded = false
+                                        focusRequester.requestFocus()
+                                        keyboardController?.show()
+                                    }
+                                )
+                            }
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(10.dp))
+
+                // Date / Section Selector Row with Dropdown
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text(
+                        text = "Due date:",
                         fontSize = 14.sp,
                         color = TextSecondary,
                         fontWeight = FontWeight.Medium
@@ -521,10 +652,20 @@ fun QuickAddDialogScreen(
                                     if (isSectionOverdue) Color(0xFFFFCDD2) else Color(0xFFDCFCE7),
                                     RoundedCornerShape(10.dp)
                                 )
-                                .clickable { isDropdownExpanded = true }
-                                .padding(horizontal = 12.dp, vertical = 8.dp),
+                                .clickable {
+                                    isCategoryDropdownExpanded = false
+                                    isSectionDropdownExpanded = true
+                                }
+                                .padding(horizontal = 10.dp, vertical = 7.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
+                            Icon(
+                                imageVector = Icons.Filled.CalendarMonth,
+                                contentDescription = null,
+                                tint = if (isSectionOverdue) Color(0xFFE53935) else Color(0xFF166534),
+                                modifier = Modifier.size(16.dp)
+                            )
+                            Spacer(modifier = Modifier.width(6.dp))
                             Text(
                                 text = selectedSection,
                                 fontSize = 13.sp,
@@ -534,15 +675,23 @@ fun QuickAddDialogScreen(
                             Spacer(modifier = Modifier.width(4.dp))
                             Icon(
                                 imageVector = Icons.Filled.ArrowDropDown,
-                                contentDescription = "Select section",
+                                contentDescription = "Select due date",
                                 tint = if (isSectionOverdue) Color(0xFFE53935) else Color(0xFF166534),
                                 modifier = Modifier.size(18.dp)
                             )
                         }
 
                         DropdownMenu(
-                            expanded = isDropdownExpanded,
-                            onDismissRequest = { isDropdownExpanded = false }
+                            expanded = isSectionDropdownExpanded,
+                            onDismissRequest = { isSectionDropdownExpanded = false },
+                            properties = PopupProperties(
+                                focusable = false,
+                                dismissOnBackPress = true,
+                                dismissOnClickOutside = true
+                            ),
+                            modifier = Modifier
+                                .background(SurfaceWhite)
+                                .heightIn(max = 240.dp)
                         ) {
                             sections.forEach { sectionName ->
                                 val isOverdueOption = sectionName == NextUpWidgetProvider.SECTION_OVERDUE
@@ -557,12 +706,15 @@ fun QuickAddDialogScreen(
                                                 isSelected -> FabGreen
                                                 isOverdueOption -> Color(0xFFE53935)
                                                 else -> TextPrimary
-                                            }
+                                            },
+                                            fontSize = 14.sp
                                         )
                                     },
                                     onClick = {
                                         selectedSection = sectionName
-                                        isDropdownExpanded = false
+                                        isSectionDropdownExpanded = false
+                                        focusRequester.requestFocus()
+                                        keyboardController?.show()
                                     }
                                 )
                             }
@@ -596,7 +748,7 @@ fun QuickAddDialogScreen(
                             if (textFieldValue.text.isBlank()) {
                                 isError = true
                             } else {
-                                onSave(textFieldValue.text, selectedSection)
+                                onSave(textFieldValue.text, selectedSection, selectedCategory)
                             }
                         },
                         shape = RoundedCornerShape(12.dp),

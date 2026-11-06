@@ -31,6 +31,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.PopupProperties
 import com.vinish.nextup.model.Category
 import com.vinish.nextup.ui.theme.BorderLight
 import com.vinish.nextup.ui.theme.SurfaceWhite
@@ -104,7 +105,12 @@ fun CategorySelector(
             DropdownMenu(
                 expanded = expanded,
                 onDismissRequest = { expanded = false },
-                modifier = Modifier.background(SurfaceWhite)
+                modifier = Modifier.background(SurfaceWhite),
+                properties = PopupProperties(
+                    focusable = false,
+                    dismissOnBackPress = true,
+                    dismissOnClickOutside = true
+                )
             ) {
                 categories.forEach { category ->
                     DropdownMenuItem(
