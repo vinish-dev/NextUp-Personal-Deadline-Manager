@@ -45,6 +45,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -367,9 +368,8 @@ fun QuickAddDialogScreen(
         mutableStateOf(TextFieldValue(initialInput, TextRange(initialInput.length)))
     }
     var selectedSection by remember(initialSection) { mutableStateOf(initialSection) }
-    var selectedCategory by remember(initialCategory) { mutableStateOf(initialCategory) }
+    val selectedCategory = remember(initialCategory) { initialCategory }
     var isSectionDropdownExpanded by remember { mutableStateOf(false) }
-    var isCategoryDropdownExpanded by remember { mutableStateOf(false) }
     var isError by remember { mutableStateOf(false) }
     var showDeleteConfirmDialog by remember { mutableStateOf(false) }
 
@@ -385,8 +385,7 @@ fun QuickAddDialogScreen(
     )
 
     // Close any open popup on back press without closing the activity
-    BackHandler(enabled = isCategoryDropdownExpanded || isSectionDropdownExpanded) {
-        isCategoryDropdownExpanded = false
+    BackHandler(enabled = isSectionDropdownExpanded) {
         isSectionDropdownExpanded = false
     }
 
@@ -471,7 +470,7 @@ fun QuickAddDialogScreen(
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(20.dp)
+                    .padding(18.dp)
             ) {
                 // Header
                 Row(
@@ -604,119 +603,6 @@ fun QuickAddDialogScreen(
 
                 Spacer(modifier = Modifier.height(14.dp))
 
-                // Category Selector Row
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.SpaceBetween
-                ) {
-                    Text(
-                        text = "Category:",
-                        fontSize = 14.sp,
-                        color = TextSecondary,
-                        fontWeight = FontWeight.Medium
-                    )
-
-                    Box {
-                        Row(
-                            modifier = Modifier
-                                .clip(RoundedCornerShape(10.dp))
-                                .background(selectedCategory.iconBackground)
-                                .border(
-                                    1.dp,
-                                    selectedCategory.iconTint.copy(alpha = 0.25f),
-                                    RoundedCornerShape(10.dp)
-                                )
-                                .clickable {
-                                    isSectionDropdownExpanded = false
-                                    isCategoryDropdownExpanded = true
-                                }
-                                .padding(horizontal = 10.dp, vertical = 7.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Box(
-                                modifier = Modifier
-                                    .size(20.dp)
-                                    .clip(RoundedCornerShape(6.dp))
-                                    .background(selectedCategory.iconBackground),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Icon(
-                                    imageVector = selectedCategory.icon,
-                                    contentDescription = selectedCategory.displayName(),
-                                    tint = selectedCategory.iconTint,
-                                    modifier = Modifier.size(15.dp)
-                                )
-                            }
-                            Spacer(modifier = Modifier.width(6.dp))
-                            Text(
-                                text = selectedCategory.displayName(),
-                                fontSize = 13.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = selectedCategory.iconTint
-                            )
-                            Spacer(modifier = Modifier.width(4.dp))
-                            Icon(
-                                imageVector = Icons.Filled.ArrowDropDown,
-                                contentDescription = "Select category",
-                                tint = selectedCategory.iconTint,
-                                modifier = Modifier.size(18.dp)
-                            )
-                        }
-
-                        DropdownMenu(
-                            expanded = isCategoryDropdownExpanded,
-                            onDismissRequest = { isCategoryDropdownExpanded = false },
-                            properties = PopupProperties(
-                                focusable = false,
-                                dismissOnBackPress = true,
-                                dismissOnClickOutside = true
-                            ),
-                            modifier = Modifier
-                                .background(SurfaceWhite)
-                                .heightIn(max = 240.dp)
-                        ) {
-                            categories.forEach { category ->
-                                val isSelected = category.matches(selectedCategory)
-                                DropdownMenuItem(
-                                    leadingIcon = {
-                                        Box(
-                                            modifier = Modifier
-                                                .size(26.dp)
-                                                .clip(RoundedCornerShape(6.dp))
-                                                .background(category.iconBackground),
-                                            contentAlignment = Alignment.Center
-                                        ) {
-                                            Icon(
-                                                imageVector = category.icon,
-                                                contentDescription = category.displayName(),
-                                                tint = category.iconTint,
-                                                modifier = Modifier.size(16.dp)
-                                            )
-                                        }
-                                    },
-                                    text = {
-                                        Text(
-                                            text = category.displayName(),
-                                            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
-                                            color = if (isSelected) category.iconTint else TextPrimary,
-                                            fontSize = 14.sp
-                                        )
-                                    },
-                                    onClick = {
-                                        selectedCategory = category
-                                        isCategoryDropdownExpanded = false
-                                        focusRequester.requestFocus()
-                                        keyboardController?.show()
-                                    }
-                                )
-                            }
-                        }
-                    }
-                }
-
-                Spacer(modifier = Modifier.height(10.dp))
-
                 // Date / Section Selector Row with Dropdown
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -724,8 +610,8 @@ fun QuickAddDialogScreen(
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
                     Text(
-                        text = "Due date:",
-                        fontSize = 14.sp,
+                        text = "Due date",
+                        fontSize = 13.5.sp,
                         color = TextSecondary,
                         fontWeight = FontWeight.Medium
                     )
@@ -742,23 +628,22 @@ fun QuickAddDialogScreen(
                                     RoundedCornerShape(10.dp)
                                 )
                                 .clickable {
-                                    isCategoryDropdownExpanded = false
                                     isSectionDropdownExpanded = true
                                 }
-                                .padding(horizontal = 10.dp, vertical = 7.dp),
+                                .padding(horizontal = 10.dp, vertical = 6.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Icon(
                                 imageVector = Icons.Filled.CalendarMonth,
                                 contentDescription = null,
                                 tint = if (isSectionOverdue) Color(0xFFE53935) else Color(0xFF166534),
-                                modifier = Modifier.size(16.dp)
+                                modifier = Modifier.size(15.dp)
                             )
                             Spacer(modifier = Modifier.width(6.dp))
                             Text(
                                 text = selectedSection,
                                 fontSize = 13.sp,
-                                fontWeight = FontWeight.Bold,
+                                fontWeight = FontWeight.SemiBold,
                                 color = if (isSectionOverdue) Color(0xFFE53935) else Color(0xFF166534)
                             )
                             Spacer(modifier = Modifier.width(4.dp))
@@ -788,49 +673,51 @@ fun QuickAddDialogScreen(
                                 DropdownMenuItem(
                                     text = {
                                         Text(
-                                            text = sectionName,
-                                            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
-                                            color = when {
-                                                isSelected && isOverdueOption -> Color(0xFFE53935)
-                                                isSelected -> FabGreen
-                                                isOverdueOption -> Color(0xFFE53935)
-                                                else -> TextPrimary
-                                            },
-                                            fontSize = 14.sp
-                                        )
-                                    },
-                                    onClick = {
-                                        selectedSection = sectionName
-                                        isSectionDropdownExpanded = false
-                                        focusRequester.requestFocus()
-                                        keyboardController?.show()
-                                    }
-                                )
-                            }
-                        }
-                    }
-                }
+                                             text = sectionName,
+                                             fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal,
+                                             color = when {
+                                                 isSelected && isOverdueOption -> Color(0xFFE53935)
+                                                 isSelected -> FabGreen
+                                                 isOverdueOption -> Color(0xFFE53935)
+                                                 else -> TextPrimary
+                                             },
+                                             fontSize = 14.sp
+                                         )
+                                     },
+                                     onClick = {
+                                         selectedSection = sectionName
+                                         isSectionDropdownExpanded = false
+                                         focusRequester.requestFocus()
+                                         keyboardController?.show()
+                                     }
+                                 )
+                             }
+                         }
+                     }
+                 }
 
-                Spacer(modifier = Modifier.height(20.dp))
+                Spacer(modifier = Modifier.height(16.dp))
 
                 // Buttons
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.End
+                    horizontalArrangement = Arrangement.End,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    OutlinedButton(
+                    TextButton(
                         onClick = onDismiss,
-                        shape = RoundedCornerShape(12.dp),
-                        modifier = Modifier.height(44.dp)
+                        shape = RoundedCornerShape(10.dp),
+                        modifier = Modifier.height(38.dp)
                     ) {
                         Text(
                             text = "Cancel",
                             color = TextSecondary,
-                            fontWeight = FontWeight.Medium
+                            fontWeight = FontWeight.Medium,
+                            fontSize = 14.sp
                         )
                     }
 
-                    Spacer(modifier = Modifier.width(10.dp))
+                    Spacer(modifier = Modifier.width(8.dp))
 
                     Button(
                         onClick = {
@@ -841,16 +728,17 @@ fun QuickAddDialogScreen(
                                 onSave(title, description, selectedSection, selectedCategory)
                             }
                         },
-                        shape = RoundedCornerShape(12.dp),
+                        shape = RoundedCornerShape(10.dp),
                         colors = ButtonDefaults.buttonColors(
                             containerColor = FabGreen,
                             contentColor = Color.White
                         ),
-                        modifier = Modifier.height(44.dp)
+                        modifier = Modifier.height(38.dp)
                     ) {
                         Text(
                             text = if (isEditMode) "Save Changes" else "Add Deadline",
-                            fontWeight = FontWeight.Bold
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 14.sp
                         )
                     }
                 }

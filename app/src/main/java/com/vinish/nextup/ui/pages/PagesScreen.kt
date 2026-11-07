@@ -451,3 +451,21 @@ private fun cleanMarkdownPreview(content: String): String {
         .joinToString("\n")
 }
 
+@androidx.compose.ui.tooling.preview.Preview(showSystemUi = true, showBackground = true)
+@Composable
+private fun PagesScreenPreview() {
+    PagesScreen(
+        entries = listOf(
+            JournalEntryEntity(
+                date = LocalDate.now().toString(),
+                content = "# Daily Focus\nAccomplished all task items for today and prepped for mock interviews."
+            ),
+            JournalEntryEntity(
+                date = LocalDate.now().minusDays(1).toString(),
+                content = "Read 15 research papers and drafted DBMS summary notes."
+            )
+        ),
+        onOpenJournal = {}
+    )
+}
+
